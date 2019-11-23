@@ -1,0 +1,28 @@
+{
+  "name": "colonyServer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node-dev src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "apollo-server-express": "^2.9.12",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "etherpass": "^1.0.2",
+    "express": "^4.17.1",
+    "graphql": "^14.5.8",
+    "jose": "^1.12.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.2",
+    "@types/node": "^12.12.11",
+    "ts-node-dev": "^1.0.0-pre.44",
+    "typescript": "^3.7.2"
+  }
+}
