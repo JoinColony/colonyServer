@@ -30,7 +30,7 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    createUser(username: String!, address: String!): User!
+    createUser(address: String!, username: String!): User!
     editUser(address: String!, profile: UserProfileInput!): User!
   }
 `
@@ -84,6 +84,7 @@ const resolvers = {
           ...profile,
         },
       }
+      return user;
     },
   },
 }
@@ -101,7 +102,6 @@ export const server = new ApolloServer({
       throw new AuthenticationError('Not authenticated')
     }
 
-    // FIXME we probably want to get the full user from the database here
     return { user: address }
   },
 })

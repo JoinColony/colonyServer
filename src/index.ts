@@ -27,7 +27,6 @@ app.post('/auth/token', (req, res) => {
   return res.json({ token, address })
 })
 
-// FIXME do authentication
 apolloServer.applyMiddleware({ app })
 
 app.listen(port, () => {
