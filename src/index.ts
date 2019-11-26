@@ -1,35 +1,49 @@
-import * as express from 'express'
+import express from 'express'
 import { json } from 'body-parser'
-import { readFileSync } from 'fs'
-import * as cors from 'cors'
+import cors from 'cors'
 import { getChallenge, verifyEthSignature } from 'etherpass'
 
-import { server as apolloServer } from './graphql'
+import { createApolloServer } from './graphql'
 import { getTokenForAddress } from './auth'
 
-const app = express()
-const port = 3000
+import { connect } from './db/connect'
+import { connectNetwork } from './network/connect'
 
-app.use(cors())
-app.use(json())
+const startServer = async () => {
+  const { db } = await connect() // we can also close the client from here
+  const network = await connectNetwork()
+  const apolloServer = createApolloServer(db, network)
 
-app.post('/auth/challenge', (req, res) => {
-  console.log(req.body)
-  // TODO: validation
-  const challenge = getChallenge(req.body.address)
-  return res.json({ challenge })
-})
+  const app = express()
+  const port = 3000
 
-app.post('/auth/token', (req, res) => {
-  // TODO: validation
-  const address = verifyEthSignature(req.body.challenge, req.body.signature)
-  const token = getTokenForAddress(address)
-  return res.json({ token, address })
-})
+  app.use(cors())
+  app.use(json())
 
-apolloServer.applyMiddleware({ app })
+  app.post('/auth/challenge', (req, res) => {
+    console.log(req.body)
+    // TODO: validation
+    const challenge = getChallenge(req.body.address)
+    return res.json({ challenge })
+  })
 
-app.listen(port, () => {
-  console.log(`Started on port ${port}`)
-  console.log(`GraphQL at http://localhost:${port}${apolloServer.graphqlPath}`)
-})
+  app.post('/auth/token', (req, res) => {
+    // TODO: validationx
+    const address = verifyEthSignature(req.body.challenge, req.body.signature)
+    const token = getTokenForAddress(address)
+    return res.json({ token, address })
+  })
+
+  apolloServer.applyMiddleware({ app })
+
+  app.listen(port, () => {
+    console.log(`Started on port ${port}`)
+    console.log(
+      `GraphQL at http://localhost:${port}${apolloServer.graphqlPath}`,
+    )
+  })
+}
+
+startServer()
+  .then(() => console.info('Server started successfully'))
+  .catch(error => console.error(error))

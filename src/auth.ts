@@ -20,7 +20,13 @@ export const getAddressFromToken = (token: string) => {
     // Remove Bearer from string
     token = token.slice(7, token.length)
   }
-  const { address } = JWT.decode(token) as { address: string }
-  // FIXME check expiry date
-  return address;
+
+  const { address, exp } = JWT.decode(token) as { address: string; exp: number }
+
+  // FIXME enable this check
+  // if (Date.now() > exp) {
+  //   throw new Error('Authentication token expired')
+  // }
+
+  return address
 }
