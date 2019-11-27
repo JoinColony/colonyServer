@@ -2,9 +2,24 @@ import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Collection, Db, ObjectID } from 'mongodb'
 import { CollectionNames } from './collections'
 
-interface UserObj {
-  _id: ObjectID
+interface MongoDoc {
+  readonly _id: ObjectID
+}
+
+interface UserDoc extends MongoDoc {
   walletAddress: string
+}
+
+interface ColonyDoc extends MongoDoc {
+  colonyAddress: string
+  colonyName: string
+}
+
+interface TaskDoc extends MongoDoc {
+  colonyAddress: string
+  creatorAddress: string
+  ethDomainId: number
+  ethTaskId?: number
 }
 
 /**
@@ -32,7 +47,7 @@ class ColonyMongoDataSource<T> extends MongoDataSource<T> {
 export class Users extends ColonyMongoDataSource<any> {
   protected static collectionName = CollectionNames.Users
 
-  private static transform({ _id: mongoId, ...userObj }: UserObj) {
+  private static transform({ _id: mongoId, ...userObj }: UserDoc) {
     return {
       id: userObj.walletAddress,
       profile: userObj,
@@ -41,18 +56,31 @@ export class Users extends ColonyMongoDataSource<any> {
 
   async getOne(walletAddress) {
     // TODO use findOneById
-    const doc = await this.collection.findOne<UserObj>({ walletAddress })
+    const doc = await this.collection.findOne<UserDoc>({ walletAddress })
     if (!doc) throw new Error(`User with address '${walletAddress}' not found`)
     return Users.transform(doc)
   }
 
   async create(walletAddress: string, username: string) {
-    const doc = { walletAddress, username, colonies: [], tasks: [] }
+    const doc = { walletAddress, username }
+
+    const exists = !!(await this.collection.findOne({
+      $or: [{ walletAddress }, { username }],
+    }))
+    if (exists) {
+      throw new Error(
+        `User with address '${walletAddress}' or username '${username}' already exists`,
+      )
+    }
+
+    // An upsert is used even if it's not strictly necessary because
+    // it's not the job of a unique index to preserve data integrity.
     await this.collection.updateOne(
       doc,
       { $setOnInsert: doc },
       { upsert: true },
     )
+
     return this.getOne(walletAddress)
   }
 
@@ -94,11 +122,11 @@ export class Colonies extends ColonyMongoDataSource<any> {
   protected static collectionName = CollectionNames.Colonies
 
   async getOne(colonyAddress: string) {
-    const doc = await this.collection.findOne({ colonyAddress })
+    const doc = await this.collection.findOne<ColonyDoc>({ colonyAddress })
     if (!doc) {
       throw new Error(`Colony with address '${colonyAddress}' not found`)
     }
-    return doc
+    return { ...doc, id: doc.colonyAddress }
   }
 
   async create(
@@ -107,11 +135,24 @@ export class Colonies extends ColonyMongoDataSource<any> {
     founderAddress: string,
   ) {
     const doc = { colonyAddress, colonyName, founderAddress }
+
+    const exists = !!(await this.collection.findOne({
+      $or: [{ colonyAddress }, { colonyName }],
+    }))
+    if (exists) {
+      throw new Error(
+        `Colony with address '${colonyAddress}' or name '${colonyName}' already exists`,
+      )
+    }
+
+    // An upsert is used even if it's not strictly necessary because
+    // it's not the job of a unique index to preserve data integrity.
     await this.collection.updateOne(
       doc,
       { $setOnInsert: doc },
       { upsert: true },
     )
+
     return this.getOne(colonyAddress)
   }
 
@@ -133,23 +174,28 @@ export class Tasks extends ColonyMongoDataSource<any> {
   protected static collectionName = CollectionNames.Tasks
 
   async getOne(id: string) {
-    const doc = await this.collection.findOne({ _id: id })
+    const doc = await this.collection.findOne<TaskDoc>({
+      _id: new ObjectID(id),
+    })
     if (!doc) throw new Error(`Task with Mongo ID '${id}' not found`)
-    return doc
+    return { ...doc, id: doc._id.toString() }
   }
 
   async getOneByEthId(ethTaskId: number, colonyAddress: string) {
-    const doc = await this.collection.findOne({ ethTaskId, colonyAddress })
+    const doc = await this.collection.findOne<TaskDoc>({
+      ethTaskId,
+      colonyAddress,
+    })
     if (!doc) {
       throw new Error(
         `Task with Eth ID '${ethTaskId}' not found for colony with address '${colonyAddress}'`,
       )
     }
-    return doc
+    return { ...doc, id: doc._id.toString() }
   }
 
-  async create(colonyAddress: string, creatorAddress: string) {
-    const doc = { colonyAddress, creatorAddress }
+  async create(colonyAddress: string, creatorAddress: string, ethDomainId) {
+    const doc = { colonyAddress, creatorAddress, ethDomainId }
     const { insertedId } = await this.collection.insertOne(doc)
     return this.getOne(insertedId.toString())
   }

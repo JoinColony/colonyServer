@@ -7,12 +7,11 @@ import { createApolloServer } from './graphql'
 import { getTokenForAddress } from './auth'
 
 import { connect } from './db/connect'
-import { connectNetwork } from './network/connect'
+import { provider } from './network/connect'
 
 const startServer = async () => {
-  const { db } = await connect() // we can also close the client from here
-  const network = await connectNetwork()
-  const apolloServer = createApolloServer(db, network)
+  const { db } = await connect()
+  const apolloServer = createApolloServer(db, provider)
 
   const app = express()
   const port = 3000

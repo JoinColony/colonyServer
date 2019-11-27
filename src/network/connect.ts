@@ -9,7 +9,7 @@ const ETH_NETWORK = 'http://localhost:8545'
 // FIXME use env var
 const NETWORK_CONTRACT_ADDRESS = '0xde3EDaBA7c15F845F59D1058eCD70Ed33FfdB2b9'
 
-const provider = new providers.JsonRpcProvider(ETH_NETWORK)
+export const provider = new providers.JsonRpcProvider(ETH_NETWORK)
 
 export const connectNetwork = async () =>
   IColonyNetworkFactory.connect(

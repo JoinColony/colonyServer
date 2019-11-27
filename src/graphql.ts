@@ -1,17 +1,22 @@
 import { IResolvers } from 'graphql-tools'
-import { ApolloServer, AuthenticationError, gql } from 'apollo-server-express'
+import {
+  ApolloServer,
+  AuthenticationError,
+  ForbiddenError,
+  gql,
+} from 'apollo-server-express'
 import { Db } from 'mongodb'
 
 import { getAddressFromToken } from './auth'
 import { Colonies, Tasks, Users } from './db/datasources'
-import { Network } from './network/datasources'
-import { IColonyNetwork } from './network/contracts/IColonyNetwork'
+import { ColonyAuth } from './network/datasources'
+import { Provider } from 'ethers/providers'
 
 interface ApolloContext {
   user: string
   dataSources: {
     colonies: Colonies
-    network: Network
+    auth: ColonyAuth
     tasks: Tasks
     users: Users
   }
@@ -92,7 +97,7 @@ const typeDefs = gql`
   }
 
   input CreateColonyInput {
-    address: String!
+    colonyAddress: String!
     colonyName: String!
   }
 
@@ -132,6 +137,20 @@ const asMutationResponse = async <T>(
     ok: true,
     error: null,
     value,
+  }
+}
+
+const tryAuth = async (promise: Promise<boolean>) => {
+  let auth = false
+
+  try {
+    auth = await promise
+  } catch (caughtError) {
+    throw new ForbiddenError(caughtError.message || caughtError.toString())
+  }
+
+  if (!auth) {
+    throw new ForbiddenError('Not allowed')
   }
 }
 
@@ -191,16 +210,18 @@ const resolvers: IResolvers<any, ApolloContext> = {
     async createTask(
       parent,
       {
-        input: { colonyAddress },
-      }: Input<{ colonyAddress: string; taskId: string }>,
-      { user, dataSources: { colonies, tasks, users } },
+        input: { colonyAddress, ethDomainId },
+      }: Input<{ colonyAddress: string; ethDomainId: number }>,
+      { user, dataSources: { colonies, tasks, users, auth } },
     ) {
       return asMutationResponse(
         (async () => {
-          // FIXME check auth
-          const task = await tasks.create(colonyAddress, user)
-          await users.subscribeToColony(user, task._id)
-          await colonies.addReferenceToTask(colonyAddress, task._id)
+          await tryAuth(
+            auth.assertCanCreateTask(colonyAddress, user, ethDomainId),
+          )
+          const task = await tasks.create(colonyAddress, user, ethDomainId)
+          await users.subscribeToColony(user, task.id)
+          await colonies.addReferenceToTask(colonyAddress, task.id)
           return task
         })(),
       )
@@ -208,13 +229,13 @@ const resolvers: IResolvers<any, ApolloContext> = {
   },
 }
 
-export const createApolloServer = (db: Db, network: IColonyNetwork) =>
+export const createApolloServer = (db: Db, provider: Provider) =>
   new ApolloServer({
     typeDefs,
     resolvers,
     dataSources: () => ({
+      auth: new ColonyAuth(provider),
       colonies: Colonies.initialize(db),
-      network: Network.initialize(network),
       tasks: Tasks.initialize(db),
       users: Users.initialize(db),
     }),
