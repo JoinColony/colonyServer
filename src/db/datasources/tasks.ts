@@ -36,7 +36,7 @@ export class Tasks extends ColonyMongoDataSource<TaskDoc> {
   }
 
   private async updateOne(
-    _id: ObjectID,
+    _id: string,
     query: StrictRootQuerySelector<TaskDoc>,
     modifier: StrictUpdateQuery<TaskDoc>,
     options?: UpdateOneOptions,
@@ -81,36 +81,36 @@ export class Tasks extends ColonyMongoDataSource<TaskDoc> {
     return this.getOne(insertedId)
   }
 
-  async setDomain(_id: ObjectID, ethDomainId: number) {
+  async setDomain(_id: string, ethDomainId: number) {
     return this.updateOne(_id, {}, { $set: { ethDomainId } })
   }
 
-  async setTitle(_id: ObjectID, title: string) {
+  async setTitle(_id: string, title: string) {
     return this.updateOne(_id, {}, { $set: { title } })
   }
 
-  async setDescription(_id: ObjectID, description: string) {
+  async setDescription(_id: string, description: string) {
     return this.updateOne(_id, {}, { $set: { description } })
   }
 
-  async setDueDate(_id: ObjectID, dueDate: Date) {
+  async setDueDate(_id: string, dueDate: Date) {
     return this.updateOne(_id, {}, { $set: { dueDate } })
   }
 
-  async setSkill(_id: ObjectID, ethSkillId: number) {
+  async setSkill(_id: string, ethSkillId: number) {
     return this.updateOne(_id, {}, { $set: { ethSkillId } })
   }
 
-  async createWorkRequest(_id: ObjectID, workerAddress: string) {
+  async createWorkRequest(_id: string, workerAddress: string) {
     return this.updateOne(_id, {}, { $push: { workRequests: workerAddress } })
   }
 
-  async sendWorkInvite(_id: ObjectID, workerAddress: string) {
+  async sendWorkInvite(_id: string, workerAddress: string) {
     return this.updateOne(_id, {}, { $pull: { workInvites: workerAddress } })
   }
 
   async setPayout(
-    _id: ObjectID,
+    _id: string,
     amount: string,
     token: string,
     ethDomainId: number,
@@ -120,7 +120,7 @@ export class Tasks extends ColonyMongoDataSource<TaskDoc> {
   }
 
   async removePayout(
-    _id: ObjectID,
+    _id: string,
     amount: string,
     token: string,
     ethDomainId: number,
@@ -129,11 +129,11 @@ export class Tasks extends ColonyMongoDataSource<TaskDoc> {
     return this.updateOne(_id, {}, { $pull: { payouts: payout } })
   }
 
-  async assignWorker(_id: ObjectID, workerAddress: string) {
+  async assignWorker(_id: string, workerAddress: string) {
     return this.updateOne(_id, {}, { $set: { assignedWorker: workerAddress } })
   }
 
-  async unassignWorker(_id: ObjectID, workerAddress: string) {
+  async unassignWorker(_id: string, workerAddress: string) {
     return this.updateOne(
       _id,
       { assignedWorker: workerAddress },
@@ -141,11 +141,11 @@ export class Tasks extends ColonyMongoDataSource<TaskDoc> {
     )
   }
 
-  async finalize(_id: ObjectID) {
+  async finalize(_id: string) {
     return this.updateOne(_id, {}, { $set: { finalizedAt: new Date() } })
   }
 
-  async cancel(_id: ObjectID) {
+  async cancel(_id: string) {
     return this.updateOne(_id, {}, { $set: { cancelledAt: new Date() } })
   }
 }

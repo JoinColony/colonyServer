@@ -18,8 +18,7 @@ export interface UserDoc extends MongoDoc {
 export class Users extends ColonyMongoDataSource<any> {
   protected static collectionName = CollectionNames.Users
 
-  // TODO do we need this?
-  private static transform({ _id: mongoId, ...userObj }: UserDoc) {
+  private static transformOne({ _id: mongoId, ...userObj }: UserDoc) {
     return {
       id: userObj.walletAddress,
       profile: userObj,
@@ -44,7 +43,7 @@ export class Users extends ColonyMongoDataSource<any> {
     // TODO use findOneById
     const doc = await this.collection.findOne<UserDoc>({ walletAddress })
     if (!doc) throw new Error(`User with address '${walletAddress}' not found`)
-    return Users.transform(doc)
+    return Users.transformOne(doc)
   }
 
   async create(walletAddress: string, username: string) {
@@ -70,7 +69,10 @@ export class Users extends ColonyMongoDataSource<any> {
     return this.getOne(walletAddress)
   }
 
-  async edit(walletAddress: string, profile: Pick<UserDoc, 'displayName' | 'website' | 'location'>) {
+  async edit(
+    walletAddress: string,
+    profile: Pick<UserDoc, 'displayName' | 'website' | 'location' | 'bio'>,
+  ) {
     return this.updateOne(walletAddress, {}, { $set: profile })
   }
 
@@ -99,18 +101,10 @@ export class Users extends ColonyMongoDataSource<any> {
   }
 
   async subscribeToTask(walletAddress: string, taskId: string) {
-    return this.updateOne(
-      walletAddress,
-      {},
-      { $push: { tasks: taskId } },
-    )
+    return this.updateOne(walletAddress, {}, { $push: { tasks: taskId } })
   }
 
   async unsubscribeFromTask(walletAddress: string, taskId: string) {
-    return this.updateOne(
-      walletAddress,
-      {},
-      { $pull: { tasks: taskId } },
-    )
+    return this.updateOne(walletAddress, {}, { $pull: { tasks: taskId } })
   }
 }

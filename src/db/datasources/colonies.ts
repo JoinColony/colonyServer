@@ -7,6 +7,7 @@ import { StrictRootQuerySelector, StrictUpdateQuery } from '../types'
 export interface ColonyDoc extends MongoDoc {
   colonyAddress: string
   colonyName: string
+  avatarHash?: string
   displayName?: string
   description?: string
   guideline?: string
@@ -85,6 +86,14 @@ export class Colonies extends ColonyMongoDataSource<any> {
   }
 
   async setAvatar(colonyAddress: string, ipfsHash: string) {
+    return this.updateOne(colonyAddress, {}, { $set: { avatarHash: ipfsHash } })
+  }
+
+  async removeAvatar(colonyAddress: string) {
+    return this.updateOne(colonyAddress, {}, { $unset: { avatarHash: '' } })
+  }
+
+  async setTokenAvatar(colonyAddress: string, ipfsHash: string) {
     return this.updateOne(
       colonyAddress,
       {},
@@ -92,7 +101,7 @@ export class Colonies extends ColonyMongoDataSource<any> {
     )
   }
 
-  async removeAvatar(colonyAddress: string) {
+  async removeTokenAvatar(colonyAddress: string) {
     return this.updateOne(
       colonyAddress,
       {},
