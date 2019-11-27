@@ -61,29 +61,6 @@ const typeDefs = gql`
     task(id: String!): Task!
   }
 
-  interface MutationResponse {
-    ok: Boolean!
-    error: String
-  }
-
-  type UserResponse implements MutationResponse {
-    ok: Boolean!
-    error: String
-    value: User
-  }
-
-  type ColonyResponse implements MutationResponse {
-    ok: Boolean!
-    error: String
-    value: Colony
-  }
-
-  type TaskResponse implements MutationResponse {
-    ok: Boolean!
-    error: String
-    value: Task
-  }
-
   input CreateUserInput {
     username: String!
   }
@@ -107,38 +84,12 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    createUser(input: CreateUserInput!): UserResponse!
-    editUser(input: EditUserInput!): UserResponse!
-    createColony(input: CreateColonyInput!): ColonyResponse!
-    createTask(input: CreateTaskInput!): TaskResponse!
+    createUser(input: CreateUserInput!): User!
+    editUser(input: EditUserInput!): User!
+    createColony(input: CreateColonyInput!): Colony!
+    createTask(input: CreateTaskInput!): Task!
   }
 `
-
-const asMutationResponse = async <T>(
-  promise: Promise<T>,
-): Promise<{
-  ok: boolean
-  error: string | null
-  value: T | null
-}> => {
-  let value = null
-
-  try {
-    value = await promise
-  } catch (caughtError) {
-    return {
-      ok: false,
-      error: caughtError.message || caughtError.toString(),
-      value,
-    }
-  }
-
-  return {
-    ok: true,
-    error: null,
-    value,
-  }
-}
 
 const tryAuth = async (promise: Promise<boolean>) => {
   let auth = false
@@ -181,14 +132,14 @@ const resolvers: IResolvers<any, ApolloContext> = {
       { input: { username } }: Input<{ username: string }>,
       { user, dataSources: { users } },
     ) {
-      return asMutationResponse(users.create(user, username))
+      return users.create(user, username)
     },
     async editUser(
       parent,
       { input }: Input<object>,
       { user, dataSources: { users } },
     ) {
-      return asMutationResponse(users.edit(user, input))
+      return users.edit(user, input)
     },
     // Colonies
     async createColony(
@@ -198,13 +149,9 @@ const resolvers: IResolvers<any, ApolloContext> = {
       }: Input<{ colonyAddress: string; colonyName: string }>,
       { user, dataSources: { colonies, users } },
     ) {
-      return asMutationResponse(
-        (async () => {
-          await colonies.create(colonyAddress, colonyName, user)
-          await users.subscribeToColony(user, colonyAddress)
-          return colonies.getOne(colonyAddress)
-        })(),
-      )
+      await colonies.create(colonyAddress, colonyName, user)
+      await users.subscribeToColony(user, colonyAddress)
+      return colonies.getOne(colonyAddress)
     },
     // Tasks
     async createTask(
@@ -214,17 +161,11 @@ const resolvers: IResolvers<any, ApolloContext> = {
       }: Input<{ colonyAddress: string; ethDomainId: number }>,
       { user, dataSources: { colonies, tasks, users, auth } },
     ) {
-      return asMutationResponse(
-        (async () => {
-          await tryAuth(
-            auth.assertCanCreateTask(colonyAddress, user, ethDomainId),
-          )
-          const task = await tasks.create(colonyAddress, user, ethDomainId)
-          await users.subscribeToColony(user, task.id)
-          await colonies.addReferenceToTask(colonyAddress, task.id)
-          return task
-        })(),
-      )
+      await tryAuth(auth.assertCanCreateTask(colonyAddress, user, ethDomainId))
+      const task = await tasks.create(colonyAddress, user, ethDomainId)
+      await users.subscribeToColony(user, task.id)
+      await colonies.addReferenceToTask(colonyAddress, task.id)
+      return task
     },
   },
 }

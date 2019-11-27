@@ -1,11 +1,12 @@
 import { CollectionCreateOptions, IndexOptions } from 'mongodb'
 
 export enum CollectionNames {
-  Users = 'users',
-  Tasks = 'tasks',
   Colonies = 'colonies',
-  // TODO define other collections
-  // Domains = 'domains',
+  Domains = 'domains',
+  Comments = 'comments',
+  Notifications = 'notifications',
+  Tasks = 'tasks',
+  Users = 'users',
 }
 
 export type CollectionsManifest = Map<
@@ -121,7 +122,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         validator: {
           $jsonSchema: {
             bsonType: 'object',
-            required: ['creatorAddress', 'colonyAddress', 'onChain'],
+            required: ['creatorAddress', 'colonyAddress', 'ethDomainId'],
             properties: {
               colonyAddress: {
                 bsonType: 'string',
@@ -135,11 +136,40 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
               },
               ethDomainId: {
                 bsonType: 'number',
-                min: 1,
+                minimum: 1,
               },
               ethTaskId: {
                 bsonType: 'number',
-                min: 1,
+                minimum: 1,
+              },
+              ethSkillId: {
+                bsonType: 'number',
+                minimum: 1,
+              },
+              dueDate: {
+                bsonType: 'date',
+              },
+              finalizedAt: {
+                bsonType: 'date',
+              },
+              title: {
+                bsonType: 'string',
+                maxLength: 200,
+              },
+              description: {
+                bsonType: 'string',
+                maxLength: 4000,
+              },
+              cancelledAt: {
+                bsonType: 'date',
+              },
+              workRequests: {
+                bsonType: ['string'],
+                uniqueItems: true,
+              },
+              workInvites: {
+                bsonType: ['string'],
+                uniqueItems: true,
               },
             },
           },
@@ -150,6 +180,84 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['creatorAddress', {}],
         ['ethDomainId', {}],
         ['ethTaskId', { sparse: true }],
+      ],
+    },
+  ],
+  [
+    CollectionNames.Domains,
+    {
+      create: {
+        validator: {
+          $jsonSchema: {
+            bsonType: 'object',
+            required: [
+              'colonyAddress',
+              'name',
+              'ethDomainId',
+              'ethParentDomainId',
+            ],
+            properties: {
+              colonyAddress: {
+                bsonType: 'string',
+                description: 'must be a string and is required',
+                maxLength: 42,
+              },
+              name: {
+                bsonType: 'string',
+                description: 'must be a string and is required',
+                maxLength: 200,
+              },
+              ethDomainId: {
+                bsonType: 'number',
+                minimum: 1,
+              },
+              ethParenttDomainId: {
+                bsonType: 'number',
+                minimum: 1,
+              },
+            },
+          },
+        },
+      },
+      indexes: [
+        ['colonyAddress', {}],
+        ['ethDomainId', {}],
+        ['ethParentDomainId', { sparse: true }],
+      ],
+    },
+  ],
+  [
+    CollectionNames.Notifications,
+    {
+      create: {
+        validator: {
+          $jsonSchema: {
+            bsonType: 'object',
+            required: ['type'],
+            properties: {
+              colonyAddress: {
+                bsonType: 'string',
+                description: 'must be a string',
+                maxLength: 42,
+              },
+              type: {
+                bsonType: 'string',
+                description: 'must be a string and is required',
+                maxLength: '100',
+              },
+              mentions: {
+                bsonType: ['string'],
+                description: 'must be an array of user addresses',
+                uniqueItems: true,
+              },
+            },
+          },
+        },
+      },
+      indexes: [
+        ['type', {}],
+        ['colonyAddress', { sparse: true }],
+        ['mentions', { sparse: true }],
       ],
     },
   ],
