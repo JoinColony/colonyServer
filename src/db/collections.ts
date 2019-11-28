@@ -243,7 +243,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
               type: {
                 bsonType: 'string',
                 description: 'must be a string and is required',
-                maxLength: '100',
+                maxLength: 100,
               },
               mentions: {
                 bsonType: ['string'],
