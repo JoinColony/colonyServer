@@ -47,7 +47,7 @@ export class Users extends ColonyMongoDataSource<any> {
   }
 
   async create(walletAddress: string, username: string) {
-    const doc = { walletAddress, username, colonies: [], tasks: [] }
+    const doc = { walletAddress, username }
 
     const exists = !!(await this.collection.findOne({
       $or: [{ walletAddress }, { username }],

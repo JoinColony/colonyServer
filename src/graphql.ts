@@ -4,6 +4,7 @@ import {
   AuthenticationError,
   ForbiddenError,
   gql,
+  ValidationError,
 } from 'apollo-server-express'
 import { Db } from 'mongodb'
 
@@ -210,7 +211,7 @@ const typeDefs = gql`
 
   type Mutation {
     # Users
-    createUser(input: CreateUserInput!): User!
+    createUser(input: CreateUserInput!): User #TODO find out why we can't use an exclamation mark here
     editUser(input: EditUserInput!): User!
     setUserAvatar(input: SetUserAvatarInput!): User!
     removeUserAvatar(input: SetUserAvatarInput): User! # TODO input should be empty
@@ -281,7 +282,7 @@ const resolvers: IResolvers<any, ApolloContext> = {
       { input: { username } }: Input<{ username: string }>,
       { user, dataSources: { users } },
     ) {
-      return users.create(user, username)
+        return users.create(user, username)
     },
     async editUser(
       parent,
@@ -306,7 +307,7 @@ const resolvers: IResolvers<any, ApolloContext> = {
     },
     async removeUserAvatar(
       parent,
-      {  }: Input<any>,
+      {}: Input<any>,
       { user, dataSources: { users } },
     ) {
       return users.removeAvatar(user)
@@ -504,6 +505,15 @@ export const createApolloServer = (db: Db, provider: Provider) =>
   new ApolloServer({
     typeDefs,
     resolvers,
+    formatError: err => {
+      // MongoDB json schema validation
+      if (err.message.includes('failed validation')) {
+        return new ValidationError('Database validation failed')
+      }
+      // Otherwise return the original error.  The error can also
+      // be manipulated in other ways, so long as it's returned.
+      return err
+    },
     dataSources: () => ({
       auth: new ColonyAuth(provider),
       colonies: Colonies.initialize(db),
