@@ -108,6 +108,10 @@ export class ColonyAuthDataSource extends DataSource<any> {
     return this.hasSomeRole([ColonyRoles.Administration], ...args)
   }
 
+  async canEditColonyProfile(colonyAddress: ColonyAddress, userAddress: string) {
+    return this.hasSomeRole([ColonyRoles.Administration], colonyAddress, userAddress, 1)
+  }
+
   async canCreateDomain(...args: ColonyAuthArgs) {
     return this.hasSomeRole(
       [ColonyRoles.Administration, ColonyRoles.Architecture],
@@ -120,6 +124,10 @@ export class ColonyAuthDataSource extends DataSource<any> {
   }
 
   async canSetTaskTitle(...args: ColonyAuthArgs) {
+    return this.hasSomeRole([ColonyRoles.Administration], ...args)
+  }
+
+  async canSetTaskDescription(...args: ColonyAuthArgs) {
     return this.hasSomeRole([ColonyRoles.Administration], ...args)
   }
 
@@ -175,6 +183,14 @@ export class ColonyAuthDataSource extends DataSource<any> {
     return ColonyAuthDataSource.assert(
       this.canSetTaskTitle(...args),
       'Set task title',
+      ...args,
+    )
+  }
+
+  async assertCanSetTaskDescription(...args: ColonyAuthArgs) {
+    return ColonyAuthDataSource.assert(
+      this.canSetTaskDescription(...args),
+      'Set task description',
       ...args,
     )
   }
@@ -272,6 +288,16 @@ export class ColonyAuthDataSource extends DataSource<any> {
       this.canCreateTask(...args),
       'Create task',
       ...args,
+    )
+  }
+
+  async assertCanEditColonyProfile(...args: [ColonyAddress, UserAddress]) {
+    return ColonyAuthDataSource.assert(
+      this.canEditColonyProfile(...args),
+      'Edit colony profile',
+      args[0],
+      args[1],
+      1,
     )
   }
 
