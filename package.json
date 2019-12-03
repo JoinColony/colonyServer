@@ -19,7 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/mongodb": "^3.3.11",
-    "apollo-datasource-mongodb": "^0.2.0",
+    "apollo-datasource-mongodb": "git://github.com/jameslefrere/apollo-datasource-mongodb.git#57060b1bdb899f6a699eb7c28bf86c5c3c034482",
     "apollo-server-express": "^2.9.12",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
