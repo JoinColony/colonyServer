@@ -1,3 +1,4 @@
+import { Provider } from 'ethers/providers'
 import { IResolvers } from 'graphql-tools'
 import {
   ApolloServer,
@@ -9,18 +10,18 @@ import {
 import { Db } from 'mongodb'
 
 import { getAddressFromToken } from './auth'
-import { Colonies, Tasks, Users } from './db/datasources'
-import { ColonyAuth } from './network/datasources'
-import { Provider } from 'ethers/providers'
+import { ColonyAuthDataSource } from './network/colonyAuthDataSource'
+import { ColonyMongoDataSource } from './db/colonyMongoDataSource'
+import { ColonyMongoApi } from './db/colonyMongoApi'
+import { CollectionNames } from './db/collections'
 
 interface ApolloContext {
-  user: string
-  dataSources: {
-    colonies: Colonies
-    auth: ColonyAuth
-    tasks: Tasks
-    users: Users
-  }
+  readonly user: string // The authenticated user address (we can trust this!)
+  readonly api: ColonyMongoApi // The Colony MongoDB API to perform mutations (NOT for verification/authentication!)
+  readonly dataSources: Readonly<{
+    auth: ColonyAuthDataSource // A thin wrapper of Colony contracts, for on-chain authentication checks
+    data: ColonyMongoDataSource // The Colony MongoDB data source (NOT for verification/authentication!)
+  }>
 }
 
 interface Input<T extends object> {
@@ -41,6 +42,8 @@ const typeDefs = gql`
   type User {
     id: String! # wallet address
     profile: UserProfile!
+    colonies: [Colony]
+    tasks: [Task]
   }
 
   type Token {
@@ -61,24 +64,27 @@ const typeDefs = gql`
     displayName: String
     guideline: String
     website: String
+    tasks: [Task]
+    founder: User
+    subscribedUsers: [User]
     # token: Token
   }
 
   type Task {
     id: String! # stringified ObjectId
-    colonyAddress: String!
-    creatorAddress: String!
     ethTaskId: Int
     ethDomainId: Int!
     ethSkillId: Int
-    assignedWorker: String
     cancelledAt: Int
     description: String
     dueDate: Int
     finalizedAt: Int
     title: String
-    # workInvites: [String]
-    # workRequests: [String]
+    colony: Colony
+    creator: User
+    assignedWorker: User
+    workInvites: [User]
+    workRequests: [User]
   }
 
   type Query {
@@ -174,23 +180,11 @@ const typeDefs = gql`
 
   input EditColonyProfileInput {
     colonyAddress: String!
-    displayName: String
+    avatarHash: String
     description: String
+    displayName: String
     guideline: String
     website: String
-  }
-
-  input SetColonyAvatarInput {
-    colonyAddress: String!
-    ipfsHash: String!
-  }
-
-  input RemoveColonyAvatarInput {
-    colonyAddress: String!
-  }
-
-  input SetUserAvatarInput {
-    ipfsHash: String!
   }
 
   input SubscribeToColonyInput {
@@ -209,35 +203,44 @@ const typeDefs = gql`
     id: String!
   }
 
+  input MarkNotificationAsReadInput {
+    id: String!
+  }
+
+  # TODO input should be empty
+  input MarkAllNotificationsAsReadInput {
+    id: String!
+  }
+
   type Mutation {
     # Users
-    createUser(input: CreateUserInput!): User #TODO find out why we can't use an exclamation mark here
-    editUser(input: EditUserInput!): User!
-    setUserAvatar(input: SetUserAvatarInput!): User!
-    removeUserAvatar(input: SetUserAvatarInput): User! # TODO input should be empty
-    subscribeToColony(input: SubscribeToColonyInput!): User!
-    unsubscribeFromColony(input: UnsubscribeFromColonyInput!): User!
-    subscribeToTask(input: SubscribeToTaskInput!): User!
-    unsubscribeFromTask(input: UnsubscribeFromTaskInput!): User!
+    createUser(input: CreateUserInput!): User # TODO find out why we can't use an exclamation mark here
+    editUser(input: EditUserInput!): User
+    subscribeToColony(input: SubscribeToColonyInput!): User
+    subscribeToTask(input: SubscribeToTaskInput!): User
+    unsubscribeFromColony(input: UnsubscribeFromColonyInput!): User
+    unsubscribeFromTask(input: UnsubscribeFromTaskInput!): User
     # Colonies
-    createColony(input: CreateColonyInput!): Colony!
-    editColonyProfile(input: EditColonyProfileInput!): Colony!
-    setColonyAvatar(input: SetColonyAvatarInput!): Colony!
-    removeColonyAvatar(input: RemoveColonyAvatarInput!): Colony!
+    createColony(input: CreateColonyInput!): Colony
+    editColonyProfile(input: EditColonyProfileInput!): Colony
     # Tasks
-    createTask(input: CreateTaskInput!): Task!
-    setTaskDomain(input: SetTaskDomainInput!): Task!
-    setTaskTitle(input: SetTaskTitleInput!): Task!
-    setTaskSkill(input: SetTaskSkillInput!): Task!
-    setTaskDueDate(input: SetTaskDueDateInput!): Task!
-    createWorkRequest(input: CreateWorkRequestInput!): Task!
-    sendWorkInvite(input: SendWorkInviteInput!): Task!
-    setTaskPayout(input: SetTaskPayoutInput!): Task!
-    removeTaskPayout(input: RemoveTaskPayoutInput!): Task!
-    assignWorker(input: AssignWorkerInput!): Task!
-    unssignWorker(input: UnassignWorkerInput!): Task!
-    finalizeTask(input: TaskIdInput!): Task!
-    cancelTask(input: TaskIdInput!): Task!
+    assignWorker(input: AssignWorkerInput!): Task
+    cancelTask(input: TaskIdInput!): Task
+    createTask(input: CreateTaskInput!): Task
+    createWorkRequest(input: CreateWorkRequestInput!): Task
+    finalizeTask(input: TaskIdInput!): Task
+    removeTaskPayout(input: RemoveTaskPayoutInput!): Task
+    sendWorkInvite(input: SendWorkInviteInput!): Task
+    setTaskDomain(input: SetTaskDomainInput!): Task
+    setTaskDescription(input: SetTaskDescriptionInput!): Task
+    setTaskDueDate(input: SetTaskDueDateInput!): Task
+    setTaskPayout(input: SetTaskPayoutInput!): Task
+    setTaskSkill(input: SetTaskSkillInput!): Task
+    setTaskTitle(input: SetTaskTitleInput!): Task
+    unassignWorker(input: UnassignWorkerInput!): Task
+    # Notifications
+    markAllNotificationsAsRead(input: MarkAllNotificationsAsReadInput): Boolean!
+    markNotificationAsRead(input: MarkNotificationAsReadInput!): Boolean!
   }
 `
 
@@ -257,22 +260,84 @@ const tryAuth = async (promise: Promise<boolean>) => {
 
 const resolvers: IResolvers<any, ApolloContext> = {
   Query: {
-    async user(parent, { address }, { dataSources: { users } }) {
-      return users.getOne(address)
+    async user(parent, { address }, { dataSources: { data } }) {
+      return data.getUserByAddress(address)
     },
+    // TODO colony by name
     async colony(
       parent,
       { address }: { address: string },
-      { dataSources: { colonies } },
+      { dataSources: { data } },
     ) {
-      return colonies.getOne(address)
+      return data.getColonyByAddress(address)
     },
+    // TODO task by ethTaskId/colonyAddress
     async task(
       parent,
-      { id }: { id: string }, // TODO support get by ethTaskId/colonyAddress?
-      { dataSources: { tasks } },
+      { id }: { id: string },
+      { dataSources: { data } },
     ) {
-      return tasks.getOne(id)
+      return data.getTaskById(id)
+    },
+  },
+  Colony: {
+    async tasks(
+      { tasks = [] },
+      input: any, // TODO allow restriction of query, e.g. by open tasks
+      { dataSources: { data } },
+    ) {
+      return data.getTasksById(tasks)
+    },
+    async founder({ founderAddress }, input: any, { dataSources: { data } }) {
+      return data.getUserByAddress(founderAddress)
+    },
+    async subscribedUsers(
+      { colonyAddress },
+      input: any,
+      { dataSources: { data } },
+    ) {
+      return data.getColonySubscribedUsers(colonyAddress)
+    },
+  },
+  User: {
+    async colonies({ subscribedColonies = [] }, input: any, { dataSources: { data } }) {
+      return data.getColoniesByAddress(subscribedColonies)
+    },
+    async tasks(
+      { subscribedTasks = [] },
+      input: any, // TODO allow restriction of query, e.g. by open tasks
+      { dataSources: { data } },
+    ) {
+      return data.getTasksById(subscribedTasks)
+    },
+  },
+  Task: {
+    async colony({ colonyAddress }, input: any, { dataSources: { data } }) {
+      return data.getColonyByAddress(colonyAddress)
+    },
+    async creator({ creatorAddress }, input: any, { dataSources: { data } }) {
+      return data.getUserByAddress(creatorAddress)
+    },
+    async assignedWorker(
+      { assignedWorker },
+      input: any,
+      { dataSources: { data } },
+    ) {
+      return assignedWorker ? await data.getUserByAddress(assignedWorker) : null
+    },
+    async workInvites(
+      { workInvites = [] },
+      input: any,
+      { dataSources: { data } },
+    ) {
+      return data.getUsersByAddress(workInvites)
+    },
+    async workRequests(
+      { workRequests = [] },
+      input: any,
+      { dataSources: { data } },
+    ) {
+      return data.getUsersByAddress(workRequests)
     },
   },
   Mutation: {
@@ -280,65 +345,58 @@ const resolvers: IResolvers<any, ApolloContext> = {
     async createUser(
       parent,
       { input: { username } }: Input<{ username: string }>,
-      { user, dataSources: { users } },
+      { user, api, dataSources: { data } },
     ) {
-        return users.create(user, username)
+      await api.createUser(user, username)
+      return data.getUserByAddress(user)
     },
     async editUser(
       parent,
       {
         input,
       }: Input<{
-        displayName?: string
-        website?: string
-        location?: string
-        bio?: string
+        avatarHash: string | null
+        bio: string | null
+        displayName: string | null
+        location: string | null
+        website: string | null
       }>,
-      { user, dataSources: { users } },
+      { user, api, dataSources: { data } },
     ) {
-      return users.edit(user, input)
-    },
-    async setUserAvatar(
-      parent,
-      { input: { ipfsHash } }: Input<{ ipfsHash: string }>,
-      { user, dataSources: { users } },
-    ) {
-      return users.setAvatar(user, ipfsHash)
-    },
-    async removeUserAvatar(
-      parent,
-      {}: Input<any>,
-      { user, dataSources: { users } },
-    ) {
-      return users.removeAvatar(user)
+      await api.editUser(user, input)
+      return data.getUserByAddress(user)
     },
     async subscribeToColony(
       parent,
       { input: { colonyAddress } }: Input<{ colonyAddress: string }>,
-      { user, dataSources: { users } },
+      { user, api, dataSources: { data } },
     ) {
-      return users.subscribeToColony(user, colonyAddress)
+      await api.subscribeToColony(user, colonyAddress)
+      return data.getUserByAddress(user)
     },
     async unsubscribeFromColony(
       parent,
       { input: { colonyAddress } }: Input<{ colonyAddress: string }>,
-      { user, dataSources: { users } },
+      { user, api, dataSources: { data } },
     ) {
-      return users.unsubscribeFromColony(user, colonyAddress)
+      await api.unsubscribeFromColony(user, colonyAddress)
+      return data.getUserByAddress(user)
     },
     async subscribeToTask(
       parent,
       { input: { id } }: Input<{ id: string }>,
-      { user, dataSources: { users } },
+      { user, api, dataSources: { data } },
     ) {
-      return users.subscribeToTask(user, id)
+      await api.subscribeToTask(user, id)
+      return data.getUserByAddress(user)
     },
     async unsubscribeFromTask(
       parent,
       { input: { id } }: Input<{ id: string }>,
-      { user, dataSources: { users } },
+      { user, api, dataSources: { data } },
     ) {
-      return users.unsubscribeFromTask(user, id)
+      await api.unsubscribeFromTask(user, id)
+      return data.getUserByAddress(user)
     },
     // Colonies
     async createColony(
@@ -346,11 +404,31 @@ const resolvers: IResolvers<any, ApolloContext> = {
       {
         input: { colonyAddress, colonyName },
       }: Input<{ colonyAddress: string; colonyName: string }>,
-      { user, dataSources: { colonies, users } },
+      { user, api, dataSources: { data, auth } },
     ) {
-      await colonies.create(colonyAddress, colonyName, user)
-      await users.subscribeToColony(user, colonyAddress)
-      return colonies.getOne(colonyAddress)
+      // No auth call needed: anyone should be able to do this
+      // TODO test that the given colony address exists on-chain? Not really auth per-se, more validation
+      // await tryAuth(auth.assertColonyExists(colonyAddress))
+      await api.createColony(colonyAddress, colonyName, user)
+      return data.getColonyByAddress(colonyAddress)
+    },
+    async editColonyProfile(
+      parent,
+      {
+        input: { colonyAddress, ...profile },
+      }: Input<{
+        colonyAddress: string
+        avatarHash: string | null
+        description: string | null
+        displayName: string | null
+        guideline: string | null
+        website: string | null
+      }>,
+      { user, api, dataSources: { data, auth } },
+    ) {
+      await tryAuth(auth.assertCanEditColonyProfile(colonyAddress, user))
+      await api.editColony(colonyAddress, profile)
+      return data.getColonyByAddress(colonyAddress)
     },
     // Tasks
     async createTask(
@@ -358,73 +436,101 @@ const resolvers: IResolvers<any, ApolloContext> = {
       {
         input: { colonyAddress, ethDomainId },
       }: Input<{ colonyAddress: string; ethDomainId: number }>,
-      { user, dataSources: { colonies, tasks, users, auth } },
+      { user, api, dataSources: { data, auth } },
     ) {
-      // await tryAuth(auth.assertCanCreateTask(colonyAddress, user, ethDomainId))
-      const task = await tasks.create(colonyAddress, user, ethDomainId)
-      await users.subscribeToColony(user, task.id)
-      await colonies.addReferenceToTask(colonyAddress, task.id)
-      return task
+      await tryAuth(auth.assertCanCreateTask(colonyAddress, user, ethDomainId))
+      const taskId = await api.createTask(colonyAddress, user, ethDomainId)
+      return data.getTaskById(taskId)
     },
     async setTaskDomain(
       parent,
       {
         input: { id, ethDomainId },
       }: Input<{ id: string; ethDomainId: number }>,
-      { user, dataSources: { tasks, auth } },
+      { user, api, dataSources: { data, auth } },
     ) {
-      // const { colonyAddress } = await tasks.getOne(id)
-      // await tryAuth(auth.assertCanSetTaskDomain(colonyAddress, user, ethDomainId))
-      return tasks.setDomain(id, ethDomainId)
+      const { colonyAddress } = await data.getTaskById(id)
+      await tryAuth(
+        auth.assertCanSetTaskDomain(colonyAddress, user, ethDomainId),
+      )
+      await api.setTaskDomain(id, ethDomainId)
+      return data.getTaskById(id)
+    },
+    async setTaskDescription(
+      parent,
+      { input: { id, description } }: Input<{ id: string; description: string }>,
+      { user, api, dataSources: { data, auth } },
+    ) {
+      const { colonyAddress, ethDomainId } = await data.getTaskById(id)
+      await tryAuth(
+        auth.assertCanSetTaskDescription(colonyAddress, user, ethDomainId),
+      )
+      await api.setTaskDescription(id, description)
+      return data.getTaskById(id)
     },
     async setTaskTitle(
       parent,
       { input: { id, title } }: Input<{ id: string; title: string }>,
-      { user, dataSources: { tasks, auth } },
+      { user, api, dataSources: { data, auth } },
     ) {
-      // const { colonyAddress, ethDomainId } = await tasks.getOne(id)
-      // await tryAuth(auth.assertCanSetTaskTitle(colonyAddress, user, ethDomainId))
-      return tasks.setTitle(id, title)
+      const { colonyAddress, ethDomainId } = await data.getTaskById(id)
+      await tryAuth(
+        auth.assertCanSetTaskTitle(colonyAddress, user, ethDomainId),
+      )
+      await api.setTaskTitle(id, title)
+      return data.getTaskById(id)
     },
     async setTaskSkill(
       parent,
       { input: { id, ethSkillId } }: Input<{ id: string; ethSkillId: number }>,
-      { user, dataSources: { tasks, auth } },
+      { user, api, dataSources: { data, auth } },
     ) {
-      // const { colonyAddress, ethDomainId } = await tasks.getOne(id)
-      // await tryAuth(auth.assertCanSetTaskSkill(colonyAddress, user, ethDomainId))
-      return tasks.setSkill(id, ethSkillId)
+      const { colonyAddress, ethDomainId } = await data.getTaskById(id)
+      await tryAuth(
+        auth.assertCanSetTaskSkill(colonyAddress, user, ethDomainId),
+      )
+      await api.setTaskSkill(id, ethSkillId)
+      return data.getTaskById(id)
     },
     async setTaskDueDate(
       parent,
       { input: { id, dueDate } }: Input<{ id: string; dueDate: number }>,
-      { user, dataSources: { tasks, auth } },
+      { user, api, dataSources: { data, auth } },
     ) {
-      // const { colonyAddress, ethDomainId } = await tasks.getOne(id)
-      // await tryAuth(auth.assertCanSetTaskDueDate(colonyAddress, user, ethDomainId))
-      return tasks.setDueDate(id, new Date(dueDate))
+      const { colonyAddress, ethDomainId } = await data.getTaskById(id)
+      await tryAuth(
+        auth.assertCanSetTaskDueDate(colonyAddress, user, ethDomainId),
+      )
+      await api.setTaskDueDate(id, new Date(dueDate))
+      return data.getTaskById(id)
     },
     async createWorkRequest(
       parent,
       {
         input: { id, workerAddress },
       }: Input<{ id: string; workerAddress: string }>,
-      { user, dataSources: { tasks, auth } },
+      { user, api, dataSources: { data, auth } },
     ) {
-      // const { colonyAddress, ethDomainId } = await tasks.getOne(id)
-      // await tryAuth(auth.assertCanCreateWorkRequest(colonyAddress, user, ethDomainId))
-      return tasks.createWorkRequest(id, workerAddress)
+      const { colonyAddress, ethDomainId } = await data.getTaskById(id)
+      await tryAuth(
+        auth.assertCanCreateWorkRequest(colonyAddress, user, ethDomainId),
+      )
+      await api.createWorkRequest(id, workerAddress)
+      return data.getTaskById(id)
     },
     async sendWorkInvite(
       parent,
       {
         input: { id, workerAddress },
       }: Input<{ id: string; workerAddress: string }>,
-      { user, dataSources: { tasks, auth } },
+      { user, api, dataSources: { data, auth } },
     ) {
-      // const { colonyAddress, ethDomainId } = await tasks.getOne(id)
-      // await tryAuth(auth.assertCanSendWorkInvite(colonyAddress, user, ethDomainId))
-      return tasks.sendWorkInvite(id, workerAddress)
+      const { colonyAddress, ethDomainId } = await data.getTaskById(id)
+      await tryAuth(
+        auth.assertCanSendWorkInvite(colonyAddress, user, ethDomainId),
+      )
+      await api.sendWorkInvite(id, workerAddress)
+      return data.getTaskById(id)
     },
     async setTaskPayout(
       parent,
@@ -436,11 +542,14 @@ const resolvers: IResolvers<any, ApolloContext> = {
         token: string
         ethDomainId: number
       }>,
-      { user, dataSources: { tasks, auth } },
+      { user, api, dataSources: { data, auth } },
     ) {
-      // const { colonyAddress } = await tasks.getOne(id)
-      // await tryAuth(auth.assertCanSetTaskPayout(colonyAddress, user, ethDomainId))
-      return tasks.setPayout(id, amount, token, ethDomainId)
+      const { colonyAddress } = await data.getTaskById(id)
+      await tryAuth(
+        auth.assertCanSetTaskPayout(colonyAddress, user, ethDomainId),
+      )
+      await api.setTaskPayout(id, amount, token, ethDomainId)
+      return data.getTaskById(id)
     },
     async removeTaskPayout(
       parent,
@@ -452,57 +561,98 @@ const resolvers: IResolvers<any, ApolloContext> = {
         token: string
         ethDomainId: number
       }>,
-      { user, dataSources: { tasks, auth } },
+      { user, api, dataSources: { data, auth } },
     ) {
-      // const { colonyAddress } = await tasks.getOne(id)
-      // await tryAuth(auth.assertCanRemoveTaskPayout(colonyAddress, user, ethDomainId))
-      return tasks.removePayout(id, amount, token, ethDomainId)
+      const { colonyAddress } = await data.getTaskById(id)
+      await tryAuth(
+        auth.assertCanRemoveTaskPayout(colonyAddress, user, ethDomainId),
+      )
+      await api.removeTaskPayout(id, amount, token, ethDomainId)
+      return data.getTaskById(id)
     },
     async assignWorker(
       parent,
       {
         input: { id, workerAddress },
       }: Input<{ id: string; workerAddress: string }>,
-      { user, dataSources: { tasks, auth } },
+      { user, api, dataSources: { data, auth } },
     ) {
-      // const { colonyAddress } = await tasks.getOne(id)
-      // await tryAuth(auth.assertCanAssignWorker(colonyAddress, user, ethDomainId))
-      return tasks.assignWorker(id, workerAddress)
+      const { colonyAddress, ethDomainId } = await data.getTaskById(id)
+      await tryAuth(
+        auth.assertCanAssignWorker(colonyAddress, user, ethDomainId),
+      )
+      await api.assignWorker(id, workerAddress)
+      return data.getTaskById(id)
     },
-    async unssignWorker(
+    async unassignWorker(
       parent,
       {
         input: { id, workerAddress },
       }: Input<{ id: string; workerAddress: string }>,
-      { user, dataSources: { tasks, auth } },
+      { user, api, dataSources: { data, auth } },
     ) {
-      // const { colonyAddress, ethDomainId } = await tasks.getOne(id)
-      // await tryAuth(auth.assertCanUnssignWorker(colonyAddress, user, ethDomainId))
-      return tasks.unassignWorker(id, workerAddress)
+      const { colonyAddress, ethDomainId } = await data.getTaskById(id)
+      await tryAuth(
+        auth.assertCanUnassignWorker(colonyAddress, user, ethDomainId),
+      )
+      await api.unassignWorker(id, workerAddress)
+      return data.getTaskById(id)
     },
     async finalizeTask(
       parent,
       { input: { id } }: Input<{ id: string }>,
-      { user, dataSources: { tasks, auth } },
+      { user, api, dataSources: { data, auth } },
     ) {
-      // const { colonyAddress, ethDomainId } = await tasks.getOne(id)
-      // await tryAuth(auth.assertCanFinalizeTask(colonyAddress, user, ethDomainId))
-      return tasks.finalize(id)
+      const { colonyAddress, ethDomainId } = await data.getTaskById(id)
+      await tryAuth(
+        auth.assertCanFinalizeTask(colonyAddress, user, ethDomainId),
+      )
+      await api.finalizeTask(id)
+      return data.getTaskById(id)
     },
     async cancelTask(
       parent,
       { input: { id } }: Input<{ id: string }>,
-      { user, dataSources: { tasks, auth } },
+      { user, api, dataSources: { data, auth } },
     ) {
-      // const { colonyAddress, ethDomainId } = await tasks.getOne(id)
-      // await tryAuth(auth.assertCanCancelTask(colonyAddress, user, ethDomainId))
-      return tasks.cancel(id)
+      const { colonyAddress, ethDomainId } = await data.getTaskById(id)
+      await tryAuth(auth.assertCanCancelTask(colonyAddress, user, ethDomainId))
+      await api.cancelTask(id)
+      return data.getTaskById(id)
+    },
+    // Notifications
+    async markNotificationAsRead(
+      parent,
+      { input: { id } }: Input<{ id: string }>,
+      { user, api },
+    ) {
+      // No auth call needed; restricted to the current authenticated user address
+      await api.markNotificationAsRead(user, id)
+      return true
+    },
+    async markAllNotificationsAsRead(
+      parent,
+      {  }: Input<any>,
+      { user, api },
+    ) {
+      // No auth call needed; restricted to the current authenticated user address
+      await api.markAllNotificationsAsRead(user)
+      return true
     },
   },
 }
 
-export const createApolloServer = (db: Db, provider: Provider) =>
-  new ApolloServer({
+export const createApolloServer = (db: Db, provider: Provider) => {
+  const api = new ColonyMongoApi(db)
+  const data = new ColonyMongoDataSource([
+    db.collection(CollectionNames.Colonies),
+    db.collection(CollectionNames.Domains),
+    db.collection(CollectionNames.Notifications),
+    db.collection(CollectionNames.Tasks),
+    db.collection(CollectionNames.Users),
+  ])
+  const auth = new ColonyAuthDataSource(provider)
+  return new ApolloServer({
     typeDefs,
     resolvers,
     formatError: err => {
@@ -514,16 +664,10 @@ export const createApolloServer = (db: Db, provider: Provider) =>
       // be manipulated in other ways, so long as it's returned.
       return err
     },
-    dataSources: () => ({
-      auth: new ColonyAuth(provider),
-      colonies: Colonies.initialize(db),
-      tasks: Tasks.initialize(db),
-      users: Users.initialize(db),
-    }),
+    dataSources: () => ({ auth, data }),
     context: ({ req }) => {
       const token =
         req.headers['x-access-token'] || req.headers['authorization']
-
       /**
        * @NOTE
        *
@@ -541,6 +685,10 @@ export const createApolloServer = (db: Db, provider: Provider) =>
         )
       }
 
-      return { user: address }
+      return {
+        api,
+        user: address,
+      }
     },
   })
+}
