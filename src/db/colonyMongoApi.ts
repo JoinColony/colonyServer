@@ -141,6 +141,7 @@ export class ColonyMongoApi {
   async editUser(
     walletAddress: string,
     profile: {
+      avatarHash: string | null
       displayName: string | null
       website: string | null
       location: string | null
@@ -157,18 +158,6 @@ export class ColonyMongoApi {
       { $set: {}, $unset: {} },
     )
     return this.updateUser(walletAddress, {}, modifier)
-  }
-
-  async setUserAvatar(walletAddress: string, ipfsHash: string) {
-    return this.updateUser(
-      walletAddress,
-      {},
-      { $set: { avatarHash: ipfsHash } },
-    )
-  }
-
-  async removeUserAvatar(walletAddress: string) {
-    return this.updateUser(walletAddress, {}, { $unset: { avatarHash: '' } })
   }
 
   async subscribeToColony(walletAddress: string, colonyAddress: string) {
@@ -239,18 +228,6 @@ export class ColonyMongoApi {
       { $set: {}, $unset: {} },
     )
     return this.updateColony(colonyAddress, {}, modifier)
-  }
-
-  async setColonyAvatar(colonyAddress: string, ipfsHash: string) {
-    return this.updateColony(
-      colonyAddress,
-      {},
-      { $set: { avatarHash: ipfsHash } },
-    )
-  }
-
-  async removeColonyAvatar(colonyAddress: string) {
-    return this.updateColony(colonyAddress, {}, { $unset: { avatarHash: '' } })
   }
 
   async setColonyTokenAvatar(colonyAddress: string, ipfsHash: string) {
