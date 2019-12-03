@@ -3,7 +3,7 @@ import { CollectionCreateOptions, IndexOptions } from 'mongodb'
 export enum CollectionNames {
   Colonies = 'colonies',
   Domains = 'domains',
-  Comments = 'comments',
+  Messages = 'messages',
   Notifications = 'notifications',
   Tasks = 'tasks',
   Users = 'users',
@@ -60,14 +60,20 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 maxLength: 2000,
               },
               colonies: {
-                bsonType: ['string'],
+                bsonType: 'array',
                 description: 'must be an array of colony addresses',
                 uniqueItems: true,
+                items: {
+                  bsonType: 'string',
+                },
               },
               tasks: {
-                bsonType: ['string'],
-                description: 'must be an array of task addresses',
+                bsonType: 'array',
+                description: 'must be an array of task IDs',
                 uniqueItems: true,
+                items: {
+                  bsonType: 'string',
+                },
               },
             },
           },
@@ -95,6 +101,11 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 description: 'must be a string and is required',
                 maxLength: 42,
               },
+              founderAddress: {
+                bsonType: 'string',
+                description: 'must be a string and is required',
+                maxLength: 42,
+              },
               colonyName: {
                 bsonType: 'string',
                 description: 'must be a string and is required',
@@ -104,6 +115,34 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 bsonType: 'string',
                 description: 'must be a string',
                 maxLength: 100,
+              },
+              displayName: {
+                bsonType: 'string',
+                description: 'must be a string',
+                maxLength: 200,
+              },
+              description: {
+                bsonType: 'string',
+                description: 'must be a string',
+                maxLength: 4000,
+              },
+              guideline: {
+                bsonType: 'string',
+                description: 'must be a string',
+                maxLength: 4000,
+              },
+              website: {
+                bsonType: 'string',
+                description: 'must be a string',
+                maxLength: 400,
+              },
+              tasks: {
+                bsonType: 'array',
+                description: 'must be an array of task IDs',
+                uniqueItems: true,
+                items: {
+                  bsonType: 'string',
+                },
               },
             },
           },
@@ -164,12 +203,18 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 bsonType: 'date',
               },
               workRequests: {
-                bsonType: ['string'],
+                bsonType: 'array',
                 uniqueItems: true,
+                items: {
+                  bsonType: 'string',
+                },
               },
               workInvites: {
-                bsonType: ['string'],
+                bsonType: 'array',
                 uniqueItems: true,
+                items: {
+                  bsonType: 'string',
+                },
               },
             },
           },
@@ -233,22 +278,34 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         validator: {
           $jsonSchema: {
             bsonType: 'object',
-            required: ['type'],
+            required: ['type', 'createdAt'],
             properties: {
-              colonyAddress: {
-                bsonType: 'string',
-                description: 'must be a string',
-                maxLength: 42,
+              createdAt: {
+                bsonType: 'timestamp',
               },
               type: {
                 bsonType: 'string',
-                description: 'must be a string and is required',
                 maxLength: 100,
               },
-              mentions: {
-                bsonType: ['string'],
-                description: 'must be an array of user addresses',
+              value: {
+                bsonType: 'object',
+              },
+              users: {
+                bsonType: 'array',
                 uniqueItems: true,
+                additionalProperties: false,
+                items: {
+                  bsonType: 'object',
+                  required: ['userAddress'],
+                  properties: {
+                    userAddress: {
+                      bsonType: 'string',
+                    },
+                    read: {
+                      bsonType: 'bool',
+                    },
+                  },
+                },
               },
             },
           },
@@ -258,6 +315,52 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['type', {}],
         ['colonyAddress', { sparse: true }],
         ['mentions', { sparse: true }],
+      ],
+    },
+  ],
+  [
+    CollectionNames.Messages,
+    {
+      create: {
+        validator: {
+          $jsonSchema: {
+            bsonType: 'object',
+            required: ['context', 'body', 'createdAt'],
+            properties: {
+              createdAt: {
+                bsonType: 'timestamp',
+              },
+              context: {
+                properties: {
+                  type: {
+                    enum: ['task', 'domain', 'colony', 'user'],
+                  },
+                  value: {
+                    bsonType: 'string',
+                  },
+                },
+              },
+              body: {
+                bsonType: 'string',
+                maxLength: 4000,
+              },
+              // TODO later: Support mentioning colonies, domains, tasks?
+              userMentions: {
+                bsonType: 'array',
+                description: 'must be an array of user addresses',
+                uniqueItems: true,
+                items: {
+                  bsonType: 'string',
+                },
+              },
+            },
+          },
+        },
+      },
+      indexes: [
+        ['type', {}],
+        ['context', {}],
+        ['userMentions', { sparse: true }],
       ],
     },
   ],
