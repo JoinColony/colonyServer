@@ -30,7 +30,7 @@ interface Input<T extends object> {
 
 const typeDefs = gql`
   type UserProfile {
-    username: String!
+    username: String
     avatarHash: String
     bio: String
     displayName: String
