@@ -922,6 +922,32 @@ const resolvers: IResolvers<any, ApolloContext> = {
   },
 }
 
+const authenticate = (token: string) => {
+  let user
+
+  // In dev mode we enable a mode without a token for code generation
+  if (process.env.NODE_ENV === 'development' && token === 'codegen') {
+    user = null
+  } else {
+    /**
+     * @NOTE
+     *
+     * Theoretically we don't _need_ to do this authentication check for all
+     * requests, and this could be handled by each resolver. However, since
+     * the current use-case (dapp) requires a wallet address, we may as well
+     * put this check here, and disallow any requests without a valid token.
+     */
+    try {
+      user = getAddressFromToken(token as string)
+    } catch (caughtError) {
+      throw new AuthenticationError(
+        `Not authenticated: ${caughtError.message || caughtError.toString()}`,
+      )
+    }
+  }
+  return user
+}
+
 export const createApolloServer = (db: Db, provider: Provider) => {
   const api = new ColonyMongoApi(db)
   const data = new ColonyMongoDataSource([
@@ -948,28 +974,12 @@ export const createApolloServer = (db: Db, provider: Provider) => {
     },
     dataSources: () => ({ auth, data }),
     context: ({ req }) => {
-      const token =
-        req.headers['x-access-token'] || req.headers['authorization']
-      /**
-       * @NOTE
-       *
-       * Theoretically we don't _need_ to do this authentication check for all
-       * requests, and this could be handled by each resolver. However, since
-       * the current use-case (dapp) requires a wallet address, we may as well
-       * put this check here, and disallow any requests without a valid token.
-       */
-      let address
-      try {
-        address = getAddressFromToken(token as string)
-      } catch (caughtError) {
-        throw new AuthenticationError(
-          `Not authenticated: ${caughtError.message || caughtError.toString()}`,
-        )
-      }
-
+      const token = (req.headers['x-access-token'] ||
+        req.headers['authorization']) as string
+      const user = authenticate(token)
       return {
         api,
-        user: address,
+        user,
       }
     },
   })
