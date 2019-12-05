@@ -39,11 +39,18 @@ const typeDefs = gql`
     website: String
   }
 
-  type User {
+  interface IUser {
     id: String! # wallet address
     profile: UserProfile!
-    colonies: [Colony]
-    tasks: [Task]
+    colonies: [Colony]!
+    tasks: [Task]!
+  }
+
+  type User implements IUser {
+    id: String! # wallet address
+    profile: UserProfile!
+    colonies: [Colony]!
+    tasks: [Task]!
   }
 
   type Token {
@@ -64,10 +71,22 @@ const typeDefs = gql`
     displayName: String
     guideline: String
     website: String
-    tasks: [Task]
+    tasks: [Task]!
+    domains: [Domain]!
     founder: User
-    subscribedUsers: [User]
+    subscribedUsers: [User]!
     # token: Token
+  }
+
+  type Domain {
+    id: String! # TODO is this mongo id or colonyaddress-ethdomainid?
+    colonyAddress: String!
+    ethDomainId: Int!
+    ethParentDomainId: Int!
+    name: String!
+    colony: Colony!
+    parent: Domain
+    tasks: [Task]!
   }
 
   type Task {
@@ -83,14 +102,124 @@ const typeDefs = gql`
     colony: Colony
     creator: User
     assignedWorker: User
-    workInvites: [User]
-    workRequests: [User]
+    workInvites: [User]!
+    workRequests: [User]!
+  }
+
+  type AssignWorkerEvent {
+    taskId: String!
+    workerAddress: String!
+  }
+
+  type UnassignWorkerEvent {
+    taskId: String!
+    workerAddress: String!
+  }
+
+  type CancelTaskEvent {
+    taskId: String!
+  }
+
+  type CreateDomainEvent {
+    ethDomainId: String!
+    colonyAddress: String!
+  }
+
+  type CreateTaskEvent {
+    taskId: String!
+    ethDomainId: String!
+    colonyAddress: String!
+  }
+
+  type CreateWorkRequestEvent {
+    taskId: String!
+  }
+
+  type FinalizeTaskEvent {
+    taskId: String!
+  }
+
+  type RemoveTaskPayoutEvent {
+    taskId: String!
+  }
+
+  type SendWorkInviteEvent {
+    taskId: String!
+  }
+
+  type SetTaskDescriptionEvent {
+    taskId: String!
+    description: String!
+  }
+
+  type SetTaskDomainEvent {
+    taskId: String!
+    ethDomainId: String!
+  }
+
+  type SetTaskDueDateEvent {
+    taskId: String!
+    dueDate: Int!
+  }
+
+  type SetTaskPayoutEvent {
+    taskId: String!
+  }
+
+  type SetTaskSkillEvent {
+    taskId: String!
+    ethSkillId: Int!
+  }
+
+  type SetTaskTitleEvent {
+    taskId: String!
+    title: String!
+  }
+
+  union EventContext =
+      AssignWorkerEvent
+    | CancelTaskEvent
+    | CreateDomainEvent
+    | CreateTaskEvent
+    | CreateWorkRequestEvent
+    | FinalizeTaskEvent
+    | RemoveTaskPayoutEvent
+    | SendWorkInviteEvent
+    | SetTaskDescriptionEvent
+    | SetTaskDomainEvent
+    | SetTaskDueDateEvent
+    | SetTaskPayoutEvent
+    | SetTaskSkillEvent
+    | SetTaskTitleEvent
+    | UnassignWorkerEvent
+
+  type Event {
+    type: String!
+    initiator: String!
+    sourceId: String!
+    sourceType: String!
+    context: EventContext!
+  }
+
+  type Notification {
+    event: Event!
+    read: Boolean!
+  }
+
+  type CurrentUser implements IUser {
+    id: String! # wallet address
+    profile: UserProfile!
+    colonies: [Colony]!
+    tasks: [Task]!
+    notifications(read: Boolean): [Notification]!
   }
 
   type Query {
     user(address: String!): User!
     colony(address: String!): Colony!
+    domain(colonyAddress: String!, ethDomainId: Int!): Colony!
     task(id: String!): Task!
+    currentUser: CurrentUser!
   }
 
   input CreateUserInput {
@@ -108,6 +237,7 @@ const typeDefs = gql`
   input CreateColonyInput {
     colonyAddress: String!
     colonyName: String!
+    displayName: String!
   }
 
   input CreateTaskInput {
@@ -142,7 +272,6 @@ const typeDefs = gql`
 
   input CreateWorkRequestInput {
     id: String!
-    workerAddress: String!
   }
 
   input SendWorkInviteInput {
@@ -207,9 +336,22 @@ const typeDefs = gql`
     id: String!
   }
 
-  # TODO input should be empty
-  input MarkAllNotificationsAsReadInput {
+  input SendTaskMessageInput {
     id: String!
+    message: String!
+  }
+
+  input CreateDomainInput {
+    colonyAddress: String!
+    ethDomainId: Int!
+    name: Int!
+    parentEthDomainId: Int
+  }
+
+  input EditDomainNameInput {
+    colonyAddress: String!
+    ethDomainId: Int!
+    name: Int!
   }
 
   type Mutation {
@@ -223,6 +365,9 @@ const typeDefs = gql`
     # Colonies
     createColony(input: CreateColonyInput!): Colony
     editColonyProfile(input: EditColonyProfileInput!): Colony
+    # Domains
+    createDomain(input: CreateDomainInput!): Domain
+    editDomainName(input: EditDomainNameInput!): Domain
     # Tasks
     assignWorker(input: AssignWorkerInput!): Task
     cancelTask(input: TaskIdInput!): Task
@@ -239,8 +384,10 @@ const typeDefs = gql`
     setTaskTitle(input: SetTaskTitleInput!): Task
     unassignWorker(input: UnassignWorkerInput!): Task
     # Notifications
-    markAllNotificationsAsRead(input: MarkAllNotificationsAsReadInput): Boolean!
+    markAllNotificationsAsRead: Boolean!
     markNotificationAsRead(input: MarkNotificationAsReadInput!): Boolean!
+    # Messages
+    sendTaskMessage(input: SendTaskMessageInput!): Boolean!
   }
 `
 
@@ -259,11 +406,14 @@ const tryAuth = async (promise: Promise<boolean>) => {
 }
 
 const resolvers: IResolvers<any, ApolloContext> = {
+  // TODO add messages, events, colony/user tokens
   Query: {
+    async currentUser(parent, input, { user, dataSources: { data } }) {
+      return data.getUserByAddress(user)
+    },
     async user(parent, { address }, { dataSources: { data } }) {
       return data.getUserByAddress(address)
     },
-    // TODO colony by name
     async colony(
       parent,
       { address }: { address: string },
@@ -271,22 +421,54 @@ const resolvers: IResolvers<any, ApolloContext> = {
     ) {
       return data.getColonyByAddress(address)
     },
-    // TODO task by ethTaskId/colonyAddress
-    async task(
+    async domain(
       parent,
-      { id }: { id: string },
+      {
+        colonyAddress,
+        ethDomainId,
+      }: { colonyAddress: string; ethDomainId: number },
       { dataSources: { data } },
     ) {
+      return data.getDomainByEthId(colonyAddress, ethDomainId)
+    },
+    // TODO task by ethTaskId/colonyAddress
+    async task(parent, { id }: { id: string }, { dataSources: { data } }) {
       return data.getTaskById(id)
+    },
+  },
+  Domain: {
+    async colony({ colonyAddress }, input: any, { dataSources: { data } }) {
+      return data.getColonyByAddress(colonyAddress)
+    },
+    async parent(
+      { colonyAddress, ethParentDomainId },
+      input: any,
+      { dataSources: { data } },
+    ) {
+      return ethParentDomainId
+        ? await data.getDomainByEthId(colonyAddress, ethParentDomainId)
+        : null
+    },
+    async tasks(
+      { colonyAddress, ethDomainId },
+      input: any,
+      { dataSources: { data } },
+    ) {
+      return data.getTasksByEthDomainId(colonyAddress, ethDomainId)
     },
   },
   Colony: {
     async tasks(
       { tasks = [] },
-      input: any, // TODO allow restriction of query, e.g. by open tasks
+      // TODO select on-chain tasks by ethTaskId, so that we can start from on-chain and select from there
+      // TODO allow restriction of query, e.g. by open tasks
+      input: any,
       { dataSources: { data } },
     ) {
       return data.getTasksById(tasks)
+    },
+    async domains({ colonyAddress }, input: any, { dataSources: { data } }) {
+      return data.getColonyDomains(colonyAddress)
     },
     async founder({ founderAddress }, input: any, { dataSources: { data } }) {
       return data.getUserByAddress(founderAddress)
@@ -300,9 +482,44 @@ const resolvers: IResolvers<any, ApolloContext> = {
     },
   },
   User: {
-    async colonies({ subscribedColonies = [] }, input: any, { dataSources: { data } }) {
+    async colonies(
+      { subscribedColonies = [] },
+      input: any,
+      { dataSources: { data } },
+    ) {
       return data.getColoniesByAddress(subscribedColonies)
     },
+    async tasks(
+      { subscribedTasks = [] },
+      input: any, // TODO allow restriction of query, e.g. by open tasks
+      { dataSources: { data } },
+    ) {
+      return data.getTasksById(subscribedTasks)
+    },
+  },
+  CurrentUser: {
+    async notifications(
+      parent,
+      { read }: { read?: boolean },
+      { user, dataSources: { data } },
+    ) {
+      if (read === false) {
+        return data.getUnreadUserNotifications(user)
+      } else if (read) {
+        return data.getReadUserNotifications(user)
+      } else {
+        return data.getAllUserNotifications(user)
+      }
+    },
+    // TODO this is a bit weird, do we really need to re-specify them? (see users)
+    async colonies(
+      { subscribedColonies = [] },
+      input: any,
+      { dataSources: { data } },
+    ) {
+      return data.getColoniesByAddress(subscribedColonies)
+    },
+    // TODO this is a bit weird, do we really need to re-specify them? (see users)
     async tasks(
       { subscribedTasks = [] },
       input: any, // TODO allow restriction of query, e.g. by open tasks
@@ -355,11 +572,11 @@ const resolvers: IResolvers<any, ApolloContext> = {
       {
         input,
       }: Input<{
-        avatarHash: string | null
-        bio: string | null
-        displayName: string | null
-        location: string | null
-        website: string | null
+        avatarHash?: string | null
+        bio?: string | null
+        displayName?: string | null
+        location?: string | null
+        website?: string | null
       }>,
       { user, api, dataSources: { data } },
     ) {
@@ -402,14 +619,23 @@ const resolvers: IResolvers<any, ApolloContext> = {
     async createColony(
       parent,
       {
-        input: { colonyAddress, colonyName },
-      }: Input<{ colonyAddress: string; colonyName: string }>,
+        input: { colonyAddress, colonyName, displayName },
+      }: Input<{
+        colonyAddress: string
+        colonyName: string
+        displayName: string
+      }>,
       { user, api, dataSources: { data, auth } },
     ) {
-      // No auth call needed: anyone should be able to do this
-      // TODO test that the given colony address exists on-chain? Not really auth per-se, more validation
+      // No permissions-based auth call needed: anyone should be able to do this
+
+      // TODO test that the given colony address exists on-chain?
+      // Not really auth per-se, more validation (if it doesn't exist, permissions checks will fail)
+      // TODO the newly-created Colony might not be propagated... maybe we need to use events/polling?
       // await tryAuth(auth.assertColonyExists(colonyAddress))
-      await api.createColony(colonyAddress, colonyName, user)
+
+      // TODO we need to get the right creatorAddress...
+      await api.createColony(user, colonyAddress, colonyName, displayName)
       return data.getColonyByAddress(colonyAddress)
     },
     async editColonyProfile(
@@ -418,11 +644,11 @@ const resolvers: IResolvers<any, ApolloContext> = {
         input: { colonyAddress, ...profile },
       }: Input<{
         colonyAddress: string
-        avatarHash: string | null
-        description: string | null
-        displayName: string | null
-        guideline: string | null
-        website: string | null
+        avatarHash?: string | null
+        description?: string | null
+        displayName?: string | null
+        guideline?: string | null
+        website?: string | null
       }>,
       { user, api, dataSources: { data, auth } },
     ) {
@@ -439,7 +665,7 @@ const resolvers: IResolvers<any, ApolloContext> = {
       { user, api, dataSources: { data, auth } },
     ) {
       await tryAuth(auth.assertCanCreateTask(colonyAddress, user, ethDomainId))
-      const taskId = await api.createTask(colonyAddress, user, ethDomainId)
+      const taskId = await api.createTask(user, colonyAddress, ethDomainId)
       return data.getTaskById(taskId)
     },
     async setTaskDomain(
@@ -449,23 +675,36 @@ const resolvers: IResolvers<any, ApolloContext> = {
       }: Input<{ id: string; ethDomainId: number }>,
       { user, api, dataSources: { data, auth } },
     ) {
-      const { colonyAddress } = await data.getTaskById(id)
+      const {
+        colonyAddress,
+        ethDomainId: currentEthDomainId,
+      } = await data.getTaskById(id)
       await tryAuth(
-        auth.assertCanSetTaskDomain(colonyAddress, user, ethDomainId),
+        auth.assertCanSetTaskDomain(
+          colonyAddress,
+          user,
+          currentEthDomainId,
+          ethDomainId,
+        ),
       )
-      await api.setTaskDomain(id, ethDomainId)
+      await api.setTaskDomain(user, id, ethDomainId)
       return data.getTaskById(id)
     },
     async setTaskDescription(
       parent,
-      { input: { id, description } }: Input<{ id: string; description: string }>,
+      {
+        input: { id, description },
+      }: Input<{ id: string; description: string }>,
       { user, api, dataSources: { data, auth } },
     ) {
+      // TODO for all of these cases (where we need to look up the ethDomainId for an off-chain task),
+      // it's ok to do this lookup, but if we have an ethTaskId, we should look up the ethDomainId
+      // from on-chain.
       const { colonyAddress, ethDomainId } = await data.getTaskById(id)
       await tryAuth(
         auth.assertCanSetTaskDescription(colonyAddress, user, ethDomainId),
       )
-      await api.setTaskDescription(id, description)
+      await api.setTaskDescription(user, id, description)
       return data.getTaskById(id)
     },
     async setTaskTitle(
@@ -477,7 +716,7 @@ const resolvers: IResolvers<any, ApolloContext> = {
       await tryAuth(
         auth.assertCanSetTaskTitle(colonyAddress, user, ethDomainId),
       )
-      await api.setTaskTitle(id, title)
+      await api.setTaskTitle(user, id, title)
       return data.getTaskById(id)
     },
     async setTaskSkill(
@@ -489,7 +728,7 @@ const resolvers: IResolvers<any, ApolloContext> = {
       await tryAuth(
         auth.assertCanSetTaskSkill(colonyAddress, user, ethDomainId),
       )
-      await api.setTaskSkill(id, ethSkillId)
+      await api.setTaskSkill(user, id, ethSkillId)
       return data.getTaskById(id)
     },
     async setTaskDueDate(
@@ -501,21 +740,19 @@ const resolvers: IResolvers<any, ApolloContext> = {
       await tryAuth(
         auth.assertCanSetTaskDueDate(colonyAddress, user, ethDomainId),
       )
-      await api.setTaskDueDate(id, new Date(dueDate))
+      await api.setTaskDueDate(user, id, new Date(dueDate))
       return data.getTaskById(id)
     },
     async createWorkRequest(
       parent,
-      {
-        input: { id, workerAddress },
-      }: Input<{ id: string; workerAddress: string }>,
+      { input: { id } }: Input<{ id: string }>,
       { user, api, dataSources: { data, auth } },
     ) {
       const { colonyAddress, ethDomainId } = await data.getTaskById(id)
       await tryAuth(
         auth.assertCanCreateWorkRequest(colonyAddress, user, ethDomainId),
       )
-      await api.createWorkRequest(id, workerAddress)
+      await api.createWorkRequest(user, id)
       return data.getTaskById(id)
     },
     async sendWorkInvite(
@@ -529,45 +766,35 @@ const resolvers: IResolvers<any, ApolloContext> = {
       await tryAuth(
         auth.assertCanSendWorkInvite(colonyAddress, user, ethDomainId),
       )
-      await api.sendWorkInvite(id, workerAddress)
+      await api.sendWorkInvite(user, id, workerAddress)
       return data.getTaskById(id)
     },
     async setTaskPayout(
       parent,
       {
-        input: { id, ethDomainId, amount, token },
-      }: Input<{
-        id: string
-        amount: string
-        token: string
-        ethDomainId: number
-      }>,
+        input: { id, amount, token },
+      }: Input<{ id: string; amount: string; token: string }>,
       { user, api, dataSources: { data, auth } },
     ) {
-      const { colonyAddress } = await data.getTaskById(id)
+      const { colonyAddress, ethDomainId } = await data.getTaskById(id)
       await tryAuth(
         auth.assertCanSetTaskPayout(colonyAddress, user, ethDomainId),
       )
-      await api.setTaskPayout(id, amount, token, ethDomainId)
+      await api.setTaskPayout(user, id, amount, token)
       return data.getTaskById(id)
     },
     async removeTaskPayout(
       parent,
       {
-        input: { id, ethDomainId, amount, token },
-      }: Input<{
-        id: string
-        amount: string
-        token: string
-        ethDomainId: number
-      }>,
+        input: { id, amount, token },
+      }: Input<{ id: string; amount: string; token: string }>,
       { user, api, dataSources: { data, auth } },
     ) {
-      const { colonyAddress } = await data.getTaskById(id)
+      const { colonyAddress, ethDomainId } = await data.getTaskById(id)
       await tryAuth(
         auth.assertCanRemoveTaskPayout(colonyAddress, user, ethDomainId),
       )
-      await api.removeTaskPayout(id, amount, token, ethDomainId)
+      await api.removeTaskPayout(user, id, amount, token)
       return data.getTaskById(id)
     },
     async assignWorker(
@@ -581,7 +808,7 @@ const resolvers: IResolvers<any, ApolloContext> = {
       await tryAuth(
         auth.assertCanAssignWorker(colonyAddress, user, ethDomainId),
       )
-      await api.assignWorker(id, workerAddress)
+      await api.assignWorker(user, id, workerAddress)
       return data.getTaskById(id)
     },
     async unassignWorker(
@@ -595,7 +822,7 @@ const resolvers: IResolvers<any, ApolloContext> = {
       await tryAuth(
         auth.assertCanUnassignWorker(colonyAddress, user, ethDomainId),
       )
-      await api.unassignWorker(id, workerAddress)
+      await api.unassignWorker(user, id, workerAddress)
       return data.getTaskById(id)
     },
     async finalizeTask(
@@ -607,7 +834,7 @@ const resolvers: IResolvers<any, ApolloContext> = {
       await tryAuth(
         auth.assertCanFinalizeTask(colonyAddress, user, ethDomainId),
       )
-      await api.finalizeTask(id)
+      await api.finalizeTask(user, id)
       return data.getTaskById(id)
     },
     async cancelTask(
@@ -617,7 +844,7 @@ const resolvers: IResolvers<any, ApolloContext> = {
     ) {
       const { colonyAddress, ethDomainId } = await data.getTaskById(id)
       await tryAuth(auth.assertCanCancelTask(colonyAddress, user, ethDomainId))
-      await api.cancelTask(id)
+      await api.cancelTask(user, id)
       return data.getTaskById(id)
     },
     // Notifications
@@ -630,14 +857,67 @@ const resolvers: IResolvers<any, ApolloContext> = {
       await api.markNotificationAsRead(user, id)
       return true
     },
-    async markAllNotificationsAsRead(
-      parent,
-      {  }: Input<any>,
-      { user, api },
-    ) {
+    async markAllNotificationsAsRead(parent, input: Input<any>, { user, api }) {
       // No auth call needed; restricted to the current authenticated user address
       await api.markAllNotificationsAsRead(user)
       return true
+    },
+    // Messages
+    async sendTaskMessage(
+      parent,
+      { input: { id, message } }: Input<{ id: string; message: string }>,
+      { user, api },
+    ) {
+      // No auth call needed; anyone can do this (for now...?)
+      await api.sendTaskMessage(user, id, message)
+      return true
+    },
+    // Domains
+    async createDomain(
+      parent,
+      {
+        input: { ethDomainId, ethParentDomainId, name, colonyAddress },
+      }: Input<{
+        ethDomainId: number
+        ethParentDomainId: number
+        name: string
+        colonyAddress: string
+      }>,
+      { user, api, dataSources: { auth, data } },
+    ) {
+      await tryAuth(
+        auth.assertCanCreateDomain(
+          colonyAddress,
+          user,
+          ethDomainId,
+          ethParentDomainId,
+        ),
+      )
+      await api.createDomain(
+        user,
+        colonyAddress,
+        ethDomainId,
+        ethParentDomainId,
+        name,
+      )
+      return data.getDomainByEthId(colonyAddress, ethDomainId)
+    },
+    async editDomainName(
+      parent,
+      {
+        input: { ethDomainId, name, colonyAddress },
+      }: Input<{
+        ethDomainId: number
+        name: string
+        colonyAddress: string
+      }>,
+      { user, api, dataSources: { auth, data } },
+    ) {
+      await tryAuth(
+        auth.assertCanEditDomainName(colonyAddress, user, ethDomainId),
+      )
+      await api.editDomainName(user, colonyAddress, ethDomainId, name)
+      return data.getDomainByEthId(colonyAddress, ethDomainId)
     },
   },
 }
@@ -647,6 +927,8 @@ export const createApolloServer = (db: Db, provider: Provider) => {
   const data = new ColonyMongoDataSource([
     db.collection(CollectionNames.Colonies),
     db.collection(CollectionNames.Domains),
+    db.collection(CollectionNames.Events),
+    db.collection(CollectionNames.Messages),
     db.collection(CollectionNames.Notifications),
     db.collection(CollectionNames.Tasks),
     db.collection(CollectionNames.Users),

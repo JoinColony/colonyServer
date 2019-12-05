@@ -72,6 +72,17 @@ export interface DomainDoc extends MongoDoc {
   name: string
 }
 
+// TODO
+export interface EventDoc<C extends object> extends MongoDoc {
+  type: EventType
+  initiator: string
+  sourceType: 'db' | 'contract'
+  context: C
+}
+
+// TODO
+export interface MessageDoc extends MongoDoc {}
+
 export interface TaskDoc extends MongoDoc {
   colonyAddress: string
   creatorAddress: string
@@ -88,19 +99,27 @@ export interface TaskDoc extends MongoDoc {
   workRequests: string[]
 }
 
-export enum NotificationType {
+export enum EventType {
   AssignWorker = 'AssignWorker',
-  CommentMention = 'CommentMention',
+  CancelTask = 'CancelTask',
+  CreateDomain = 'CreateDomain',
+  CreateTask = 'CreateTask',
+  CreateWorkRequest = 'CreateWorkRequest',
   FinalizeTask = 'FinalizeTask',
+  RemoveTaskPayout = 'RemoveTaskPayout',
+  SendWorkInvite = 'SendWorkInvite',
+  SetTaskDescription = 'SetTaskDescription',
+  SetTaskDomain = 'SetTaskDomain',
+  SetTaskDueDate = 'SetTaskDueDate',
+  SetTaskPayout = 'SetTaskPayout',
+  SetTaskSkill = 'SetTaskSkill',
+  SetTaskTitle = 'SetTaskTitle',
   UnassignWorker = 'UnassignWorker',
-  WorkRequest = 'WorkRequest',
 }
 
 export interface NotificationDoc extends MongoDoc {
-  createdAt: Date
-  type: NotificationType
+  eventId: ObjectID
   users: { userAddress: string; read?: boolean }[]
-  value: object
 }
 
 export interface UserDoc extends MongoDoc {

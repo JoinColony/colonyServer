@@ -1,20 +1,24 @@
-import { Collection } from 'mongodb'
-import { MongoDataSource, CachedCollection } from 'apollo-datasource-mongodb'
+import { Collection, ObjectID } from 'mongodb'
+import { MongoDataSource, CachedCollection } from 'apollo-datasource-mongo'
+import { DataSource, DataSourceConfig } from 'apollo-datasource'
 
 import {
-  UserDoc,
   ColonyDoc,
+  DomainDoc,
+  EventDoc,
+  MessageDoc,
   NotificationDoc,
   TaskDoc,
-  DomainDoc,
+  UserDoc,
 } from './types'
-import { DataSource, DataSourceConfig } from 'apollo-datasource'
 
 const DEFAULT_TTL = { ttl: 10000 }
 
 interface Collections {
   colonies: CachedCollection<ColonyDoc>
   domains: CachedCollection<DomainDoc>
+  events: CachedCollection<EventDoc<any>>
+  messages: CachedCollection<MessageDoc>
   notifications: CachedCollection<NotificationDoc>
   tasks: CachedCollection<TaskDoc>
   users: CachedCollection<UserDoc>
@@ -43,6 +47,15 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return { id: profile.walletAddress, profile }
   }
 
+  private static transformEvent<C extends object>({ _id, ...doc }: EventDoc<C>) {
+    const id = _id.toString()
+    return {
+      ...doc,
+      id,
+      sourceId: id,
+    }
+  }
+
   private static transformDoc(doc: TaskDoc) {
     return { ...doc, id: doc._id.toString() }
   }
@@ -56,17 +69,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     if (!doc) {
       throw new Error(`Colony with address '${colonyAddress}' not found`)
     }
-
-    return ColonyMongoDataSource.transformColony(doc)
-  }
-
-  async getColonyByName(colonyName: string) {
-    const [doc] = await this.collections.colonies.findManyByQuery(
-      { colonyName },
-      DEFAULT_TTL,
-    )
-
-    if (!doc) throw new Error(`Colony with name '${colonyName}' not found`)
 
     return ColonyMongoDataSource.transformColony(doc)
   }
@@ -87,7 +89,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return ColonyMongoDataSource.transformDoc(doc)
   }
 
-  async getTaskByEthId(ethTaskId: string, colonyAddress: string) {
+  async getTaskByEthId(colonyAddress: string, ethTaskId: number) {
     const [doc] = await this.collections.tasks.findManyByQuery(
       { colonyAddress, ethTaskId },
       DEFAULT_TTL,
@@ -95,7 +97,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
 
     if (!doc)
       throw new Error(
-        `Task with task ID '${ethTaskId}' for colony '${colonyAddress}' not found`,
+        `Task with ID '${ethTaskId}' for colony '${colonyAddress}' not found`,
       )
 
     return ColonyMongoDataSource.transformDoc(doc)
@@ -107,6 +109,37 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       DEFAULT_TTL,
     )
 
+    return docs.map(ColonyMongoDataSource.transformDoc)
+  }
+
+  async getTasksByEthDomainId(colonyAddress: string, ethDomainId: number) {
+    const docs = await this.collections.tasks.findManyByQuery(
+      { colonyAddress, ethDomainId },
+      DEFAULT_TTL,
+    )
+
+    return docs.map(ColonyMongoDataSource.transformDoc)
+  }
+
+  async getDomainByEthId(colonyAddress: string, ethDomainId: number) {
+    const [doc] = await this.collections.domains.findManyByQuery(
+      { colonyAddress, ethDomainId },
+      DEFAULT_TTL,
+    )
+
+    if (!doc)
+      throw new Error(
+        `Domain with ID '${ethDomainId}' for colony '${colonyAddress}' not found`,
+      )
+
+    return ColonyMongoDataSource.transformDoc(doc)
+  }
+
+  async getColonyDomains(colonyAddress: string) {
+    const docs = await this.collections.domains.findManyByQuery(
+      { colonyAddress },
+      DEFAULT_TTL,
+    )
     return docs.map(ColonyMongoDataSource.transformDoc)
   }
 
@@ -135,5 +168,41 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       DEFAULT_TTL,
     )
     return docs.map(ColonyMongoDataSource.transformUser)
+  }
+
+  private async getUserNotifications(userAddress: string, query: object) {
+    // This could also use an aggregation, but it wouldn't be cached on the DataSource.
+    const docs = await this.collections.notifications.findManyByQuery(
+      query,
+      DEFAULT_TTL,
+    )
+    const events = await this.collections.events.findManyByIds(
+      docs.map(({ eventId }) => eventId.toString()),
+      DEFAULT_TTL,
+    )
+    return docs.map(({ eventId, users }) => ({
+      event: ColonyMongoDataSource.transformEvent(
+        events.find(({ _id }) => _id.toString() === eventId.toString()),
+      ),
+      read: !!(users.find(u => u.userAddress === userAddress) || {}).read,
+    }))
+  }
+
+  async getAllUserNotifications(userAddress: string) {
+    return this.getUserNotifications(userAddress, {
+      'users.userAddress': userAddress,
+    })
+  }
+
+  async getReadUserNotifications(userAddress: string) {
+    return this.getUserNotifications(userAddress, {
+      users: { $elemMatch: { userAddress, read: true } },
+    })
+  }
+
+  async getUnreadUserNotifications(userAddress: string) {
+    return this.getUserNotifications(userAddress, {
+      users: { $elemMatch: { userAddress, read: { $ne: true } } },
+    })
   }
 }

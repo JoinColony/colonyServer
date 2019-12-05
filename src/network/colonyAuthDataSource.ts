@@ -26,6 +26,8 @@ type ColonyAuthArgs =
 
 // TODO call contract functions statically (rather than IColony instances)
 // TODO detect and support different Colony versions
+// FIXME for basically everything: if the given user doesn't have the role in the given domain,
+// then check it in the root domain. Eventually, this needs to go up the tree.
 class ColoniesMap extends Map<ColonyAddress, IColony> {
   private readonly provider: Provider
 
@@ -108,19 +110,62 @@ export class ColonyAuthDataSource extends DataSource<any> {
     return this.hasSomeRole([ColonyRoles.Administration], ...args)
   }
 
-  async canEditColonyProfile(colonyAddress: ColonyAddress, userAddress: string) {
-    return this.hasSomeRole([ColonyRoles.Administration], colonyAddress, userAddress, 1)
-  }
-
-  async canCreateDomain(...args: ColonyAuthArgs) {
+  async canEditColonyProfile(
+    colonyAddress: ColonyAddress,
+    userAddress: string,
+  ) {
     return this.hasSomeRole(
-      [ColonyRoles.Administration, ColonyRoles.Architecture],
-      ...args,
+      [ColonyRoles.Administration],
+      colonyAddress,
+      userAddress,
+      1,
     )
   }
 
-  async canSetTaskDomain(...args: ColonyAuthArgs) {
+  async canEditDomainName(...args: ColonyAuthArgs) {
     return this.hasSomeRole([ColonyRoles.Administration], ...args)
+  }
+
+  async canCreateDomain(
+    colonyAddress: ColonyAddress,
+    userAddress: UserAddress,
+    ethDomainId: DomainId,
+    ethParentDomainId: DomainId,
+  ) {
+    const hasDomainRole = await this.hasSomeRole(
+      [ColonyRoles.Administration, ColonyRoles.Architecture],
+      colonyAddress,
+      userAddress,
+      ethDomainId,
+    )
+    const hasParentDomainRole = await this.hasSomeRole(
+      [ColonyRoles.Administration, ColonyRoles.Architecture],
+      colonyAddress,
+      userAddress,
+      ethParentDomainId,
+    )
+    return hasDomainRole && hasParentDomainRole
+  }
+
+  async canSetTaskDomain(
+    colonyAddress: ColonyAddress,
+    userAddress: UserAddress,
+    currentDomainId: DomainId,
+    newDomainId: DomainId,
+  ) {
+    const hasRoleInCurrentDomain = await this.hasSomeRole(
+      [ColonyRoles.Administration],
+      colonyAddress,
+      userAddress,
+      currentDomainId,
+    )
+    const hasRoleInNewDomain = await this.hasSomeRole(
+      [ColonyRoles.Administration],
+      colonyAddress,
+      userAddress,
+      newDomainId,
+    )
+    return hasRoleInCurrentDomain && hasRoleInNewDomain
   }
 
   async canSetTaskTitle(...args: ColonyAuthArgs) {
@@ -171,11 +216,24 @@ export class ColonyAuthDataSource extends DataSource<any> {
     return this.hasSomeRole([ColonyRoles.Administration], ...args)
   }
 
-  async assertCanSetTaskDomain(...args: ColonyAuthArgs) {
+  async assertCanSetTaskDomain(
+    colonyAddress: ColonyAddress,
+    userAddress: UserAddress,
+    currentDomainId: DomainId,
+    newDomainId: DomainId,
+  ) {
     return ColonyAuthDataSource.assert(
-      this.canSetTaskDomain(...args),
+      this.canSetTaskDomain(
+        colonyAddress,
+        userAddress,
+        currentDomainId,
+        newDomainId,
+      ),
       'Set task domain',
-      ...args,
+      colonyAddress,
+      userAddress,
+      currentDomainId,
+      newDomainId,
     )
   }
 
@@ -275,10 +333,31 @@ export class ColonyAuthDataSource extends DataSource<any> {
     )
   }
 
-  async assertCanCreateDomain(...args: ColonyAuthArgs) {
+  async assertCanCreateDomain(
+    colonyAddress: ColonyAddress,
+    userAddress: UserAddress,
+    ethDomainId: DomainId,
+    ethParentDomainId: DomainId,
+  ) {
     return ColonyAuthDataSource.assert(
-      this.canCreateDomain(...args),
+      this.canCreateDomain(
+        colonyAddress,
+        userAddress,
+        ethDomainId,
+        ethParentDomainId,
+      ),
       'Create domain',
+      colonyAddress,
+      userAddress,
+      ethDomainId,
+      ethParentDomainId,
+    )
+  }
+
+  async assertCanEditDomainName(...args: ColonyAuthArgs) {
+    return ColonyAuthDataSource.assert(
+      this.canEditDomainName(...args),
+      'Edit domain name',
       ...args,
     )
   }

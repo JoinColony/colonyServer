@@ -1,36 +1,57 @@
 import {
   Collection,
   Db,
-  UpdateOneOptions,
   ObjectID,
   QuerySelector,
+  UpdateOneOptions,
 } from 'mongodb'
 
 import {
   ColonyDoc,
-  TaskDoc,
-  NotificationDoc,
-  UserDoc,
   DomainDoc,
+  EventDoc,
+  EventType,
+  MessageDoc,
+  NotificationDoc,
   StrictRootQuerySelector,
   StrictUpdateQuery,
-  NotificationType,
+  TaskDoc,
+  UserDoc,
 } from './types'
 import { CollectionNames } from './collections'
 
 export class ColonyMongoApi {
+  private static profileModifier(profile: Record<string, any>) {
+    // Set non-null values, unset null values
+    return Object.keys(profile).reduce(
+      (modifier, field) => ({
+        ...(profile[field] === null
+          ? { ...modifier, $unset: { ...modifier.$unset, [field]: '' } }
+          : {
+              ...modifier,
+              $set: { ...modifier.$set, [field]: profile[field] },
+            }),
+      }),
+      {} as { $set?: {}; $unset?: {} },
+    )
+  }
+
   private readonly colonies: Collection<ColonyDoc>
+  private readonly events: Collection<EventDoc<any>>
   private readonly domains: Collection<DomainDoc>
+  private readonly messages: Collection<MessageDoc>
   private readonly notifications: Collection<NotificationDoc>
   private readonly tasks: Collection<TaskDoc>
   private readonly users: Collection<UserDoc>
 
   constructor(db: Db) {
     this.colonies = db.collection<ColonyDoc>(CollectionNames.Colonies)
+    this.events = db.collection<EventDoc<any>>(CollectionNames.Events)
     this.domains = db.collection<DomainDoc>(CollectionNames.Domains)
     this.notifications = db.collection<NotificationDoc>(
       CollectionNames.Notifications,
     )
+    this.messages = db.collection<NotificationDoc>(CollectionNames.Messages)
     this.tasks = db.collection<TaskDoc>(CollectionNames.Tasks)
     this.users = db.collection<UserDoc>(CollectionNames.Users)
   }
@@ -67,19 +88,26 @@ export class ColonyMongoApi {
     modifier: StrictUpdateQuery<TaskDoc>,
     options?: UpdateOneOptions,
   ) {
-    return this.tasks.updateOne(
-      {
-        $and: [
-          { _id: new ObjectID(taskId) },
-          // Ensure that the task does not enter an illegal state; if either
-          // cancelledAt or finalizedAt is set, no further writes should be allowed
-          { cancelledAt: { $exists: false }, finalizedAt: { $exists: false } },
-          query,
-        ],
-      },
-      modifier,
-      options,
-    )
+    const filter = {
+      $and: [
+        { _id: new ObjectID(taskId) },
+        // Ensure that the task does not enter an illegal state; if either
+        // cancelledAt or finalizedAt is set, no further writes should be allowed
+        // FIXME this should throw an error (it needs to be here too, but we just need to be more explicit about it)
+        { cancelledAt: { $exists: false }, finalizedAt: { $exists: false } },
+        query,
+      ],
+    }
+
+    if (
+      await this.tasks.findOne({
+        cancelledAt: { $exists: false },
+        finalizedAt: { $exists: false },
+      })
+    ) {
+    }
+
+    return this.tasks.updateOne(filter, modifier, options)
   }
 
   private async updateDomain(
@@ -96,29 +124,71 @@ export class ColonyMongoApi {
     )
   }
 
-  private async createNotification<T extends object>(
-    type: NotificationType,
-    users: string[],
-    value: T,
-  ) {
+  private async createNotification(eventId: ObjectID, users: string[]) {
+    // No point in creating a notification for no users
+    if (users.length === 0) return null;
+
     const doc = {
-      type,
+      eventId,
       users: users.map(userAddress => ({ userAddress })),
-      value,
     }
-    const { upsertedId } = await this.notifications.updateOne(
+    return this.notifications.updateOne(
       doc,
       {
-        $setOnInsert: { ...doc, createdAt: new Date() },
+        $setOnInsert: doc,
       } as StrictRootQuerySelector<NotificationDoc>,
       { upsert: true },
     )
-    return upsertedId.toString()
   }
 
   private async getTaskColonyAddress(taskId: string) {
     const { colonyAddress } = await this.tasks.findOne(new ObjectID(taskId))
     return colonyAddress
+  }
+
+  private async createTaskNotification(
+    initiator: string,
+    eventId: ObjectID,
+    taskId: string,
+  ) {
+    const users = await this.users
+      .find({ subscribedTasks: taskId, _id: { $ne: new ObjectID(initiator) } })
+      .toArray()
+    return this.createNotification(
+      eventId,
+      users.map(({ walletAddress }) => walletAddress),
+    )
+  }
+
+  private async createColonyNotification(
+    initiator: string,
+    eventId: ObjectID,
+    colonyAddress: string,
+  ) {
+    const users = await this.users
+      .find({
+        subscribedColonies: colonyAddress,
+        walletAddress: { $ne: initiator },
+      })
+      .toArray()
+    return this.createNotification(
+      eventId,
+      users.map(({ walletAddress }) => walletAddress),
+    )
+  }
+
+  private async createEvent<C extends object>(
+    initiator: string,
+    type: EventType,
+    context: C,
+  ) {
+    const { insertedId } = await this.events.insertOne({
+      context,
+      initiator,
+      type,
+      sourceType: 'db',
+    })
+    return insertedId
   }
 
   async createUser(walletAddress: string, username: string) {
@@ -141,23 +211,18 @@ export class ColonyMongoApi {
   async editUser(
     walletAddress: string,
     profile: {
-      avatarHash: string | null
-      displayName: string | null
-      website: string | null
-      location: string | null
-      bio: string | null
+      avatarHash?: string | null
+      displayName?: string | null
+      website?: string | null
+      location?: string | null
+      bio?: string | null
     },
   ) {
-    // Set non-null values, unset null values
-    const modifier = Object.keys(profile).reduce(
-      ({ $set, $unset }, field) => ({
-        ...(profile[field] === null
-          ? { $set, $unset: { ...$unset, [field]: '' } }
-          : { $set: { ...$set, [field]: profile[field] }, $unset }),
-      }),
-      { $set: {}, $unset: {} },
+    return this.updateUser(
+      walletAddress,
+      {},
+      ColonyMongoApi.profileModifier(profile),
     )
-    return this.updateUser(walletAddress, {}, modifier)
   }
 
   async subscribeToColony(walletAddress: string, colonyAddress: string) {
@@ -177,25 +242,37 @@ export class ColonyMongoApi {
   }
 
   async subscribeToTask(walletAddress: string, taskId: string) {
-    return this.updateUser(walletAddress, {}, { $push: { subscribedTasks: taskId } })
+    return this.updateUser(
+      walletAddress,
+      {},
+      { $push: { subscribedTasks: taskId } },
+    )
   }
 
   async unsubscribeFromTask(walletAddress: string, taskId: string) {
-    return this.updateUser(walletAddress, {}, { $pull: { subscribedTasks: taskId } })
+    return this.updateUser(
+      walletAddress,
+      {},
+      { $pull: { subscribedTasks: taskId } },
+    )
   }
 
   async createColony(
+    initiator: string,
     colonyAddress: string,
     colonyName: string,
-    founderAddress: string,
+    displayName: string,
   ) {
-    const doc = { colonyAddress, colonyName, founderAddress }
+    const doc = {
+      colonyAddress,
+      colonyName,
+      displayName,
+      founderAddress: initiator,
+    }
 
-    const exists = !!(await this.colonies.findOne(
-      {
-        $or: [{ colonyAddress }, { colonyName }],
-      }
-    ))
+    const exists = !!(await this.colonies.findOne({
+      $or: [{ colonyAddress }, { colonyName }],
+    }))
     if (exists) {
       throw new Error(
         `Colony with address '${colonyAddress}' or name '${colonyName}' already exists`,
@@ -206,28 +283,26 @@ export class ColonyMongoApi {
     // it's not the job of a unique index to preserve data integrity.
     await this.colonies.updateOne(doc, { $setOnInsert: doc }, { upsert: true })
 
-    return this.subscribeToColony(founderAddress, colonyAddress)
+    await this.createDomain(initiator, colonyAddress, 1, null, 'Root')
+
+    return this.subscribeToColony(initiator, colonyAddress)
   }
 
   async editColony(
     colonyAddress: string,
     profile: {
-      description: string | null
-      displayName: string | null
-      guideline: string | null
-      website: string | null
+      avatarHash?: string | null
+      description?: string | null
+      displayName?: string | null
+      guideline?: string | null
+      website?: string | null
     },
   ) {
-    // Set non-null values, unset null values
-    const modifier = Object.keys(profile).reduce(
-      ({ $set, $unset }, field) => ({
-        ...(profile[field] === null
-          ? { $set, $unset: { ...$unset, [field]: '' } }
-          : { $set: { ...$set, [field]: profile[field] }, $unset }),
-      }),
-      { $set: {}, $unset: {} },
+    return this.updateColony(
+      colonyAddress,
+      {},
+      ColonyMongoApi.profileModifier(profile),
     )
-    return this.updateColony(colonyAddress, {}, modifier)
   }
 
   async setColonyTokenAvatar(colonyAddress: string, ipfsHash: string) {
@@ -251,90 +326,159 @@ export class ColonyMongoApi {
   // async updateColonyTokenInfo(colonyAddress: string) {}
 
   async createTask(
+    initiator: string,
     colonyAddress: string,
-    creatorAddress: string,
     ethDomainId: number,
   ) {
-    const doc = {
+    const { insertedId } = await this.tasks.insertOne({
       colonyAddress,
-      creatorAddress,
+      creatorAddress: initiator,
       ethDomainId,
-    }
-    const { insertedId } = await this.tasks.insertOne(doc as TaskDoc)
+    } as TaskDoc)
     const taskId = insertedId.toString()
-    await this.subscribeToTask(colonyAddress, taskId)
+
+    await this.subscribeToTask(initiator, taskId)
     await this.updateColony(colonyAddress, {}, { $push: { tasks: taskId } })
+
+    const eventId = await this.createEvent(initiator, EventType.CreateTask, {
+      colonyAddress,
+      ethDomainId,
+      taskId,
+    })
+    await this.createColonyNotification(initiator, eventId, colonyAddress)
+
     return taskId
   }
 
-  async setTaskDomain(taskId: string, ethDomainId: number) {
+  async setTaskDomain(initiator: string, taskId: string, ethDomainId: number) {
+    await this.createEvent(initiator, EventType.SetTaskDomain, {
+      taskId,
+      ethDomainId,
+    })
     return this.updateTask(taskId, {}, { $set: { ethDomainId } })
   }
 
-  async setTaskTitle(taskId: string, title: string) {
+  async setTaskTitle(initiator: string, taskId: string, title: string) {
+    await this.createEvent(initiator, EventType.SetTaskTitle, { taskId, title })
     return this.updateTask(taskId, {}, { $set: { title } })
   }
 
-  async setTaskDescription(taskId: string, description: string) {
+  async setTaskDescription(
+    initiator: string,
+    taskId: string,
+    description: string,
+  ) {
+    await this.createEvent(initiator, EventType.SetTaskDescription, {
+      taskId,
+      description,
+    })
     return this.updateTask(taskId, {}, { $set: { description } })
   }
 
-  async setTaskDueDate(taskId: string, dueDate: Date) {
+  async setTaskDueDate(initiator: string, taskId: string, dueDate: Date) {
+    await this.createEvent(initiator, EventType.SetTaskDueDate, {
+      taskId,
+      dueDate,
+    })
     return this.updateTask(taskId, {}, { $set: { dueDate } })
   }
 
-  async setTaskSkill(taskId: string, ethSkillId: number) {
+  async setTaskSkill(initiator: string, taskId: string, ethSkillId: number) {
+    await this.createEvent(initiator, EventType.SetTaskSkill, {
+      taskId,
+      ethSkillId,
+    })
     return this.updateTask(taskId, {}, { $set: { ethSkillId } })
   }
 
-  async createWorkRequest(taskId: string, workerAddress: string) {
-    const { colonyAddress, creatorAddress } = await this.tasks.findOne(
+  async createWorkRequest(initiator: string, taskId: string) {
+    const { workRequests = [], creatorAddress } = await this.tasks.findOne(
       new ObjectID(taskId),
     )
-    await this.notifyWorkRequest(
-      colonyAddress,
-      taskId,
-      workerAddress,
-      creatorAddress,
+
+    if (workRequests.includes(initiator)) {
+      throw new Error(
+        `Unable to create work request for '${initiator}'; work request already exists`,
+      )
+    }
+
+    const eventId = await this.createEvent(
+      initiator,
+      EventType.CreateWorkRequest,
+      { taskId },
     )
-    return this.updateTask(
-      taskId,
-      {},
-      { $push: { workRequests: workerAddress } },
-    )
+    await this.createNotification(eventId, [creatorAddress])
+
+    return this.updateTask(taskId, {}, { $push: { workRequests: initiator } })
   }
 
-  async sendWorkInvite(taskId: string, workerAddress: string) {
+  async sendWorkInvite(
+    initiator: string,
+    taskId: string,
+    workerAddress: string,
+  ) {
+    const { workInvites = [] } = await this.tasks.findOne(new ObjectID(taskId))
+
+    if (workInvites.includes(workerAddress)) {
+      throw new Error(
+        `Unable to send work invite for '${workerAddress}'; work invite already sent`,
+      )
+    }
+
+    const eventId = await this.createEvent(
+      initiator,
+      EventType.SendWorkInvite,
+      { taskId },
+    )
+    await this.createNotification(eventId, [workerAddress])
+
     return this.updateTask(
       taskId,
       {},
-      { $pull: { workInvites: workerAddress } },
+      { $push: { workInvites: workerAddress } },
     )
   }
 
   async setTaskPayout(
+    initiator: string,
     taskId: string,
     amount: string,
     token: string,
-    ethDomainId: number,
   ) {
-    const payout = { amount, token, ethDomainId }
+    const payout = { amount, token }
+    const eventId = await this.createEvent(initiator, EventType.SetTaskPayout, {
+      taskId,
+      payout,
+    })
+    await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(taskId, {}, { $push: { payouts: payout } })
   }
 
   async removeTaskPayout(
+    initiator: string,
     taskId: string,
     amount: string,
     token: string,
-    ethDomainId: number,
   ) {
-    const payout = { amount, token, ethDomainId }
+    const payout = { amount, token }
+    const eventId = await this.createEvent(
+      initiator,
+      EventType.RemoveTaskPayout,
+      {
+        taskId,
+        payout,
+      },
+    )
+    await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(taskId, {}, { $pull: { payouts: payout } })
   }
 
-  async assignWorker(taskId: string, workerAddress: string) {
-    const colonyAddress = await this.getTaskColonyAddress(taskId)
-    await this.notifyAssignWorker(colonyAddress, taskId, workerAddress)
+  async assignWorker(initiator: string, taskId: string, workerAddress: string) {
+    const eventId = await this.createEvent(initiator, EventType.AssignWorker, {
+      taskId,
+      workerAddress,
+    })
+    await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(
       taskId,
       {},
@@ -342,9 +486,20 @@ export class ColonyMongoApi {
     )
   }
 
-  async unassignWorker(taskId: string, workerAddress: string) {
-    const colonyAddress = await this.getTaskColonyAddress(taskId)
-    await this.notifyUnassignWorker(colonyAddress, taskId, workerAddress)
+  async unassignWorker(
+    initiator: string,
+    taskId: string,
+    workerAddress: string,
+  ) {
+    const eventId = await this.createEvent(
+      initiator,
+      EventType.UnassignWorker,
+      {
+        taskId,
+        workerAddress,
+      },
+    )
+    await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(
       taskId,
       { assignedWorker: workerAddress },
@@ -352,22 +507,27 @@ export class ColonyMongoApi {
     )
   }
 
-  async finalizeTask(taskId: string) {
-    const { colonyAddress, assignedWorker } = await this.tasks.findOne(
-      new ObjectID(taskId),
-    )
-    await this.notifyFinalizeTask(colonyAddress, taskId, assignedWorker)
+  async finalizeTask(initiator: string, taskId: string) {
+    // TODO for this to be valid, there needs to be: payouts, assignedWorker... check the contracts
+    const eventId = await this.createEvent(initiator, EventType.FinalizeTask, {
+      taskId,
+    })
+    await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(taskId, {}, { $set: { finalizedAt: new Date() } })
   }
 
-  async cancelTask(taskId: string) {
+  async cancelTask(initiator: string, taskId: string) {
+    const eventId = await this.createEvent(initiator, EventType.CancelTask, {
+      taskId,
+    })
+    await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(taskId, {}, { $set: { cancelledAt: new Date() } })
   }
 
-  async markNotificationAsRead(userAddress: string, id: string) {
+  async markNotificationAsRead(initiator: string, id: string) {
     // Horrific typing to get this checked reasonably well...
     const match: QuerySelector<NotificationDoc['users']> = {
-      $elemMatch: { userAddress, read: false },
+      $elemMatch: { userAddress: initiator, read: { $ne: true } },
     }
     const filter: StrictRootQuerySelector<NotificationDoc> = {
       _id: new ObjectID(id),
@@ -379,10 +539,10 @@ export class ColonyMongoApi {
     } as StrictUpdateQuery<NotificationDoc>)
   }
 
-  async markAllNotificationsAsRead(userAddress: string) {
+  async markAllNotificationsAsRead(initiator: string) {
     // Horrific typing to get this checked reasonably well...
     const match: QuerySelector<NotificationDoc['users']> = {
-      $elemMatch: { userAddress, read: false },
+      $elemMatch: { userAddress: initiator, read: { $ne: true } },
     }
     const filter: StrictRootQuerySelector<NotificationDoc> = {
       users: match as NotificationDoc['users'],
@@ -394,123 +554,67 @@ export class ColonyMongoApi {
     return this.notifications.updateMany(filter, update)
   }
 
-  async notifyAssignWorker(
-    colonyAddress: string,
-    taskId: string,
-    workerAddress: string,
-  ) {
-    return this.createNotification(
-      NotificationType.AssignWorker,
-      [workerAddress],
-      {
-        colonyAddress,
-        taskId,
-      },
-    )
-  }
-
-  async notifyUnassignWorker(
-    colonyAddress: string,
-    taskId: string,
-    workerAddress: string,
-  ) {
-    return this.createNotification(
-      NotificationType.UnassignWorker,
-      [workerAddress],
-      {
-        colonyAddress,
-        taskId,
-      },
-    )
-  }
-
-  async notifyWorkRequest(
-    colonyAddress: string,
-    taskId: string,
-    workerAddress: string,
-    managerAddress: string,
-  ) {
-    return this.createNotification(
-      NotificationType.WorkRequest,
-      [managerAddress],
-      {
-        colonyAddress,
-        taskId,
-        workerAddress,
-      },
-    )
-  }
-
-  async notifyFinalizeTask(
-    colonyAddress: string,
-    taskId: string,
-    workerAddress: string,
-  ) {
-    return this.createNotification(
-      NotificationType.FinalizeTask,
-      [workerAddress],
-      {
-        colonyAddress,
-        taskId,
-      },
-    )
-  }
-
-  async notifyCommentMention(
-    colonyAddress: string,
-    taskId: string,
-    users: string[],
-  ) {
-    return this.createNotification(NotificationType.CommentMention, users, {
-      colonyAddress,
-      taskId,
-    })
-  }
-
   async createDomain(
+    initiator: string,
     colonyAddress: string,
     ethDomainId: number,
-    ethParentDomainId: number,
+    ethParentDomainId: number | null,
     name: string,
   ) {
-    const parentExists = !!(await this.domains.findOne(
-      {
-        colonyAddress,
-        ethDomainId: ethParentDomainId,
-      },
-    ))
-    if (!parentExists) {
-      throw new Error(
-        `Parent domain '${ethParentDomainId}' does not exist for colony '${colonyAddress}'`,
-      )
+    // TODO add constant for root domain
+    if (ethDomainId === 1 && ethParentDomainId !== null) {
+      throw new Error('Unable to add root domain with a parent domain')
     }
 
-    const exists = !!(await this.domains.findOne(
-      {
+    if (ethDomainId !== 1) {
+      const parentExists = !!(await this.domains.findOne({
         colonyAddress,
-        ethDomainId,
-      },
-    ))
+        ethDomainId: ethParentDomainId,
+      }))
+      if (!parentExists) {
+        throw new Error(
+          `Parent domain '${ethParentDomainId}' does not exist for colony '${colonyAddress}'`,
+        )
+      }
+    }
+
+    const exists = !!(await this.domains.findOne({
+      colonyAddress,
+      ethDomainId,
+    }))
     if (exists) {
       throw new Error(
         `Domain with ID '${ethDomainId}' already exists for colony '${colonyAddress}'`,
       )
     }
 
+    const eventId = await this.createEvent(initiator, EventType.CreateDomain, {
+      colonyAddress,
+      ethDomainId,
+      ethParentDomainId,
+      name,
+    })
+    await this.createColonyNotification(initiator, eventId, colonyAddress)
+
     // An upsert is used even if it's not strictly necessary because
     // it's not the job of a unique index to preserve data integrity.
     return this.domains.updateOne(
-      { colonyAddress, ethDomainId },
-      { $setOnInsert: { colonyAddress, ethDomainId, name } },
+      { colonyAddress, ethDomainId, ethParentDomainId },
+      { $setOnInsert: { colonyAddress, ethDomainId, ethParentDomainId, name } },
       { upsert: true },
     )
   }
 
   async editDomainName(
+    initiator: string,
     colonyAddress: string,
     ethDomainId: number,
     name: string,
   ) {
     return this.updateDomain(colonyAddress, ethDomainId, {}, { $set: { name } })
+  }
+
+  async sendTaskMessage(initiator: string, taskId: string, message: string) {
+    // TODO
   }
 }

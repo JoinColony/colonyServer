@@ -3,6 +3,7 @@ import { CollectionCreateOptions, IndexOptions } from 'mongodb'
 export enum CollectionNames {
   Colonies = 'colonies',
   Domains = 'domains',
+  Events = 'events',
   Messages = 'messages',
   Notifications = 'notifications',
   Tasks = 'tasks',
@@ -216,6 +217,22 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   bsonType: 'string',
                 },
               },
+              payouts: {
+                bsonType: 'array',
+                additionalProperties: false,
+                items: {
+                  bsonType: 'object',
+                  required: ['tokenAddress', 'amount'],
+                  properties: {
+                    tokenAddress: {
+                      bsonType: 'string',
+                    },
+                    amount: {
+                      bsonType: 'string',
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -256,9 +273,17 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 bsonType: 'number',
                 minimum: 1,
               },
-              ethParenttDomainId: {
-                bsonType: 'number',
-                minimum: 1,
+              ethParentDomainId: {
+                oneOf: [
+                  {
+                    bsonType: 'number',
+                    minimum: 1,
+                  },
+                  {
+                    // For the root domain
+                    bsonType: 'null',
+                  },
+                ],
               },
             },
           },
@@ -278,17 +303,10 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         validator: {
           $jsonSchema: {
             bsonType: 'object',
-            required: ['type', 'createdAt'],
+            required: ['eventId', 'users'],
             properties: {
-              createdAt: {
-                bsonType: 'timestamp',
-              },
-              type: {
-                bsonType: 'string',
-                maxLength: 100,
-              },
-              value: {
-                bsonType: 'object',
+              eventId: {
+                bsonType: 'objectId',
               },
               users: {
                 bsonType: 'array',
@@ -311,10 +329,42 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
           },
         },
       },
+      indexes: [['users.userAddress', {}]],
+    },
+  ],
+  [
+    CollectionNames.Events,
+    {
+      create: {
+        validator: {
+          $jsonSchema: {
+            bsonType: 'object',
+            required: ['type', 'sourceType', 'context'],
+            properties: {
+              type: {
+                bsonType: 'string',
+                maxLength: 100,
+              },
+              initiator: {
+                bsonType: 'string',
+                maxLength: 100,
+              },
+              sourceType: {
+                enum: ['contract', 'db'],
+                maxLength: 100,
+              },
+              context: {
+                bsonType: 'object',
+              },
+            },
+          },
+        },
+      },
       indexes: [
         ['type', {}],
-        ['colonyAddress', { sparse: true }],
-        ['mentions', { sparse: true }],
+        ['initiator', {}],
+        ['context.colonyAddress', { sparse: true }],
+        ['context.taskId', { sparse: true }],
       ],
     },
   ],
@@ -325,11 +375,8 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         validator: {
           $jsonSchema: {
             bsonType: 'object',
-            required: ['context', 'body', 'createdAt'],
+            required: ['context', 'body'],
             properties: {
-              createdAt: {
-                bsonType: 'timestamp',
-              },
               context: {
                 properties: {
                   type: {
