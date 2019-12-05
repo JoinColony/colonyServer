@@ -42,15 +42,15 @@ const typeDefs = gql`
   interface IUser {
     id: String! # wallet address
     profile: UserProfile!
-    colonies: [Colony]!
-    tasks: [Task]!
+    colonies: [Colony!]!
+    tasks: [Task!]!
   }
 
   type User implements IUser {
     id: String! # wallet address
     profile: UserProfile!
-    colonies: [Colony]!
-    tasks: [Task]!
+    colonies: [Colony!]!
+    tasks: [Task!]!
   }
 
   type Token {
@@ -71,10 +71,10 @@ const typeDefs = gql`
     displayName: String
     guideline: String
     website: String
-    tasks: [Task]!
-    domains: [Domain]!
+    tasks: [Task!]!
+    domains: [Domain!]!
     founder: User
-    subscribedUsers: [User]!
+    subscribedUsers: [User!]!
     # token: Token
   }
 
@@ -86,7 +86,7 @@ const typeDefs = gql`
     name: String!
     colony: Colony!
     parent: Domain
-    tasks: [Task]!
+    tasks: [Task!]!
   }
 
   type Task {
@@ -102,8 +102,8 @@ const typeDefs = gql`
     colony: Colony
     creator: User
     assignedWorker: User
-    workInvites: [User]!
-    workRequests: [User]!
+    workInvites: [User!]!
+    workRequests: [User!]!
   }
 
   type AssignWorkerEvent {
@@ -209,9 +209,9 @@ const typeDefs = gql`
   type CurrentUser implements IUser {
     id: String! # wallet address
     profile: UserProfile!
-    colonies: [Colony]!
-    tasks: [Task]!
-    notifications(read: Boolean): [Notification]!
+    colonies: [Colony!]!
+    tasks: [Task!]!
+    notifications(read: Boolean): [Notification!]!
   }
 
   type Query {
