@@ -1,4 +1,4 @@
-import { Collection, ObjectID } from 'mongodb'
+import { Collection } from 'mongodb'
 import { MongoDataSource, CachedCollection } from 'apollo-datasource-mongo'
 import { DataSource, DataSourceConfig } from 'apollo-datasource'
 
@@ -6,7 +6,6 @@ import {
   ColonyDoc,
   DomainDoc,
   EventDoc,
-  MessageDoc,
   NotificationDoc,
   TaskDoc,
   UserDoc,
@@ -18,7 +17,6 @@ interface Collections {
   colonies: CachedCollection<ColonyDoc>
   domains: CachedCollection<DomainDoc>
   events: CachedCollection<EventDoc<any>>
-  messages: CachedCollection<MessageDoc>
   notifications: CachedCollection<NotificationDoc>
   tasks: CachedCollection<TaskDoc>
   users: CachedCollection<UserDoc>
@@ -47,12 +45,22 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return { id: profile.walletAddress, profile }
   }
 
-  private static transformEvent<C extends object>({ _id, ...doc }: EventDoc<C>) {
+  private static transformEvent<C extends object>({
+    _id,
+    context,
+    type,
+    ...doc
+  }: EventDoc<C>) {
     const id = _id.toString()
     return {
       ...doc,
       id,
       sourceId: id,
+      type,
+      context: {
+        ...context,
+        type, // For the sake of discriminating the union type in gql
+      },
     }
   }
 
@@ -204,5 +212,13 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return this.getUserNotifications(userAddress, {
       users: { $elemMatch: { userAddress, read: { $ne: true } } },
     })
+  }
+
+  async getTaskEvents(taskId: string) {
+    // TODO sorting?
+    const events = await this.collections.events.findManyByQuery({
+      'context.taskId': taskId,
+    })
+    return events.map(ColonyMongoDataSource.transformEvent)
   }
 }

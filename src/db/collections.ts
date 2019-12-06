@@ -4,7 +4,6 @@ export enum CollectionNames {
   Colonies = 'colonies',
   Domains = 'domains',
   Events = 'events',
-  Messages = 'messages',
   Notifications = 'notifications',
   Tasks = 'tasks',
   Users = 'users',
@@ -365,49 +364,6 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['initiator', {}],
         ['context.colonyAddress', { sparse: true }],
         ['context.taskId', { sparse: true }],
-      ],
-    },
-  ],
-  [
-    CollectionNames.Messages,
-    {
-      create: {
-        validator: {
-          $jsonSchema: {
-            bsonType: 'object',
-            required: ['context', 'body'],
-            properties: {
-              context: {
-                properties: {
-                  type: {
-                    enum: ['task', 'domain', 'colony', 'user'],
-                  },
-                  value: {
-                    bsonType: 'string',
-                  },
-                },
-              },
-              body: {
-                bsonType: 'string',
-                maxLength: 4000,
-              },
-              // TODO later: Support mentioning colonies, domains, tasks?
-              userMentions: {
-                bsonType: 'array',
-                description: 'must be an array of user addresses',
-                uniqueItems: true,
-                items: {
-                  bsonType: 'string',
-                },
-              },
-            },
-          },
-        },
-      },
-      indexes: [
-        ['type', {}],
-        ['context', {}],
-        ['userMentions', { sparse: true }],
       ],
     },
   ],

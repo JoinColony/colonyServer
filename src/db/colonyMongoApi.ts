@@ -11,7 +11,6 @@ import {
   DomainDoc,
   EventDoc,
   EventType,
-  MessageDoc,
   NotificationDoc,
   StrictRootQuerySelector,
   StrictUpdateQuery,
@@ -19,6 +18,7 @@ import {
   UserDoc,
 } from './types'
 import { CollectionNames } from './collections'
+import { matchUsernames } from './matchers'
 
 export class ColonyMongoApi {
   private static profileModifier(profile: Record<string, any>) {
@@ -39,7 +39,6 @@ export class ColonyMongoApi {
   private readonly colonies: Collection<ColonyDoc>
   private readonly events: Collection<EventDoc<any>>
   private readonly domains: Collection<DomainDoc>
-  private readonly messages: Collection<MessageDoc>
   private readonly notifications: Collection<NotificationDoc>
   private readonly tasks: Collection<TaskDoc>
   private readonly users: Collection<UserDoc>
@@ -51,7 +50,6 @@ export class ColonyMongoApi {
     this.notifications = db.collection<NotificationDoc>(
       CollectionNames.Notifications,
     )
-    this.messages = db.collection<NotificationDoc>(CollectionNames.Messages)
     this.tasks = db.collection<TaskDoc>(CollectionNames.Tasks)
     this.users = db.collection<UserDoc>(CollectionNames.Users)
   }
@@ -126,7 +124,7 @@ export class ColonyMongoApi {
 
   private async createNotification(eventId: ObjectID, users: string[]) {
     // No point in creating a notification for no users
-    if (users.length === 0) return null;
+    if (users.length === 0) return null
 
     const doc = {
       eventId,
@@ -139,11 +137,6 @@ export class ColonyMongoApi {
       } as StrictRootQuerySelector<NotificationDoc>,
       { upsert: true },
     )
-  }
-
-  private async getTaskColonyAddress(taskId: string) {
-    const { colonyAddress } = await this.tasks.findOne(new ObjectID(taskId))
-    return colonyAddress
   }
 
   private async createTaskNotification(
@@ -225,34 +218,38 @@ export class ColonyMongoApi {
     )
   }
 
-  async subscribeToColony(walletAddress: string, colonyAddress: string) {
+  async subscribeToColony(initiator, colonyAddress: string) {
     return this.updateUser(
-      walletAddress,
-      {},
+      initiator,
+      // @ts-ignore This is too fiddly to type, for now
+      { subscribeColonies: { $ne: colonyAddress } },
       { $push: { subscribedColonies: colonyAddress } },
     )
   }
 
-  async unsubscribeFromColony(walletAddress: string, colonyAddress: string) {
+  async unsubscribeFromColony(initiator, colonyAddress: string) {
     return this.updateUser(
-      walletAddress,
-      {},
+      initiator,
+      // @ts-ignore This is too fiddly to type, for now
+      { subscribeColonies: colonyAddress },
       { $pull: { subscribedColonies: colonyAddress } },
     )
   }
 
-  async subscribeToTask(walletAddress: string, taskId: string) {
+  async subscribeToTask(initiator, taskId: string) {
     return this.updateUser(
-      walletAddress,
-      {},
+      initiator,
+      // @ts-ignore This is too fiddly to type, for now
+      { subscribedTasks: { $ne: taskId } },
       { $push: { subscribedTasks: taskId } },
     )
   }
 
-  async unsubscribeFromTask(walletAddress: string, taskId: string) {
+  async unsubscribeFromTask(initiator, taskId: string) {
     return this.updateUser(
-      walletAddress,
-      {},
+      initiator,
+      // @ts-ignore This is too fiddly to type, for now
+      { subscribedTasks: taskId },
       { $pull: { subscribedTasks: taskId } },
     )
   }
@@ -351,6 +348,7 @@ export class ColonyMongoApi {
   }
 
   async setTaskDomain(initiator: string, taskId: string, ethDomainId: number) {
+    await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskDomain, {
       taskId,
       ethDomainId,
@@ -359,6 +357,7 @@ export class ColonyMongoApi {
   }
 
   async setTaskTitle(initiator: string, taskId: string, title: string) {
+    await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskTitle, { taskId, title })
     return this.updateTask(taskId, {}, { $set: { title } })
   }
@@ -368,6 +367,7 @@ export class ColonyMongoApi {
     taskId: string,
     description: string,
   ) {
+    await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskDescription, {
       taskId,
       description,
@@ -376,6 +376,7 @@ export class ColonyMongoApi {
   }
 
   async setTaskDueDate(initiator: string, taskId: string, dueDate: Date) {
+    await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskDueDate, {
       taskId,
       dueDate,
@@ -384,6 +385,7 @@ export class ColonyMongoApi {
   }
 
   async setTaskSkill(initiator: string, taskId: string, ethSkillId: number) {
+    await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskSkill, {
       taskId,
       ethSkillId,
@@ -392,6 +394,7 @@ export class ColonyMongoApi {
   }
 
   async createWorkRequest(initiator: string, taskId: string) {
+    await this.subscribeToTask(initiator, taskId)
     const { workRequests = [], creatorAddress } = await this.tasks.findOne(
       new ObjectID(taskId),
     )
@@ -417,6 +420,7 @@ export class ColonyMongoApi {
     taskId: string,
     workerAddress: string,
   ) {
+    await this.subscribeToTask(initiator, taskId)
     const { workInvites = [] } = await this.tasks.findOne(new ObjectID(taskId))
 
     if (workInvites.includes(workerAddress)) {
@@ -445,6 +449,7 @@ export class ColonyMongoApi {
     amount: string,
     token: string,
   ) {
+    await this.subscribeToTask(initiator, taskId)
     const payout = { amount, token }
     const eventId = await this.createEvent(initiator, EventType.SetTaskPayout, {
       taskId,
@@ -460,6 +465,7 @@ export class ColonyMongoApi {
     amount: string,
     token: string,
   ) {
+    await this.subscribeToTask(initiator, taskId)
     const payout = { amount, token }
     const eventId = await this.createEvent(
       initiator,
@@ -474,6 +480,7 @@ export class ColonyMongoApi {
   }
 
   async assignWorker(initiator: string, taskId: string, workerAddress: string) {
+    await this.subscribeToTask(initiator, taskId)
     const eventId = await this.createEvent(initiator, EventType.AssignWorker, {
       taskId,
       workerAddress,
@@ -491,6 +498,7 @@ export class ColonyMongoApi {
     taskId: string,
     workerAddress: string,
   ) {
+    await this.subscribeToTask(initiator, taskId)
     const eventId = await this.createEvent(
       initiator,
       EventType.UnassignWorker,
@@ -508,6 +516,7 @@ export class ColonyMongoApi {
   }
 
   async finalizeTask(initiator: string, taskId: string) {
+    await this.subscribeToTask(initiator, taskId)
     // TODO for this to be valid, there needs to be: payouts, assignedWorker... check the contracts
     const eventId = await this.createEvent(initiator, EventType.FinalizeTask, {
       taskId,
@@ -517,6 +526,7 @@ export class ColonyMongoApi {
   }
 
   async cancelTask(initiator: string, taskId: string) {
+    await this.subscribeToTask(initiator, taskId)
     const eventId = await this.createEvent(initiator, EventType.CancelTask, {
       taskId,
     })
@@ -615,6 +625,21 @@ export class ColonyMongoApi {
   }
 
   async sendTaskMessage(initiator: string, taskId: string, message: string) {
-    // TODO
+    await this.subscribeToTask(initiator, taskId)
+    const eventId = await this.createEvent(initiator, EventType.TaskMessage, {
+      taskId,
+      message,
+    })
+
+    const { username: currentUsername } = await this.users.findOne({
+      walletAddress: initiator,
+    })
+    const mentioned = matchUsernames(message).filter(
+      username => username !== currentUsername,
+    )
+    const users = (await this.users
+      .find({ username: { $in: mentioned } })
+      .toArray()).map(({ walletAddress }) => walletAddress)
+    await this.createNotification(eventId, users)
   }
 }

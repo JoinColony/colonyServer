@@ -39,18 +39,12 @@ const typeDefs = gql`
     website: String
   }
 
-  interface IUser {
+  type User {
     id: String! # wallet address
     profile: UserProfile!
     colonies: [Colony!]!
     tasks: [Task!]!
-  }
-
-  type User implements IUser {
-    id: String! # wallet address
-    profile: UserProfile!
-    colonies: [Colony!]!
-    tasks: [Task!]!
+    notifications(read: Boolean): [Notification!] # Only provided for the current user
   }
 
   type Token {
@@ -104,76 +98,90 @@ const typeDefs = gql`
     assignedWorker: User
     workInvites: [User!]!
     workRequests: [User!]!
+    events: [Event!]!
   }
 
-  type AssignWorkerEvent {
+  interface TaskEvent {
+    taskId: String!
+  }
+
+  interface ColonyEvent {
+    colonyAddress: String!
+  }
+
+  type AssignWorkerEvent implements TaskEvent {
     taskId: String!
     workerAddress: String!
   }
 
-  type UnassignWorkerEvent {
+  type UnassignWorkerEvent implements TaskEvent {
     taskId: String!
     workerAddress: String!
   }
 
-  type CancelTaskEvent {
+  type CancelTaskEvent implements TaskEvent {
     taskId: String!
   }
 
-  type CreateDomainEvent {
+  type CreateDomainEvent implements ColonyEvent {
     ethDomainId: String!
     colonyAddress: String!
   }
 
-  type CreateTaskEvent {
+  type CreateTaskEvent implements TaskEvent {
     taskId: String!
     ethDomainId: String!
     colonyAddress: String!
   }
 
-  type CreateWorkRequestEvent {
+  type CreateWorkRequestEvent implements TaskEvent {
     taskId: String!
   }
 
-  type FinalizeTaskEvent {
+  type FinalizeTaskEvent implements TaskEvent {
     taskId: String!
   }
 
-  type RemoveTaskPayoutEvent {
+  type RemoveTaskPayoutEvent implements TaskEvent {
     taskId: String!
   }
 
-  type SendWorkInviteEvent {
+  type SendWorkInviteEvent implements TaskEvent {
     taskId: String!
   }
 
-  type SetTaskDescriptionEvent {
+  type SetTaskDescriptionEvent implements TaskEvent {
     taskId: String!
     description: String!
   }
 
-  type SetTaskDomainEvent {
+  type SetTaskDomainEvent implements TaskEvent {
     taskId: String!
     ethDomainId: String!
   }
 
-  type SetTaskDueDateEvent {
+  type SetTaskDueDateEvent implements TaskEvent {
     taskId: String!
     dueDate: Int!
   }
 
-  type SetTaskPayoutEvent {
+  type SetTaskPayoutEvent implements TaskEvent {
     taskId: String!
   }
 
-  type SetTaskSkillEvent {
+  type SetTaskSkillEvent implements TaskEvent {
     taskId: String!
     ethSkillId: Int!
   }
 
-  type SetTaskTitleEvent {
+  type SetTaskTitleEvent implements TaskEvent {
     taskId: String!
     title: String!
+  }
+
+  type TaskMessageEvent implements TaskEvent {
+    taskId: String!
+    message: String!
   }
 
   union EventContext =
@@ -191,11 +199,12 @@ const typeDefs = gql`
     | SetTaskPayoutEvent
     | SetTaskSkillEvent
     | SetTaskTitleEvent
+    | TaskMessageEvent
     | UnassignWorkerEvent
 
   type Event {
     type: String!
-    initiator: String!
+    initiator: User!
     sourceId: String!
     sourceType: String!
     context: EventContext!
@@ -206,20 +215,11 @@ const typeDefs = gql`
     read: Boolean!
   }
 
-  type CurrentUser implements IUser {
-    id: String! # wallet address
-    profile: UserProfile!
-    colonies: [Colony!]!
-    tasks: [Task!]!
-    notifications(read: Boolean): [Notification!]!
-  }
-
   type Query {
     user(address: String!): User!
     colony(address: String!): Colony!
     domain(colonyAddress: String!, ethDomainId: Int!): Colony!
     task(id: String!): Task!
-    currentUser: CurrentUser!
   }
 
   input CreateUserInput {
@@ -324,14 +324,6 @@ const typeDefs = gql`
     colonyAddress: String!
   }
 
-  input SubscribeToTaskInput {
-    id: String!
-  }
-
-  input UnsubscribeFromTaskInput {
-    id: String!
-  }
-
   input MarkNotificationAsReadInput {
     id: String!
   }
@@ -359,9 +351,7 @@ const typeDefs = gql`
     createUser(input: CreateUserInput!): User # TODO find out why we can't use an exclamation mark here
     editUser(input: EditUserInput!): User
     subscribeToColony(input: SubscribeToColonyInput!): User
-    subscribeToTask(input: SubscribeToTaskInput!): User
     unsubscribeFromColony(input: UnsubscribeFromColonyInput!): User
-    unsubscribeFromTask(input: UnsubscribeFromTaskInput!): User
     # Colonies
     createColony(input: CreateColonyInput!): Colony
     editColonyProfile(input: EditColonyProfileInput!): Colony
@@ -406,11 +396,8 @@ const tryAuth = async (promise: Promise<boolean>) => {
 }
 
 const resolvers: IResolvers<any, ApolloContext> = {
-  // TODO add messages, events, colony/user tokens
+  // TODO add colony/user tokens
   Query: {
-    async currentUser(parent, input, { user, dataSources: { data } }) {
-      return data.getUserByAddress(user)
-    },
     async user(parent, { address }, { dataSources: { data } }) {
       return data.getUserByAddress(address)
     },
@@ -434,6 +421,16 @@ const resolvers: IResolvers<any, ApolloContext> = {
     // TODO task by ethTaskId/colonyAddress
     async task(parent, { id }: { id: string }, { dataSources: { data } }) {
       return data.getTaskById(id)
+    },
+  },
+  Event: {
+    async initiator({ initiator }, input: any, { dataSources: { data } }) {
+      return data.getUserByAddress(initiator)
+    },
+  },
+  EventContext: {
+    __resolveType({ type }) {
+      return `${type}Event`
     },
   },
   Domain: {
@@ -496,13 +493,14 @@ const resolvers: IResolvers<any, ApolloContext> = {
     ) {
       return data.getTasksById(subscribedTasks)
     },
-  },
-  CurrentUser: {
     async notifications(
-      parent,
+      { id },
       { read }: { read?: boolean },
       { user, dataSources: { data } },
     ) {
+      // Only find notifications for the current user
+      if (id !== user) return null
+
       if (read === false) {
         return data.getUnreadUserNotifications(user)
       } else if (read) {
@@ -510,22 +508,6 @@ const resolvers: IResolvers<any, ApolloContext> = {
       } else {
         return data.getAllUserNotifications(user)
       }
-    },
-    // TODO this is a bit weird, do we really need to re-specify them? (see users)
-    async colonies(
-      { subscribedColonies = [] },
-      input: any,
-      { dataSources: { data } },
-    ) {
-      return data.getColoniesByAddress(subscribedColonies)
-    },
-    // TODO this is a bit weird, do we really need to re-specify them? (see users)
-    async tasks(
-      { subscribedTasks = [] },
-      input: any, // TODO allow restriction of query, e.g. by open tasks
-      { dataSources: { data } },
-    ) {
-      return data.getTasksById(subscribedTasks)
     },
   },
   Task: {
@@ -555,6 +537,9 @@ const resolvers: IResolvers<any, ApolloContext> = {
       { dataSources: { data } },
     ) {
       return data.getUsersByAddress(workRequests)
+    },
+    async events({ id }, input: any, { dataSources: { data } }) {
+      return data.getTaskEvents(id)
     },
   },
   Mutation: {
@@ -597,22 +582,6 @@ const resolvers: IResolvers<any, ApolloContext> = {
       { user, api, dataSources: { data } },
     ) {
       await api.unsubscribeFromColony(user, colonyAddress)
-      return data.getUserByAddress(user)
-    },
-    async subscribeToTask(
-      parent,
-      { input: { id } }: Input<{ id: string }>,
-      { user, api, dataSources: { data } },
-    ) {
-      await api.subscribeToTask(user, id)
-      return data.getUserByAddress(user)
-    },
-    async unsubscribeFromTask(
-      parent,
-      { input: { id } }: Input<{ id: string }>,
-      { user, api, dataSources: { data } },
-    ) {
-      await api.unsubscribeFromTask(user, id)
       return data.getUserByAddress(user)
     },
     // Colonies
@@ -869,6 +838,7 @@ const resolvers: IResolvers<any, ApolloContext> = {
       { user, api },
     ) {
       // No auth call needed; anyone can do this (for now...?)
+      // TODO assert task exists? Should this be done for all of these mutations, or in API land?
       await api.sendTaskMessage(user, id, message)
       return true
     },
@@ -954,7 +924,6 @@ export const createApolloServer = (db: Db, provider: Provider) => {
     db.collection(CollectionNames.Colonies),
     db.collection(CollectionNames.Domains),
     db.collection(CollectionNames.Events),
-    db.collection(CollectionNames.Messages),
     db.collection(CollectionNames.Notifications),
     db.collection(CollectionNames.Tasks),
     db.collection(CollectionNames.Users),

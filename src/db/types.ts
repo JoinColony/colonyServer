@@ -72,16 +72,12 @@ export interface DomainDoc extends MongoDoc {
   name: string
 }
 
-// TODO
 export interface EventDoc<C extends object> extends MongoDoc {
   type: EventType
   initiator: string
   sourceType: 'db' | 'contract'
   context: C
 }
-
-// TODO
-export interface MessageDoc extends MongoDoc {}
 
 export interface TaskDoc extends MongoDoc {
   colonyAddress: string
@@ -114,6 +110,7 @@ export enum EventType {
   SetTaskPayout = 'SetTaskPayout',
   SetTaskSkill = 'SetTaskSkill',
   SetTaskTitle = 'SetTaskTitle',
+  TaskMessage = 'TaskMessage',
   UnassignWorker = 'UnassignWorker',
 }
 
