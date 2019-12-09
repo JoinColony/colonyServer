@@ -433,6 +433,18 @@ const resolvers: IResolvers<any, ApolloContext> = {
       return `${type}Event`
     },
   },
+  TaskEvent: {
+    __resolveType() {
+      // Preferable to do this over turning `requireResolversForResolveType` off?
+      throw new Error('TaskEvent is an abstract interface')
+    },
+  },
+  ColonyEvent: {
+    __resolveType() {
+      // Preferable to do this over turning `requireResolversForResolveType` off?
+      throw new Error('ColonyEvent is an abstract interface')
+    },
+  },
   Domain: {
     async colony({ colonyAddress }, input: any, { dataSources: { data } }) {
       return data.getColonyByAddress(colonyAddress)
