@@ -15,6 +15,7 @@ import {
   StrictRootQuerySelector,
   StrictUpdateQuery,
   TaskDoc,
+  TokenDoc,
   UserDoc,
 } from './types'
 import { CollectionNames } from './collections'
@@ -41,6 +42,7 @@ export class ColonyMongoApi {
   private readonly domains: Collection<DomainDoc>
   private readonly notifications: Collection<NotificationDoc>
   private readonly tasks: Collection<TaskDoc>
+  private readonly tokens: Collection<TokenDoc>
   private readonly users: Collection<UserDoc>
 
   constructor(db: Db) {
@@ -51,6 +53,7 @@ export class ColonyMongoApi {
       CollectionNames.Notifications,
     )
     this.tasks = db.collection<TaskDoc>(CollectionNames.Tasks)
+    this.tokens = db.collection<TokenDoc>(CollectionNames.Tokens)
     this.users = db.collection<UserDoc>(CollectionNames.Users)
   }
 
@@ -70,7 +73,7 @@ export class ColonyMongoApi {
   private async updateColony(
     colonyAddress: string,
     query: StrictRootQuerySelector<ColonyDoc>,
-    modifier: StrictUpdateQuery<ColonyDoc & { 'token.iconHash': string }>,
+    modifier: StrictUpdateQuery<ColonyDoc & { 'tokens.$.iconHash': string }>,
     options?: UpdateOneOptions,
   ) {
     return this.colonies.updateOne(
@@ -145,7 +148,7 @@ export class ColonyMongoApi {
     taskId: string,
   ) {
     const users = await this.users
-      .find({ subscribedTasks: taskId, _id: { $ne: new ObjectID(initiator) } })
+      .find({ tasks: taskId, _id: { $ne: new ObjectID(initiator) } })
       .toArray()
     return this.createNotification(
       eventId,
@@ -160,7 +163,7 @@ export class ColonyMongoApi {
   ) {
     const users = await this.users
       .find({
-        subscribedColonies: colonyAddress,
+        colonies: colonyAddress,
         walletAddress: { $ne: initiator },
       })
       .toArray()
@@ -222,8 +225,8 @@ export class ColonyMongoApi {
     return this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
-      { subscribeColonies: { $ne: colonyAddress } },
-      { $push: { subscribedColonies: colonyAddress } },
+      { colonies: { $ne: colonyAddress } },
+      { $push: { colonies: colonyAddress } },
     )
   }
 
@@ -231,8 +234,8 @@ export class ColonyMongoApi {
     return this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
-      { subscribeColonies: colonyAddress },
-      { $pull: { subscribedColonies: colonyAddress } },
+      { colonies: colonyAddress },
+      { $pull: { colonies: colonyAddress } },
     )
   }
 
@@ -240,8 +243,8 @@ export class ColonyMongoApi {
     return this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
-      { subscribedTasks: { $ne: taskId } },
-      { $push: { subscribedTasks: taskId } },
+      { tasks: { $ne: taskId } },
+      { $push: { tasks: taskId } },
     )
   }
 
@@ -249,8 +252,8 @@ export class ColonyMongoApi {
     return this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
-      { subscribedTasks: taskId },
-      { $pull: { subscribedTasks: taskId } },
+      { tasks: taskId },
+      { $pull: { tasks: taskId } },
     )
   }
 
@@ -259,12 +262,36 @@ export class ColonyMongoApi {
     colonyAddress: string,
     colonyName: string,
     displayName: string,
+    tokenAddress: string,
+    tokenName: string,
+    tokenSymbol: string,
+    tokenDecimals: number,
+    tokenIconHash?: string,
   ) {
+    const tokenExists = !!(await this.tokens.findOne({ address: tokenAddress }))
+    if (!tokenExists) {
+      await this.createToken(
+        initiator,
+        tokenAddress,
+        tokenName,
+        tokenSymbol,
+        tokenDecimals,
+        tokenIconHash,
+      )
+    }
+
     const doc = {
       colonyAddress,
       colonyName,
       displayName,
       founderAddress: initiator,
+      tokens: [
+        {
+          address: tokenAddress,
+          isNative: true,
+          isExternal: tokenExists,
+        },
+      ],
     }
 
     const exists = !!(await this.colonies.findOne({
@@ -302,25 +329,49 @@ export class ColonyMongoApi {
     )
   }
 
-  async setColonyTokenAvatar(colonyAddress: string, ipfsHash: string) {
+  async setColonyTokenAvatar(
+    colonyAddress: string,
+    tokenAddress: string,
+    ipfsHash: string,
+  ) {
     return this.updateColony(
       colonyAddress,
-      {},
-      { $set: { 'token.iconHash': ipfsHash } },
+      // @ts-ignore $elemMatch isn't typed well
+      { tokens: { $elemMatch: { address: tokenAddress } } },
+      { $set: { 'tokens.$.iconHash': ipfsHash } },
     )
   }
 
-  async removeColonyTokenAvatar(colonyAddress: string) {
+  async removeColonyTokenAvatar(colonyAddress: string, tokenAddress: string) {
     return this.updateColony(
       colonyAddress,
-      {},
-      { $unset: { 'token.iconHash': '' } },
+      // @ts-ignore $elemMatch isn't typed well
+      { tokens: { $elemMatch: { address: tokenAddress } } },
+      { $unset: { 'tokens.$.iconHash': '' } },
     )
   }
 
-  // TODO
-  // async setColonyTokenInfo(colonyAddress: string) {}
-  // async updateColonyTokenInfo(colonyAddress: string) {}
+  async setUserTokenAvatar(
+    initiator: string,
+    tokenAddress: string,
+    ipfsHash: string,
+  ) {
+    return this.updateUser(
+      initiator,
+      // @ts-ignore $elemMatch isn't typed well
+      { tokens: { $elemMatch: { address: tokenAddress } } },
+      { $set: { 'tokens.$.iconHash': ipfsHash } },
+    )
+  }
+
+  async removeUserTokenAvatar(initiator: string, tokenAddress: string) {
+    return this.updateUser(
+      initiator,
+      // @ts-ignore $elemMatch isn't typed well
+      { tokens: { $elemMatch: { address: tokenAddress } } },
+      { $unset: { 'tokens.$.iconHash': '' } },
+    )
+  }
 
   async createTask(
     initiator: string,
@@ -568,15 +619,21 @@ export class ColonyMongoApi {
     initiator: string,
     colonyAddress: string,
     ethDomainId: number,
-    ethParentDomainId: number | null,
+    ethParentDomainId: number | undefined | null,
     name: string,
   ) {
     // TODO add constant for root domain
-    if (ethDomainId === 1 && ethParentDomainId !== null) {
+    const isRoot = ethDomainId === 1
+    const hasParent = typeof ethParentDomainId === 'number'
+
+    if (hasParent && isRoot) {
       throw new Error('Unable to add root domain with a parent domain')
     }
+    if (!hasParent && !isRoot) {
+      throw new Error('Unable to add non-root domain without a parent domain')
+    }
 
-    if (ethDomainId !== 1) {
+    if (hasParent) {
       const parentExists = !!(await this.domains.findOne({
         colonyAddress,
         ethDomainId: ethParentDomainId,
@@ -610,7 +667,14 @@ export class ColonyMongoApi {
     // it's not the job of a unique index to preserve data integrity.
     return this.domains.updateOne(
       { colonyAddress, ethDomainId, ethParentDomainId },
-      { $setOnInsert: { colonyAddress, ethDomainId, ethParentDomainId, name } },
+      {
+        $setOnInsert: {
+          colonyAddress,
+          ethDomainId,
+          ethParentDomainId,
+          name,
+        },
+      },
       { upsert: true },
     )
   }
@@ -641,5 +705,73 @@ export class ColonyMongoApi {
       .find({ username: { $in: mentioned } })
       .toArray()).map(({ walletAddress }) => walletAddress)
     await this.createNotification(eventId, users)
+  }
+
+  async createToken(
+    initiator: string,
+    address: string,
+    name: string,
+    symbol: string,
+    decimals: number,
+    iconHash?: string,
+  ) {
+    const doc = {
+      address,
+      creator: initiator,
+      decimals,
+      name,
+      symbol,
+      ...(iconHash ? { iconHash } : null),
+    }
+
+    const exists = !!(await this.tokens.findOne({ address }))
+    if (exists) {
+      throw new Error(`Token with address '${address}' already exists`)
+    }
+
+    // An upsert is used even if it's not strictly necessary because
+    // it's not the job of a unique index to preserve data integrity.
+    return this.tokens.updateOne(doc, { $setOnInsert: doc }, { upsert: true })
+  }
+
+  async addColonyTokenReference(
+    initiator: string,
+    colonyAddress: string,
+    tokenAddress: string,
+    isExternal: boolean,
+    iconHash?: string,
+  ) {
+    // TODO validate that colony and token exist
+    await this.colonies.updateOne(
+      { colonyAddress, tokens: { $ne: { address: tokenAddress } } },
+      {
+        $push: {
+          tokens: {
+            address: tokenAddress,
+            isExternal,
+            ...(iconHash ? { iconHash } : null),
+          },
+        },
+      },
+    )
+  }
+
+  async addUserTokenReference(
+    initiator: string,
+    tokenAddress: string,
+    iconHash?: string,
+  ) {
+    // TODO validate that initiator and token exist
+    await this.users.updateOne(
+      { walletAddress: initiator, tokens: { $ne: { address: tokenAddress } } },
+      {
+        $push: {
+          tokens: {
+            address: tokenAddress,
+            ...(iconHash ? { iconHash } : null),
+          },
+        },
+      },
+    )
   }
 }

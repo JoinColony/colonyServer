@@ -54,14 +54,12 @@ export interface ColonyDoc extends MongoDoc {
   description?: string
   guideline?: string
   website?: string
-  token: {
+  tokens: {
     address: string
-    name: string
-    symbol: string
     iconHash?: string
     isExternal?: boolean
     isNative?: boolean
-  }
+  }[]
   tasks: string[]
 }
 
@@ -95,6 +93,14 @@ export interface TaskDoc extends MongoDoc {
   workRequests: string[]
 }
 
+export interface TokenDoc extends MongoDoc {
+  address: string
+  decimals: number
+  iconHash?: string
+  name: string
+  symbol: string
+}
+
 export enum EventType {
   AssignWorker = 'AssignWorker',
   CancelTask = 'CancelTask',
@@ -124,9 +130,13 @@ export interface UserDoc extends MongoDoc {
   bio?: string
   displayName?: string
   location?: string
-  subscribedColonies: string[]
-  subscribedTasks: string[]
+  colonies: string[]
+  tasks: string[]
   username: string
   walletAddress: string
   website?: string
+  tokens: {
+    address: string
+    iconHash?: string
+  }[]
 }

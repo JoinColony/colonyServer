@@ -6,8 +6,10 @@ import {
   ColonyDoc,
   DomainDoc,
   EventDoc,
+  MongoDoc,
   NotificationDoc,
   TaskDoc,
+  TokenDoc,
   UserDoc,
 } from './types'
 
@@ -19,6 +21,7 @@ interface Collections {
   events: CachedCollection<EventDoc<any>>
   notifications: CachedCollection<NotificationDoc>
   tasks: CachedCollection<TaskDoc>
+  tokens: CachedCollection<TokenDoc>
   users: CachedCollection<UserDoc>
 }
 
@@ -37,12 +40,22 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   // TODO consider extending API of MongoDataSource for document transformation
-  private static transformColony(doc: ColonyDoc) {
-    return { ...doc, id: doc.colonyAddress }
+  private static transformColony({
+    tokens = [],
+    tasks = [],
+    ...doc
+  }: ColonyDoc) {
+    return { ...doc, tasks, tokens, id: doc.colonyAddress }
   }
 
-  private static transformUser({ _id, ...profile }: UserDoc) {
-    return { id: profile.walletAddress, profile }
+  private static transformUser({
+    _id,
+    colonies = [],
+    tasks = [],
+    tokens = [],
+    ...profile
+  }: UserDoc) {
+    return { id: profile.walletAddress, colonies, tokens, tasks, profile }
   }
 
   private static transformEvent<C extends object>({
@@ -64,7 +77,11 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
   }
 
-  private static transformDoc(doc: TaskDoc) {
+  private static transformToken(doc: TokenDoc) {
+    return { ...doc, id: doc.address }
+  }
+
+  private static transformDoc<T extends MongoDoc>(doc: T) {
     return { ...doc, id: doc._id.toString() }
   }
 
@@ -172,7 +189,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
 
   async getColonySubscribedUsers(colonyAddress: string) {
     const docs = await this.collections.users.findManyByQuery(
-      { subscribedColonies: colonyAddress },
+      { colonies: colonyAddress },
       DEFAULT_TTL,
     )
     return docs.map(ColonyMongoDataSource.transformUser)
@@ -216,9 +233,33 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
 
   async getTaskEvents(taskId: string) {
     // TODO sorting?
-    const events = await this.collections.events.findManyByQuery({
-      'context.taskId': taskId,
-    })
+    const events = await this.collections.events.findManyByQuery(
+      {
+        'context.taskId': taskId,
+      },
+      DEFAULT_TTL,
+    )
     return events.map(ColonyMongoDataSource.transformEvent)
+  }
+
+  async getTokenByAddress(tokenAddress: string) {
+    const [token] = await this.collections.tokens.findManyByQuery(
+      { address: tokenAddress },
+      DEFAULT_TTL,
+    )
+
+    if (!token) {
+      throw new Error(`Token with address '${tokenAddress}' not found`)
+    }
+
+    return ColonyMongoDataSource.transformToken(token)
+  }
+
+  async getTokensByAddress(tokenAddresses: string[]) {
+    const tokens = await this.collections.tokens.findManyByQuery(
+      { address: { $in: tokenAddresses } },
+      DEFAULT_TTL,
+    )
+    return tokens.map(ColonyMongoDataSource.transformToken)
   }
 }

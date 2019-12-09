@@ -44,16 +44,42 @@ const typeDefs = gql`
     profile: UserProfile!
     colonies: [Colony!]!
     tasks: [Task!]!
+    tokens: [UserToken!]!
     notifications(read: Boolean): [Notification!] # Only provided for the current user
   }
 
-  type Token {
+  interface IToken {
+    id: String!
     address: String!
-    name: String
-    symbol: String
+    name: String!
+    symbol: String!
     iconHash: String
-    isExternal: Boolean
-    isNative: Boolean
+  }
+
+  type Token implements IToken {
+    id: String!
+    address: String!
+    name: String!
+    symbol: String!
+    iconHash: String
+  }
+
+  type ColonyToken implements IToken {
+    id: String!
+    address: String!
+    name: String!
+    symbol: String!
+    iconHash: String
+    isExternal: Boolean!
+    isNative: Boolean!
+  }
+
+  type UserToken implements IToken {
+    id: String!
+    address: String!
+    name: String!
+    symbol: String!
+    iconHash: String
   }
 
   type Colony {
@@ -69,14 +95,14 @@ const typeDefs = gql`
     domains: [Domain!]!
     founder: User
     subscribedUsers: [User!]!
-    # token: Token
+    tokens: [ColonyToken!]!
   }
 
   type Domain {
     id: String! # TODO is this mongo id or colonyaddress-ethdomainid?
     colonyAddress: String!
     ethDomainId: Int!
-    ethParentDomainId: Int!
+    ethParentDomainId: Int
     name: String!
     colony: Colony!
     parent: Domain
@@ -144,10 +170,14 @@ const typeDefs = gql`
 
   type RemoveTaskPayoutEvent implements TaskEvent {
     taskId: String!
+    tokenAddress: String!
+    amount: String!
   }
 
   type SendWorkInviteEvent implements TaskEvent {
     taskId: String!
+    tokenAddress: String!
+    amount: String!
   }
 
   type SetTaskDescriptionEvent implements TaskEvent {
@@ -218,8 +248,9 @@ const typeDefs = gql`
   type Query {
     user(address: String!): User!
     colony(address: String!): Colony!
-    domain(colonyAddress: String!, ethDomainId: Int!): Colony!
+    domain(colonyAddress: String!, ethDomainId: Int!): Domain!
     task(id: String!): Task!
+    token(address: String!): Token!
   }
 
   input CreateUserInput {
@@ -238,6 +269,11 @@ const typeDefs = gql`
     colonyAddress: String!
     colonyName: String!
     displayName: String!
+    tokenAddress: String!
+    tokenName: String!
+    tokenSymbol: String!
+    tokenDecimals: Int!
+    tokenIconHash: String
   }
 
   input CreateTaskInput {
@@ -282,15 +318,15 @@ const typeDefs = gql`
   input SetTaskPayoutInput {
     id: String!
     amount: String!
-    token: String!
-    ethDomainId: Int!
+    tokenAddress: String!
+    ethDomainId: Int! # TODO is this necessary?
   }
 
   input RemoveTaskPayoutInput {
     id: String!
     amount: String!
     token: String!
-    ethDomainId: Int!
+    ethDomainId: Int! # TODO is this necessary?
   }
 
   input AssignWorkerInput {
@@ -336,14 +372,45 @@ const typeDefs = gql`
   input CreateDomainInput {
     colonyAddress: String!
     ethDomainId: Int!
-    name: Int!
-    parentEthDomainId: Int
+    ethParentDomainId: Int
+    name: String!
   }
 
   input EditDomainNameInput {
     colonyAddress: String!
     ethDomainId: Int!
-    name: Int!
+    name: String!
+  }
+
+  input CreateTokenInput {
+    address: String!
+    decimals: Int!
+    name: String!
+    symbol: String!
+    iconHash: String
+  }
+
+  input AddColonyTokenReferenceInput {
+    tokenAddress: String!
+    colonyAddress: String!
+    isExternal: Boolean!
+    iconHash: String
+  }
+
+  input AddUserTokenReferenceInput {
+    tokenAddress: String!
+    iconHash: String
+  }
+
+  input SetColonyTokenAvatarInput {
+    tokenAddress: String!
+    colonyAddress: String!
+    iconHash: String
+  }
+
+  input SetUserTokenAvatarInput {
+    tokenAddress: String!
+    iconHash: String
   }
 
   type Mutation {
@@ -373,6 +440,12 @@ const typeDefs = gql`
     setTaskSkill(input: SetTaskSkillInput!): Task
     setTaskTitle(input: SetTaskTitleInput!): Task
     unassignWorker(input: UnassignWorkerInput!): Task
+    # Tokens
+    createToken(input: CreateTokenInput!): Token
+    addColonyTokenReference(input: AddColonyTokenReferenceInput!): Token
+    addUserTokenReference(input: AddUserTokenReferenceInput!): Token
+    setColonyTokenAvatar(input: SetColonyTokenAvatarInput!): Token
+    setUserTokenAvatar(input: SetUserTokenAvatarInput!): Token
     # Notifications
     markAllNotificationsAsRead: Boolean!
     markNotificationAsRead(input: MarkNotificationAsReadInput!): Boolean!
@@ -422,6 +495,13 @@ const resolvers: IResolvers<any, ApolloContext> = {
     async task(parent, { id }: { id: string }, { dataSources: { data } }) {
       return data.getTaskById(id)
     },
+    async token(
+      parent,
+      { address }: { address: string },
+      { dataSources: { data } },
+    ) {
+      return data.getTokenByAddress(address)
+    },
   },
   Event: {
     async initiator({ initiator }, input: any, { dataSources: { data } }) {
@@ -431,6 +511,11 @@ const resolvers: IResolvers<any, ApolloContext> = {
   EventContext: {
     __resolveType({ type }) {
       return `${type}Event`
+    },
+  },
+  IToken: {
+    __resolveType() {
+      return 'Token'
     },
   },
   TaskEvent: {
@@ -468,7 +553,7 @@ const resolvers: IResolvers<any, ApolloContext> = {
   },
   Colony: {
     async tasks(
-      { tasks = [] },
+      { tasks },
       // TODO select on-chain tasks by ethTaskId, so that we can start from on-chain and select from there
       // TODO allow restriction of query, e.g. by open tasks
       input: any,
@@ -482,6 +567,16 @@ const resolvers: IResolvers<any, ApolloContext> = {
     async founder({ founderAddress }, input: any, { dataSources: { data } }) {
       return data.getUserByAddress(founderAddress)
     },
+    async tokens({ tokens = [] }, input: any, { dataSources: { data } }) {
+      // Combine generic token data (e.g. `symbol`) with colony-specific token data (e.g. `isNative`)
+      const tokenData = await data.getTokensByAddress(
+        tokens.map(({ address }) => address),
+      )
+      return tokens.map(token => ({
+        ...token,
+        ...(tokenData.find(({ address }) => address === token.address) || {}),
+      }))
+    },
     async subscribedUsers(
       { colonyAddress },
       input: any,
@@ -491,19 +586,25 @@ const resolvers: IResolvers<any, ApolloContext> = {
     },
   },
   User: {
-    async colonies(
-      { subscribedColonies = [] },
-      input: any,
-      { dataSources: { data } },
-    ) {
-      return data.getColoniesByAddress(subscribedColonies)
+    async colonies({ colonies }, input: any, { dataSources: { data } }) {
+      return data.getColoniesByAddress(colonies)
     },
     async tasks(
-      { subscribedTasks = [] },
+      { tasks },
       input: any, // TODO allow restriction of query, e.g. by open tasks
       { dataSources: { data } },
     ) {
-      return data.getTasksById(subscribedTasks)
+      return data.getTasksById(tasks)
+    },
+    async tokens({ tokens }, input: any, { dataSources: { data } }) {
+      // Combine generic token data (e.g. `symbol`) with user-specific token data (e.g. `ipfsHash`)
+      const tokenData = await data.getTokensByAddress(
+        tokens.map(({ address }) => address),
+      )
+      return tokens.map(token => ({
+        ...token,
+        ...(tokenData.find(({ address }) => address === token.address) || {}),
+      }))
     },
     async notifications(
       { id },
@@ -600,11 +701,25 @@ const resolvers: IResolvers<any, ApolloContext> = {
     async createColony(
       parent,
       {
-        input: { colonyAddress, colonyName, displayName },
+        input: {
+          colonyAddress,
+          colonyName,
+          displayName,
+          tokenAddress,
+          tokenName,
+          tokenSymbol,
+          tokenDecimals,
+          tokenIconHash,
+        },
       }: Input<{
         colonyAddress: string
         colonyName: string
         displayName: string
+        tokenAddress: string
+        tokenName: string
+        tokenSymbol: string
+        tokenDecimals: number
+        tokenIconHash?: string
       }>,
       { user, api, dataSources: { data, auth } },
     ) {
@@ -616,7 +731,17 @@ const resolvers: IResolvers<any, ApolloContext> = {
       // await tryAuth(auth.assertColonyExists(colonyAddress))
 
       // TODO we need to get the right creatorAddress...
-      await api.createColony(user, colonyAddress, colonyName, displayName)
+      await api.createColony(
+        user,
+        colonyAddress,
+        colonyName,
+        displayName,
+        tokenAddress,
+        tokenName,
+        tokenSymbol,
+        tokenDecimals,
+        tokenIconHash,
+      )
       return data.getColonyByAddress(colonyAddress)
     },
     async editColonyProfile(
@@ -753,29 +878,29 @@ const resolvers: IResolvers<any, ApolloContext> = {
     async setTaskPayout(
       parent,
       {
-        input: { id, amount, token },
-      }: Input<{ id: string; amount: string; token: string }>,
+        input: { id, amount, tokenAddress },
+      }: Input<{ id: string; amount: string; tokenAddress: string }>,
       { user, api, dataSources: { data, auth } },
     ) {
       const { colonyAddress, ethDomainId } = await data.getTaskById(id)
       await tryAuth(
         auth.assertCanSetTaskPayout(colonyAddress, user, ethDomainId),
       )
-      await api.setTaskPayout(user, id, amount, token)
+      await api.setTaskPayout(user, id, amount, tokenAddress)
       return data.getTaskById(id)
     },
     async removeTaskPayout(
       parent,
       {
-        input: { id, amount, token },
-      }: Input<{ id: string; amount: string; token: string }>,
+        input: { id, amount, tokenAddress },
+      }: Input<{ id: string; amount: string; tokenAddress: string }>,
       { user, api, dataSources: { data, auth } },
     ) {
       const { colonyAddress, ethDomainId } = await data.getTaskById(id)
       await tryAuth(
         auth.assertCanRemoveTaskPayout(colonyAddress, user, ethDomainId),
       )
-      await api.removeTaskPayout(user, id, amount, token)
+      await api.removeTaskPayout(user, id, amount, tokenAddress)
       return data.getTaskById(id)
     },
     async assignWorker(
@@ -827,6 +952,94 @@ const resolvers: IResolvers<any, ApolloContext> = {
       await tryAuth(auth.assertCanCancelTask(colonyAddress, user, ethDomainId))
       await api.cancelTask(user, id)
       return data.getTaskById(id)
+    },
+    // Tokens
+    async createToken(
+      parent,
+      {
+        input: { address, name, decimals, symbol, iconHash },
+      }: Input<{
+        address: string
+        decimals: number
+        iconHash?: string
+        name: string
+        symbol: string
+      }>,
+      { user, api, dataSources: { data, auth } },
+    ) {
+      // TODO verify that token exists at the given address?
+      await api.createToken(user, address, name, symbol, decimals, iconHash)
+      return data.getTokenByAddress(address)
+    },
+    async addColonyTokenReference(
+      parent,
+      {
+        input: { tokenAddress, colonyAddress, isExternal, iconHash },
+      }: Input<{
+        tokenAddress: string
+        colonyAddress: string
+        isExternal: boolean
+        iconHash?: string
+      }>,
+      { user, api, dataSources: { data, auth } },
+    ) {
+      await tryAuth(auth.assertCanAddColonyTokenReference(colonyAddress, user))
+      await api.addColonyTokenReference(
+        user,
+        colonyAddress,
+        tokenAddress,
+        isExternal,
+        iconHash,
+      )
+      return data.getTokenByAddress(tokenAddress)
+    },
+    async addUserTokenReference(
+      parent,
+      {
+        input: { tokenAddress, iconHash },
+      }: Input<{ tokenAddress: string; iconHash?: string }>,
+      { user, api, dataSources: { data } },
+    ) {
+      // No auth call needed; restricted to the current authenticated user address
+      await api.addUserTokenReference(user, tokenAddress, iconHash)
+      return data.getTokenByAddress(tokenAddress)
+    },
+    async setColonyTokenAvatar(
+      parent,
+      {
+        input: { tokenAddress, colonyAddress, iconHash },
+      }: Input<{
+        tokenAddress: string
+        colonyAddress: string
+        iconHash?: string
+      }>,
+      { user, api, dataSources: { data, auth } },
+    ) {
+      await tryAuth(auth.assertCanAddColonyTokenReference(colonyAddress, user))
+
+      if (iconHash) {
+        await api.setColonyTokenAvatar(colonyAddress, tokenAddress, iconHash)
+      } else {
+        await api.removeColonyTokenAvatar(colonyAddress, tokenAddress)
+      }
+
+      return data.getTokenByAddress(tokenAddress)
+    },
+    async setUserTokenAvatar(
+      parent,
+      {
+        input: { tokenAddress, iconHash },
+      }: Input<{ tokenAddress: string; iconHash?: string }>,
+      { user, api, dataSources: { data } },
+    ) {
+      // No auth call needed; restricted to the current authenticated user address
+      if (iconHash) {
+        await api.setUserTokenAvatar(user, tokenAddress, iconHash)
+      } else {
+        await api.removeUserTokenAvatar(user, tokenAddress)
+      }
+
+      return data.getTokenByAddress(tokenAddress)
     },
     // Notifications
     async markNotificationAsRead(
@@ -938,6 +1151,7 @@ export const createApolloServer = (db: Db, provider: Provider) => {
     db.collection(CollectionNames.Events),
     db.collection(CollectionNames.Notifications),
     db.collection(CollectionNames.Tasks),
+    db.collection(CollectionNames.Tokens),
     db.collection(CollectionNames.Users),
   ])
   const auth = new ColonyAuthDataSource(provider)

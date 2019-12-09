@@ -66,20 +66,18 @@ export class ColonyAuthDataSource extends DataSource<any> {
     action: string,
     ...[colonyAddress, userAddress, domainId, taskId]: ColonyAuthArgs
   ) {
-    // FIXME remove this (when we want authentication to run)
-    return true
-    // const auth = await authPromise
-    // assert.ok(
-    //   auth,
-    //   ColonyAuth.notAuthorizedMessage(
-    //     action,
-    //     colonyAddress,
-    //     userAddress,
-    //     domainId,
-    //     taskId,
-    //   ),
-    // )
-    // return auth
+    const auth = await authPromise
+    assert.ok(
+      auth,
+      ColonyAuthDataSource.notAuthorizedMessage(
+        action,
+        colonyAddress,
+        userAddress,
+        domainId,
+        taskId,
+      ),
+    )
+    return auth
   }
 
   private readonly colonies: ColoniesMap
@@ -93,9 +91,9 @@ export class ColonyAuthDataSource extends DataSource<any> {
     role: ColonyRoles,
     ...[colonyAddress, userAddress, domainId]: ColonyAuthArgs
   ) {
-    return this.colonies
-      .get(colonyAddress)
-      .hasUserRole(userAddress, domainId, role)
+    // FIXME remove this (when we want authentication to run)
+    return true
+    // return this.colonies.get(colonyAddress).hasUserRole(userAddress, domainId, role)
   }
 
   private async hasSomeRole(roles: ColonyRoles[], ...args: ColonyAuthArgs) {
@@ -111,6 +109,18 @@ export class ColonyAuthDataSource extends DataSource<any> {
   }
 
   async canEditColonyProfile(
+    colonyAddress: ColonyAddress,
+    userAddress: string,
+  ) {
+    return this.hasSomeRole(
+      [ColonyRoles.Administration],
+      colonyAddress,
+      userAddress,
+      1,
+    )
+  }
+
+  async canAddColonyTokenReference(
     colonyAddress: ColonyAddress,
     userAddress: string,
   ) {
@@ -376,6 +386,19 @@ export class ColonyAuthDataSource extends DataSource<any> {
       'Edit colony profile',
       args[0],
       args[1],
+      1,
+    )
+  }
+
+  async assertCanAddColonyTokenReference(
+    colonyAddress: ColonyAddress,
+    userAddress: UserAddress,
+  ) {
+    return ColonyAuthDataSource.assert(
+      this.canAddColonyTokenReference(colonyAddress, userAddress),
+      'Add colony token reference',
+      colonyAddress,
+      userAddress,
       1,
     )
   }

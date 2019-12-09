@@ -6,6 +6,7 @@ export enum CollectionNames {
   Events = 'events',
   Notifications = 'notifications',
   Tasks = 'tasks',
+  Tokens = 'tokens',
   Users = 'users',
 }
 
@@ -21,6 +22,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       create: {
         validator: {
           $jsonSchema: {
+            // additionalProperties: false,
             bsonType: 'object',
             required: ['username', 'walletAddress'],
             properties: {
@@ -75,6 +77,24 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   bsonType: 'string',
                 },
               },
+              tokens: {
+                bsonType: 'array',
+                description: 'must be an array of user token references',
+                uniqueItems: true,
+                additionalProperties: false,
+                items: {
+                  bsonType: 'object',
+                  required: ['address'],
+                  properties: {
+                    address: {
+                      bsonType: 'string',
+                    },
+                    iconHash: {
+                      bsonType: 'string',
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -93,6 +113,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       create: {
         validator: {
           $jsonSchema: {
+            // additionalProperties: false,
             bsonType: 'object',
             required: ['colonyName', 'colonyAddress'],
             properties: {
@@ -144,6 +165,33 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   bsonType: 'string',
                 },
               },
+              tokens: {
+                bsonType: 'array',
+                description: 'must be an array of colony token references',
+                uniqueItems: true,
+                additionalProperties: false,
+                items: {
+                  bsonType: 'object',
+                  required: ['address'],
+                  properties: {
+                    address: {
+                      bsonType: 'string',
+                    },
+                    creator: {
+                      bsonType: 'string',
+                    },
+                    iconHash: {
+                      bsonType: 'string',
+                    },
+                    isExternal: {
+                      bsonType: 'bool',
+                    },
+                    isNative: {
+                      bsonType: 'bool',
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -160,6 +208,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       create: {
         validator: {
           $jsonSchema: {
+            // additionalProperties: false,
             bsonType: 'object',
             required: ['creatorAddress', 'colonyAddress', 'ethDomainId'],
             properties: {
@@ -250,6 +299,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       create: {
         validator: {
           $jsonSchema: {
+            // additionalProperties: false,
             bsonType: 'object',
             required: [
               'colonyAddress',
@@ -301,6 +351,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       create: {
         validator: {
           $jsonSchema: {
+            // additionalProperties: false,
             bsonType: 'object',
             required: ['eventId', 'users'],
             properties: {
@@ -337,6 +388,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       create: {
         validator: {
           $jsonSchema: {
+            // additionalProperties: false,
             bsonType: 'object',
             required: ['type', 'sourceType', 'context'],
             properties: {
@@ -365,6 +417,46 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['context.colonyAddress', { sparse: true }],
         ['context.taskId', { sparse: true }],
       ],
+    },
+  ],
+  [
+    CollectionNames.Tokens,
+    {
+      create: {
+        validator: {
+          $jsonSchema: {
+            // additionalProperties: false,
+            bsonType: 'object',
+            required: ['address', 'name', 'symbol', 'decimals'],
+            properties: {
+              address: {
+                bsonType: 'string',
+                maxLength: 42,
+              },
+              creator: {
+                bsonType: 'string',
+                maxLength: 42,
+              },
+              name: {
+                bsonType: 'string',
+                maxLength: 100,
+              },
+              symbol: {
+                bsonType: 'string',
+                maxLength: 10,
+              },
+              decimals: {
+                bsonType: 'int',
+                minimum: 1,
+              },
+              iconHash: {
+                bsonType: 'string',
+              },
+            },
+          },
+        },
+      },
+      indexes: [['address', {}]],
     },
   ],
 ])
