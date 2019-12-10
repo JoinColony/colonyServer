@@ -13,7 +13,9 @@ import {
   UserDoc,
 } from './types'
 
-const DEFAULT_TTL = { ttl: 10000 }
+// TODO re-enable cache
+// const DEFAULT_TTL = { ttl: 10000 }
+const DEFAULT_TTL = { ttl: undefined }
 
 interface Collections {
   colonies: CachedCollection<ColonyDoc>
