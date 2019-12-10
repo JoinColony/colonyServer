@@ -122,7 +122,7 @@ export enum EventType {
 
 export interface NotificationDoc extends MongoDoc {
   eventId: ObjectID
-  users: { userAddress: string; read?: boolean }[]
+  users: { address: string; read?: boolean }[]
 }
 
 export interface UserDoc extends MongoDoc {

@@ -1,4 +1,4 @@
-import { Collection } from 'mongodb'
+import { Collection, ObjectID } from 'mongodb'
 import { MongoDataSource, CachedCollection } from 'apollo-datasource-mongo'
 import { DataSource, DataSourceConfig } from 'apollo-datasource'
 
@@ -195,39 +195,53 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return docs.map(ColonyMongoDataSource.transformUser)
   }
 
-  private async getUserNotifications(userAddress: string, query: object) {
-    // This could also use an aggregation, but it wouldn't be cached on the DataSource.
-    const docs = await this.collections.notifications.findManyByQuery(
-      query,
-      DEFAULT_TTL,
-    )
-    const events = await this.collections.events.findManyByIds(
-      docs.map(({ eventId }) => eventId.toString()),
-      DEFAULT_TTL,
-    )
-    return docs.map(({ eventId, users }) => ({
-      event: ColonyMongoDataSource.transformEvent(
-        events.find(({ _id }) => _id.toString() === eventId.toString()),
-      ),
-      read: !!(users.find(u => u.userAddress === userAddress) || {}).read,
+  private async getUserNotifications(address: string, query: object) {
+    const docs: {
+      _id: ObjectID
+      read: boolean
+      event: EventDoc<any>
+    }[] = await this.collections.notifications.collection.aggregate([
+      { $match: query },
+      { $unwind: '$users' },
+      { $match: { 'users.address': address } },
+      {
+        $lookup: {
+          from: this.collections.events.collection.collectionName,
+          localField: 'eventId',
+          foreignField: '_id',
+          as: 'events',
+        },
+      },
+      {
+        $project: {
+          _id: '$_id',
+          event: { $arrayElemAt: ['$events', 0] },
+          read: { $ifNull: ['$users.read', false] },
+        },
+      },
+    ]).toArray()
+    return docs.map(({ event, read, _id }) => ({
+      id: _id.toString(),
+      read,
+      event: ColonyMongoDataSource.transformEvent(event),
     }))
   }
 
-  async getAllUserNotifications(userAddress: string) {
-    return this.getUserNotifications(userAddress, {
-      'users.userAddress': userAddress,
+  async getAllUserNotifications(address: string) {
+    return this.getUserNotifications(address, {
+      'users.address': address,
     })
   }
 
-  async getReadUserNotifications(userAddress: string) {
-    return this.getUserNotifications(userAddress, {
-      users: { $elemMatch: { userAddress, read: true } },
+  async getReadUserNotifications(address: string) {
+    return this.getUserNotifications(address, {
+      users: { $elemMatch: { address, read: true } },
     })
   }
 
-  async getUnreadUserNotifications(userAddress: string) {
-    return this.getUserNotifications(userAddress, {
-      users: { $elemMatch: { userAddress, read: { $ne: true } } },
+  async getUnreadUserNotifications(address: string) {
+    return this.getUserNotifications(address, {
+      users: { $elemMatch: { address, read: { $ne: true } } },
     })
   }
 

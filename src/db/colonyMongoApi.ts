@@ -131,7 +131,7 @@ export class ColonyMongoApi {
 
     const doc = {
       eventId,
-      users: users.map(userAddress => ({ userAddress })),
+      users: users.map(address => ({ address })),
     }
     return this.notifications.updateOne(
       doc,
@@ -588,7 +588,7 @@ export class ColonyMongoApi {
   async markNotificationAsRead(initiator: string, id: string) {
     // Horrific typing to get this checked reasonably well...
     const match: QuerySelector<NotificationDoc['users']> = {
-      $elemMatch: { userAddress: initiator, read: { $ne: true } },
+      $elemMatch: { address: initiator, read: { $ne: true } },
     }
     const filter: StrictRootQuerySelector<NotificationDoc> = {
       _id: new ObjectID(id),
@@ -603,7 +603,7 @@ export class ColonyMongoApi {
   async markAllNotificationsAsRead(initiator: string) {
     // Horrific typing to get this checked reasonably well...
     const match: QuerySelector<NotificationDoc['users']> = {
-      $elemMatch: { userAddress: initiator, read: { $ne: true } },
+      $elemMatch: { address: initiator, read: { $ne: true } },
     }
     const filter: StrictRootQuerySelector<NotificationDoc> = {
       users: match as NotificationDoc['users'],

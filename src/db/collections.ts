@@ -22,10 +22,11 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       create: {
         validator: {
           $jsonSchema: {
-            // additionalProperties: false,
+            additionalProperties: false,
             bsonType: 'object',
             required: ['username', 'walletAddress'],
             properties: {
+              _id: { bsonType: 'objectId' },
               username: {
                 bsonType: 'string',
                 description: 'must be a string and is required',
@@ -113,10 +114,11 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       create: {
         validator: {
           $jsonSchema: {
-            // additionalProperties: false,
+            additionalProperties: false,
             bsonType: 'object',
             required: ['colonyName', 'colonyAddress'],
             properties: {
+              _id: { bsonType: 'objectId' },
               colonyAddress: {
                 bsonType: 'string',
                 description: 'must be a string and is required',
@@ -208,10 +210,11 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       create: {
         validator: {
           $jsonSchema: {
-            // additionalProperties: false,
+            additionalProperties: false,
             bsonType: 'object',
             required: ['creatorAddress', 'colonyAddress', 'ethDomainId'],
             properties: {
+              _id: { bsonType: 'objectId' },
               colonyAddress: {
                 bsonType: 'string',
                 description: 'must be a string and is required',
@@ -299,7 +302,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       create: {
         validator: {
           $jsonSchema: {
-            // additionalProperties: false,
+            additionalProperties: false,
             bsonType: 'object',
             required: [
               'colonyAddress',
@@ -308,6 +311,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
               'ethParentDomainId',
             ],
             properties: {
+              _id: { bsonType: 'objectId' },
               colonyAddress: {
                 bsonType: 'string',
                 description: 'must be a string and is required',
@@ -351,10 +355,11 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       create: {
         validator: {
           $jsonSchema: {
-            // additionalProperties: false,
+            additionalProperties: false,
             bsonType: 'object',
             required: ['eventId', 'users'],
             properties: {
+              _id: { bsonType: 'objectId' },
               eventId: {
                 bsonType: 'objectId',
               },
@@ -364,9 +369,9 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 additionalProperties: false,
                 items: {
                   bsonType: 'object',
-                  required: ['userAddress'],
+                  required: ['address'],
                   properties: {
-                    userAddress: {
+                    address: {
                       bsonType: 'string',
                     },
                     read: {
@@ -379,7 +384,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
           },
         },
       },
-      indexes: [['users.userAddress', {}]],
+      indexes: [['users.address', {}]],
     },
   ],
   [
@@ -388,10 +393,11 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       create: {
         validator: {
           $jsonSchema: {
-            // additionalProperties: false,
+            additionalProperties: false,
             bsonType: 'object',
             required: ['type', 'sourceType', 'context'],
             properties: {
+              _id: { bsonType: 'objectId' },
               type: {
                 bsonType: 'string',
                 maxLength: 100,
@@ -425,10 +431,11 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       create: {
         validator: {
           $jsonSchema: {
-            // additionalProperties: false,
+            additionalProperties: false,
             bsonType: 'object',
             required: ['address', 'name', 'symbol', 'decimals'],
             properties: {
+              _id: { bsonType: 'objectId' },
               address: {
                 bsonType: 'string',
                 maxLength: 42,
