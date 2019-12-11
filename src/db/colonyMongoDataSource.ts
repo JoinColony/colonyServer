@@ -1,17 +1,9 @@
 import { Collection, ObjectID } from 'mongodb'
-import { MongoDataSource, CachedCollection } from 'apollo-datasource-mongo'
+import { MongoDataSource } from 'apollo-datasource-mongo'
+import { CachedCollection } from 'apollo-datasource-mongo/dist/cache'
 import { DataSource, DataSourceConfig } from 'apollo-datasource'
 
-import {
-  ColonyDoc,
-  DomainDoc,
-  EventDoc,
-  MongoDoc,
-  NotificationDoc,
-  TaskDoc,
-  TokenDoc,
-  UserDoc,
-} from './types'
+import { ColonyDoc, DomainDoc, EventDoc, NotificationDoc, TaskDoc, TokenDoc, UserDoc } from './types'
 
 // TODO re-enable cache
 // const DEFAULT_TTL = { ttl: 10000 }
@@ -43,21 +35,42 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
 
   // TODO consider extending API of MongoDataSource for document transformation
   private static transformColony({
-    tokens = [],
-    tasks = [],
+    _id,
+    tokenRefs = [],
+    taskIds = [],
     ...doc
   }: ColonyDoc) {
-    return { ...doc, tasks, tokens, id: doc.colonyAddress }
+    return {
+      ...doc,
+      createdAt: _id.getTimestamp(),
+      id: doc.colonyAddress,
+      taskIds,
+      tokenRefs,
+      tasks: [],
+      tokens: [],
+      domains: [],
+      subscribedUsers: [],
+    }
   }
 
   private static transformUser({
     _id,
-    colonies = [],
-    tasks = [],
-    tokens = [],
+    colonyAddresses = [],
+    taskIds = [],
+    tokenRefs = [],
     ...profile
   }: UserDoc) {
-    return { id: profile.walletAddress, colonies, tokens, tasks, profile }
+    return {
+      id: profile.walletAddress,
+      createdAt: _id.getTimestamp(),
+      colonies: [],
+      tasks: [],
+      tokens: [],
+      colonyAddresses,
+      tokenRefs,
+      taskIds,
+      profile,
+    }
   }
 
   private static transformEvent<C extends object>({
@@ -66,10 +79,11 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     type,
     ...doc
   }: EventDoc<C>) {
-    const id = _id.toString()
+    const id = _id.toHexString()
     return {
       ...doc,
       id,
+      createdAt: _id.getTimestamp(),
       sourceId: id,
       type,
       context: {
@@ -79,12 +93,30 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
   }
 
-  private static transformToken(doc: TokenDoc) {
-    return { ...doc, id: doc.address }
+  private static transformToken({ _id, ...doc }: TokenDoc) {
+    return { ...doc, id: doc.address, createdAt: _id.getTimestamp() }
   }
 
-  private static transformDoc<T extends MongoDoc>(doc: T) {
-    return { ...doc, id: doc._id.toString() }
+  private static transformDomain({ _id, ...doc }: DomainDoc) {
+    return { ...doc, tasks: [], id: _id.toHexString(), createdAt: _id.getTimestamp() }
+  }
+
+  private static transformTask({
+    workInviteAddresses = [],
+    workRequestAddresses = [],
+    _id,
+    ...doc
+  }: TaskDoc) {
+    return {
+      ...doc,
+      id: _id.toHexString(),
+      createdAt: _id.getTimestamp(),
+      events: [],
+      workInvites: [],
+      workRequests: [],
+      workRequestAddresses,
+      workInviteAddresses,
+    }
   }
 
   async getColonyByAddress(colonyAddress: string) {
@@ -113,7 +145,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
 
     if (!doc) throw new Error(`Task with id '${taskId}' not found`)
 
-    return ColonyMongoDataSource.transformDoc(doc)
+    return ColonyMongoDataSource.transformTask(doc)
   }
 
   async getTaskByEthId(colonyAddress: string, ethTaskId: number) {
@@ -127,7 +159,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
         `Task with ID '${ethTaskId}' for colony '${colonyAddress}' not found`,
       )
 
-    return ColonyMongoDataSource.transformDoc(doc)
+    return ColonyMongoDataSource.transformTask(doc)
   }
 
   async getTasksById(taskIds: string[]) {
@@ -136,7 +168,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       DEFAULT_TTL,
     )
 
-    return docs.map(ColonyMongoDataSource.transformDoc)
+    return docs.map(ColonyMongoDataSource.transformTask)
   }
 
   async getTasksByEthDomainId(colonyAddress: string, ethDomainId: number) {
@@ -145,7 +177,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       DEFAULT_TTL,
     )
 
-    return docs.map(ColonyMongoDataSource.transformDoc)
+    return docs.map(ColonyMongoDataSource.transformTask)
   }
 
   async getDomainByEthId(colonyAddress: string, ethDomainId: number) {
@@ -159,7 +191,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
         `Domain with ID '${ethDomainId}' for colony '${colonyAddress}' not found`,
       )
 
-    return ColonyMongoDataSource.transformDoc(doc)
+    return ColonyMongoDataSource.transformDomain(doc)
   }
 
   async getColonyDomains(colonyAddress: string) {
@@ -167,7 +199,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       { colonyAddress },
       DEFAULT_TTL,
     )
-    return docs.map(ColonyMongoDataSource.transformDoc)
+    return docs.map(ColonyMongoDataSource.transformDomain)
   }
 
   async getUserByAddress(walletAddress: string) {
@@ -198,32 +230,34 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   private async getUserNotifications(address: string, query: object) {
-    const docs: {
+    const docs = ((await this.collections.notifications['collection']
+      .aggregate([
+        { $match: query },
+        { $unwind: '$users' },
+        { $match: { 'users.address': address } },
+        {
+          $lookup: {
+            from: this.collections.events['collection'].collectionName,
+            localField: 'eventId',
+            foreignField: '_id',
+            as: 'events',
+          },
+        },
+        {
+          $project: {
+            _id: '$_id',
+            event: { $arrayElemAt: ['$events', 0] },
+            read: { $ifNull: ['$users.read', false] },
+          },
+        },
+      ])
+      .toArray()) as unknown) as {
       _id: ObjectID
       read: boolean
       event: EventDoc<any>
-    }[] = await this.collections.notifications.collection.aggregate([
-      { $match: query },
-      { $unwind: '$users' },
-      { $match: { 'users.address': address } },
-      {
-        $lookup: {
-          from: this.collections.events.collection.collectionName,
-          localField: 'eventId',
-          foreignField: '_id',
-          as: 'events',
-        },
-      },
-      {
-        $project: {
-          _id: '$_id',
-          event: { $arrayElemAt: ['$events', 0] },
-          read: { $ifNull: ['$users.read', false] },
-        },
-      },
-    ]).toArray()
+    }[]
     return docs.map(({ event, read, _id }) => ({
-      id: _id.toString(),
+      id: _id.toHexString(),
       read,
       event: ColonyMongoDataSource.transformEvent(event),
     }))
@@ -248,7 +282,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   async getTaskEvents(taskId: string) {
-    // TODO sorting?
     const events = await this.collections.events.findManyByQuery(
       {
         'context.taskId': taskId,

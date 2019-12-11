@@ -62,7 +62,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 description: 'must be a string',
                 maxLength: 2000,
               },
-              colonies: {
+              colonyAddresses: {
                 bsonType: 'array',
                 description: 'must be an array of colony addresses',
                 uniqueItems: true,
@@ -70,7 +70,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   bsonType: 'string',
                 },
               },
-              tasks: {
+              taskIds: {
                 bsonType: 'array',
                 description: 'must be an array of task IDs',
                 uniqueItems: true,
@@ -78,7 +78,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   bsonType: 'string',
                 },
               },
-              tokens: {
+              tokenRefs: {
                 bsonType: 'array',
                 description: 'must be an array of user token references',
                 uniqueItems: true,
@@ -103,8 +103,8 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       indexes: [
         ['walletAddress', { unique: true }],
         ['username', { unique: true }],
-        ['colonies', { sparse: true }],
-        ['tasks', { sparse: true }],
+        ['colonyAddresses', { sparse: true }],
+        ['taskIds', { sparse: true }],
       ],
     },
   ],
@@ -159,7 +159,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 description: 'must be a string',
                 maxLength: 400,
               },
-              tasks: {
+              taskIds: {
                 bsonType: 'array',
                 description: 'must be an array of task IDs',
                 uniqueItems: true,
@@ -167,7 +167,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   bsonType: 'string',
                 },
               },
-              tokens: {
+              tokenRefs: {
                 bsonType: 'array',
                 description: 'must be an array of colony token references',
                 uniqueItems: true,
@@ -254,14 +254,14 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
               cancelledAt: {
                 bsonType: 'date',
               },
-              workRequests: {
+              workRequestAddresses: {
                 bsonType: 'array',
                 uniqueItems: true,
                 items: {
                   bsonType: 'string',
                 },
               },
-              workInvites: {
+              workInviteAddresses: {
                 bsonType: 'array',
                 uniqueItems: true,
                 items: {
@@ -402,7 +402,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 bsonType: 'string',
                 maxLength: 100,
               },
-              initiator: {
+              initiatorAddress: {
                 bsonType: 'string',
                 maxLength: 100,
               },
@@ -419,7 +419,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       },
       indexes: [
         ['type', {}],
-        ['initiator', {}],
+        ['initiatorAddress', {}],
         ['context.colonyAddress', { sparse: true }],
         ['context.taskId', { sparse: true }],
       ],

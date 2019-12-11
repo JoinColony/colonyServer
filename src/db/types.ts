@@ -48,19 +48,20 @@ export interface MongoDoc {
 
 export interface ColonyDoc extends MongoDoc {
   colonyAddress: string
+  founderAddress: string
   colonyName: string
   avatarHash?: string
   displayName?: string
   description?: string
   guideline?: string
   website?: string
-  tokens: {
+  tokenRefs: {
     address: string
     iconHash?: string
     isExternal?: boolean
     isNative?: boolean
   }[]
-  tasks: string[]
+  taskIds: string[]
 }
 
 export interface DomainDoc extends MongoDoc {
@@ -72,7 +73,7 @@ export interface DomainDoc extends MongoDoc {
 
 export interface EventDoc<C extends object> extends MongoDoc {
   type: EventType
-  initiator: string
+  initiatorAddress: string
   sourceType: 'db' | 'contract'
   context: C
 }
@@ -81,16 +82,16 @@ export interface TaskDoc extends MongoDoc {
   colonyAddress: string
   creatorAddress: string
   ethDomainId: number
-  assignedWorker?: string
-  cancelledAt?: Date
+  assignedWorkerAddress?: string
+  cancelledAt?: number
   description?: string
-  dueDate?: Date
+  dueDate?: number
   ethSkillId?: number
   ethTaskId?: number
-  finalizedAt?: Date
+  finalizedAt?: number
   title?: string
-  workInvites: string[]
-  workRequests: string[]
+  workInviteAddresses: string[]
+  workRequestAddresses: string[]
 }
 
 export interface TokenDoc extends MongoDoc {
@@ -130,12 +131,12 @@ export interface UserDoc extends MongoDoc {
   bio?: string
   displayName?: string
   location?: string
-  colonies: string[]
-  tasks: string[]
+  colonyAddresses: string[]
+  taskIds: string[]
   username: string
   walletAddress: string
   website?: string
-  tokens: {
+  tokenRefs: {
     address: string
     iconHash?: string
   }[]

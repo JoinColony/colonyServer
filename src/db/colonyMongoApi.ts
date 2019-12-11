@@ -148,7 +148,7 @@ export class ColonyMongoApi {
     taskId: string,
   ) {
     const users = await this.users
-      .find({ tasks: taskId, _id: { $ne: new ObjectID(initiator) } })
+      .find({ taskIds: taskId, _id: { $ne: new ObjectID(initiator) } })
       .toArray()
     return this.createNotification(
       eventId,
@@ -163,7 +163,7 @@ export class ColonyMongoApi {
   ) {
     const users = await this.users
       .find({
-        colonies: colonyAddress,
+        colonyAddresses: colonyAddress,
         walletAddress: { $ne: initiator },
       })
       .toArray()
@@ -174,13 +174,13 @@ export class ColonyMongoApi {
   }
 
   private async createEvent<C extends object>(
-    initiator: string,
+    initiatorAddress: string,
     type: EventType,
     context: C,
   ) {
     const { insertedId } = await this.events.insertOne({
       context,
-      initiator,
+      initiatorAddress,
       type,
       sourceType: 'db',
     })
@@ -225,8 +225,8 @@ export class ColonyMongoApi {
     return this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
-      { colonies: { $ne: colonyAddress } },
-      { $push: { colonies: colonyAddress } },
+      { colonyAddresses: { $ne: colonyAddress } },
+      { $push: { colonyAddresses: colonyAddress } },
     )
   }
 
@@ -234,8 +234,8 @@ export class ColonyMongoApi {
     return this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
-      { colonies: colonyAddress },
-      { $pull: { colonies: colonyAddress } },
+      { colonyAddresses: colonyAddress },
+      { $pull: { colonyAddresses: colonyAddress } },
     )
   }
 
@@ -243,8 +243,8 @@ export class ColonyMongoApi {
     return this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
-      { tasks: { $ne: taskId } },
-      { $push: { tasks: taskId } },
+      { taskIds: { $ne: taskId } },
+      { $push: { taskIds: taskId } },
     )
   }
 
@@ -252,8 +252,8 @@ export class ColonyMongoApi {
     return this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
-      { tasks: taskId },
-      { $pull: { tasks: taskId } },
+      { taskIds: taskId },
+      { $pull: { taskIds: taskId } },
     )
   }
 
@@ -285,7 +285,7 @@ export class ColonyMongoApi {
       colonyName,
       displayName,
       founderAddress: initiator,
-      tokens: [
+      tokenRefs: [
         {
           address: tokenAddress,
           isNative: true,
@@ -337,8 +337,8 @@ export class ColonyMongoApi {
     return this.updateColony(
       colonyAddress,
       // @ts-ignore $elemMatch isn't typed well
-      { tokens: { $elemMatch: { address: tokenAddress } } },
-      { $set: { 'tokens.$.iconHash': ipfsHash } },
+      { tokenRefs: { $elemMatch: { address: tokenAddress } } },
+      { $set: { 'tokenRefs.$.iconHash': ipfsHash } },
     )
   }
 
@@ -346,8 +346,8 @@ export class ColonyMongoApi {
     return this.updateColony(
       colonyAddress,
       // @ts-ignore $elemMatch isn't typed well
-      { tokens: { $elemMatch: { address: tokenAddress } } },
-      { $unset: { 'tokens.$.iconHash': '' } },
+      { tokenRefs: { $elemMatch: { address: tokenAddress } } },
+      { $unset: { 'tokenRefs.$.iconHash': '' } },
     )
   }
 
@@ -359,8 +359,8 @@ export class ColonyMongoApi {
     return this.updateUser(
       initiator,
       // @ts-ignore $elemMatch isn't typed well
-      { tokens: { $elemMatch: { address: tokenAddress } } },
-      { $set: { 'tokens.$.iconHash': ipfsHash } },
+      { tokenRefs: { $elemMatch: { address: tokenAddress } } },
+      { $set: { 'tokenRefs.$.iconHash': ipfsHash } },
     )
   }
 
@@ -368,8 +368,8 @@ export class ColonyMongoApi {
     return this.updateUser(
       initiator,
       // @ts-ignore $elemMatch isn't typed well
-      { tokens: { $elemMatch: { address: tokenAddress } } },
-      { $unset: { 'tokens.$.iconHash': '' } },
+      { tokenRefs: { $elemMatch: { address: tokenAddress } } },
+      { $unset: { 'tokenRefs.$.iconHash': '' } },
     )
   }
 
@@ -386,7 +386,7 @@ export class ColonyMongoApi {
     const taskId = insertedId.toString()
 
     await this.subscribeToTask(initiator, taskId)
-    await this.updateColony(colonyAddress, {}, { $push: { tasks: taskId } })
+    await this.updateColony(colonyAddress, {}, { $push: { taskIds: taskId } })
 
     const eventId = await this.createEvent(initiator, EventType.CreateTask, {
       colonyAddress,
@@ -426,7 +426,7 @@ export class ColonyMongoApi {
     return this.updateTask(taskId, {}, { $set: { description } })
   }
 
-  async setTaskDueDate(initiator: string, taskId: string, dueDate: Date) {
+  async setTaskDueDate(initiator: string, taskId: string, dueDate: number) {
     await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskDueDate, {
       taskId,
@@ -446,11 +446,12 @@ export class ColonyMongoApi {
 
   async createWorkRequest(initiator: string, taskId: string) {
     await this.subscribeToTask(initiator, taskId)
-    const { workRequests = [], creatorAddress } = await this.tasks.findOne(
-      new ObjectID(taskId),
-    )
+    const {
+      workRequestAddresses = [],
+      creatorAddress,
+    } = await this.tasks.findOne(new ObjectID(taskId))
 
-    if (workRequests.includes(initiator)) {
+    if (workRequestAddresses.includes(initiator)) {
       throw new Error(
         `Unable to create work request for '${initiator}'; work request already exists`,
       )
@@ -463,7 +464,11 @@ export class ColonyMongoApi {
     )
     await this.createNotification(eventId, [creatorAddress])
 
-    return this.updateTask(taskId, {}, { $push: { workRequests: initiator } })
+    return this.updateTask(
+      taskId,
+      {},
+      { $push: { workRequestAddresses: initiator } },
+    )
   }
 
   async sendWorkInvite(
@@ -472,9 +477,11 @@ export class ColonyMongoApi {
     workerAddress: string,
   ) {
     await this.subscribeToTask(initiator, taskId)
-    const { workInvites = [] } = await this.tasks.findOne(new ObjectID(taskId))
+    const { workInviteAddresses = [] } = await this.tasks.findOne(
+      new ObjectID(taskId),
+    )
 
-    if (workInvites.includes(workerAddress)) {
+    if (workInviteAddresses.includes(workerAddress)) {
       throw new Error(
         `Unable to send work invite for '${workerAddress}'; work invite already sent`,
       )
@@ -490,7 +497,7 @@ export class ColonyMongoApi {
     return this.updateTask(
       taskId,
       {},
-      { $push: { workInvites: workerAddress } },
+      { $push: { workInviteAddresses: workerAddress } },
     )
   }
 
@@ -540,7 +547,7 @@ export class ColonyMongoApi {
     return this.updateTask(
       taskId,
       {},
-      { $set: { assignedWorker: workerAddress } },
+      { $set: { assignedWorkerAddress: workerAddress } },
     )
   }
 
@@ -561,8 +568,8 @@ export class ColonyMongoApi {
     await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(
       taskId,
-      { assignedWorker: workerAddress },
-      { $unset: { assignedWorker: '' } },
+      { assignedWorkerAddress: workerAddress },
+      { $unset: { assignedWorkerAddress: '' } },
     )
   }
 
@@ -573,7 +580,7 @@ export class ColonyMongoApi {
       taskId,
     })
     await this.createTaskNotification(initiator, eventId, taskId)
-    return this.updateTask(taskId, {}, { $set: { finalizedAt: new Date() } })
+    return this.updateTask(taskId, {}, { $set: { finalizedAt: Date.now() } })
   }
 
   async cancelTask(initiator: string, taskId: string) {
@@ -582,7 +589,7 @@ export class ColonyMongoApi {
       taskId,
     })
     await this.createTaskNotification(initiator, eventId, taskId)
-    return this.updateTask(taskId, {}, { $set: { cancelledAt: new Date() } })
+    return this.updateTask(taskId, {}, { $set: { cancelledAt: Date.now() } })
   }
 
   async markNotificationAsRead(initiator: string, id: string) {
@@ -741,7 +748,20 @@ export class ColonyMongoApi {
     isExternal: boolean,
     iconHash?: string,
   ) {
-    // TODO validate that colony and token exist
+    const colonyExists = !!(await this.colonies.findOne({ colonyAddress }))
+    if (!colonyExists) {
+      throw new Error(
+        `Unable to add colony token reference: colony '${colonyAddress}' not found`,
+      )
+    }
+
+    const tokenExists = !!(await this.tokens.findOne({ address: tokenAddress }))
+    if (!tokenExists) {
+      throw new Error(
+        `Unable to add colony token reference: token '${tokenAddress}' not found`,
+      )
+    }
+
     await this.colonies.updateOne(
       { colonyAddress, tokens: { $ne: { address: tokenAddress } } },
       {
@@ -761,7 +781,22 @@ export class ColonyMongoApi {
     tokenAddress: string,
     iconHash?: string,
   ) {
-    // TODO validate that initiator and token exist
+    const userExists = !!(await this.users.findOne({
+      walletAddress: initiator,
+    }))
+    if (!userExists) {
+      throw new Error(
+        `Unable to add user token reference: user '${initiator}' not found`,
+      )
+    }
+
+    const tokenExists = !!(await this.tokens.findOne({ address: tokenAddress }))
+    if (!tokenExists) {
+      throw new Error(
+        `Unable to add colony token reference: token '${tokenAddress}' not found`,
+      )
+    }
+
     await this.users.updateOne(
       { walletAddress: initiator, tokens: { $ne: { address: tokenAddress } } },
       {
