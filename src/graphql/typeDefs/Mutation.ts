@@ -169,6 +169,7 @@ export default gql`
     editUser(input: EditUserInput!): User
     subscribeToColony(input: SubscribeToColonyInput!): User
     unsubscribeFromColony(input: UnsubscribeFromColonyInput!): User
+    setUserTokens(input: SetUserTokensInput!): User
     # Colonies
     createColony(input: CreateColonyInput!): Colony
     editColonyProfile(input: EditColonyProfileInput!): Colony

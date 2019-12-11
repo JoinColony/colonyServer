@@ -9,7 +9,7 @@ export default gql`
     colonyAddresses: [String!]!
     tasks: [Task!]!
     taskIds: [String!]!
-    tokenAddresses: [String!]!
+    tokens: [String!]!
     notifications(read: Boolean): [Notification!] # Only provided for the current user
   }
 
