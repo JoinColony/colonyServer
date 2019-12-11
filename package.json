@@ -12,6 +12,8 @@
     "db:console": "mongo",
     "db:setup": "ts-node scripts/db-setup.ts",
     "db:clean": "ts-node scripts/db-clean.ts",
+    "typecheck": "tsc --noEmit",
+    "graphql:typegen": "graphql-codegen",
     "contracts:typegen": "typechain --target=ethers --outDir=src/network/contracts 'lib/colonyNetwork/build/contracts/{IColony,IMetaColony,IColonyNetwork,DSToken}.json'"
   },
   "keywords": [],
@@ -19,7 +21,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/mongodb": "^3.3.11",
-    "apollo-datasource-mongo": "git://github.com/jameslefrere/apollo-datasource-mongodb.git#6b561ac89f6a71c49d9b5c874295d9f9e990781b",
+    "apollo-datasource-mongo": "git://github.com/jameslefrere/apollo-datasource-mongodb.git#12f6b7977d7a6a874f8c5473e4a70239ce7ee5b1",
     "apollo-server-express": "^2.9.12",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
