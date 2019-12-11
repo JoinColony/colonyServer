@@ -162,12 +162,17 @@ export default gql`
     iconHash: String
   }
 
+  input SetUserTokensInput {
+    tokens: [String!]!
+  }
+
   type Mutation {
     # Users
     createUser(input: CreateUserInput!): User # TODO find out why we can't use an exclamation mark here
     editUser(input: EditUserInput!): User
     subscribeToColony(input: SubscribeToColonyInput!): User
     unsubscribeFromColony(input: UnsubscribeFromColonyInput!): User
+    setUserTokens(input: SetUserTokensInput!): User
     # Colonies
     createColony(input: CreateColonyInput!): Colony
     editColonyProfile(input: EditColonyProfileInput!): Colony
