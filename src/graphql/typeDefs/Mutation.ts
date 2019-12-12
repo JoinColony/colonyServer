@@ -162,6 +162,10 @@ export default gql`
     iconHash: String
   }
 
+  input SetUserTokensInput {
+    tokens: [String!]!
+  }
+
   type Mutation {
     # Users
     createUser(input: CreateUserInput!): User # TODO find out why we can't use an exclamation mark here
@@ -192,9 +196,7 @@ export default gql`
     # Tokens
     createToken(input: CreateTokenInput!): Token
     addColonyTokenReference(input: AddColonyTokenReferenceInput!): Token
-    addUserTokenReference(input: AddUserTokenReferenceInput!): Token
     setColonyTokenAvatar(input: SetColonyTokenAvatarInput!): Token
-    setUserTokenAvatar(input: SetUserTokenAvatarInput!): Token
     # Notifications
     markAllNotificationsAsRead: Boolean!
     markNotificationAsRead(input: MarkNotificationAsReadInput!): Boolean!

@@ -78,22 +78,12 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   bsonType: 'string',
                 },
               },
-              tokenRefs: {
+              tokenAddresses: {
                 bsonType: 'array',
-                description: 'must be an array of user token references',
+                description: 'must be an array of token addresses',
                 uniqueItems: true,
-                additionalProperties: false,
                 items: {
-                  bsonType: 'object',
-                  required: ['address'],
-                  properties: {
-                    address: {
-                      bsonType: 'string',
-                    },
-                    iconHash: {
-                      bsonType: 'string',
-                    },
-                  },
+                  bsonType: 'string',
                 },
               },
             },

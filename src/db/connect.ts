@@ -1,18 +1,18 @@
 import { MongoClient, Db } from 'mongodb'
 
-// FIXME use env var
-const DB_URL = 'mongodb://localhost:27017'
-
-// FIXME use env var
-const DB_NAME = 'colonyServer'
-
 export const connect = async (): Promise<{ db: Db; client: MongoClient }> => {
-  console.info(`Connecting to database "${DB_NAME}" via "${DB_URL}"...`)
+  const dbName = process.env.DB_NAME
+  const dbUrl = process.env.DB_URL
+
+  console.info(`Connecting to database "${dbName}" via "${dbUrl}"...`)
+
   const client = await MongoClient.connect(
-    DB_URL,
+    dbUrl,
     { useUnifiedTopology: true },
   )
-  const db = await client.db(DB_NAME)
+
+  const db = await client.db(dbName)
   console.info('Connected to database successfully.')
+
   return { db, client }
 }

@@ -3,7 +3,15 @@ import { MongoDataSource } from 'apollo-datasource-mongo'
 import { CachedCollection } from 'apollo-datasource-mongo/dist/cache'
 import { DataSource, DataSourceConfig } from 'apollo-datasource'
 
-import { ColonyDoc, DomainDoc, EventDoc, NotificationDoc, TaskDoc, TokenDoc, UserDoc } from './types'
+import {
+  ColonyDoc,
+  DomainDoc,
+  EventDoc,
+  NotificationDoc,
+  TaskDoc,
+  TokenDoc,
+  UserDoc,
+} from './types'
 
 // TODO re-enable cache
 // const DEFAULT_TTL = { ttl: 10000 }
@@ -57,7 +65,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     _id,
     colonyAddresses = [],
     taskIds = [],
-    tokenRefs = [],
+    tokenAddresses = [],
     ...profile
   }: UserDoc) {
     return {
@@ -67,7 +75,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       tasks: [],
       tokens: [],
       colonyAddresses,
-      tokenRefs,
+      tokenAddresses,
       taskIds,
       profile,
     }
@@ -98,7 +106,12 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   private static transformDomain({ _id, ...doc }: DomainDoc) {
-    return { ...doc, tasks: [], id: _id.toHexString(), createdAt: _id.getTimestamp() }
+    return {
+      ...doc,
+      tasks: [],
+      id: _id.toHexString(),
+      createdAt: _id.getTimestamp(),
+    }
   }
 
   private static transformTask({

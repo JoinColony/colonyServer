@@ -136,8 +136,5 @@ export interface UserDoc extends MongoDoc {
   username: string
   walletAddress: string
   website?: string
-  tokenRefs: {
-    address: string
-    iconHash?: string
-  }[]
+  tokenAddresses: string[]
 }

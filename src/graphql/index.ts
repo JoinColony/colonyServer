@@ -63,7 +63,17 @@ export const createApolloServer = async (db: Db, provider: Provider) => {
   const auth = new ColonyAuthDataSource(provider)
 
   return new ApolloServer({
-    typeDefs: [Colony, Domain, Event, Mutation, Query, Task, Token, User, scalars],
+    typeDefs: [
+      Colony,
+      Domain,
+      Event,
+      Mutation,
+      Query,
+      Task,
+      Token,
+      User,
+      scalars,
+    ],
     resolvers,
     formatError: err => {
       // MongoDB json schema validation
@@ -78,10 +88,10 @@ export const createApolloServer = async (db: Db, provider: Provider) => {
     context: ({ req }) => {
       const token = (req.headers['x-access-token'] ||
         req.headers['authorization']) as string
-      const user = authenticate(token)
+      const userAddress = authenticate(token)
       return {
         api,
-        user,
+        userAddress,
       }
     },
   })

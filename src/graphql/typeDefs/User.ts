@@ -1,11 +1,6 @@
 import { gql } from 'apollo-server-express'
 
 export default gql`
-  type UserTokenRef {
-    address: String!
-    iconHash: String
-  }
-
   type User {
     id: String! # wallet address
     createdAt: GraphQLDateTime!
@@ -14,8 +9,7 @@ export default gql`
     colonyAddresses: [String!]!
     tasks: [Task!]!
     taskIds: [String!]!
-    tokens: [UserToken!]!
-    tokenRefs: [UserTokenRef]!
+    tokenAddresses: [String!]!
     notifications(read: Boolean): [Notification!] # Only provided for the current user
   }
 
