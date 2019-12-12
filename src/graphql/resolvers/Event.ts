@@ -8,7 +8,7 @@ import {
 } from '../types'
 
 export const Event: EventResolvers<ApolloContext> = {
-  async initiator({ initiatorAddress }, input: any, { dataSources: { data } }) {
+  async initiator({ initiatorAddress }, input, { dataSources: { data } }) {
     return data.getUserByAddress(initiatorAddress)
   },
 }

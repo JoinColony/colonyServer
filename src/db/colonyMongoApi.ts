@@ -1,3 +1,4 @@
+import assert from 'assert'
 import {
   Collection,
   Db,
@@ -20,6 +21,7 @@ import {
 } from './types'
 import { CollectionNames } from './collections'
 import { matchUsernames } from './matchers'
+import { ROOT_DOMAIN } from '../constants'
 
 export class ColonyMongoApi {
   private static profileModifier(profile: Record<string, any>) {
@@ -100,14 +102,6 @@ export class ColonyMongoApi {
       ],
     }
 
-    if (
-      await this.tasks.findOne({
-        cancelledAt: { $exists: false },
-        finalizedAt: { $exists: false },
-      })
-    ) {
-    }
-
     return this.tasks.updateOne(filter, modifier, options)
   }
 
@@ -123,6 +117,39 @@ export class ColonyMongoApi {
       modifier,
       options,
     )
+  }
+
+  private async tryGetTask(taskId: string) {
+    const task = await this.tasks.findOne(new ObjectID(taskId))
+    assert.ok(!!task, `Task with ID '${taskId}' not found`)
+    return task
+  }
+
+  private async tryGetUser(walletAddress: string) {
+    const user = await this.users.findOne({ walletAddress })
+    assert.ok(!!user, `User with address '${walletAddress}' not found`)
+    return user
+  }
+
+  private async tryGetColony(colonyAddress: string) {
+    const colony = await this.colonies.findOne({ colonyAddress })
+    assert.ok(!!colony, `Colony with address '${colonyAddress}' not found`)
+    return colony
+  }
+
+  private async tryGetToken(address: string) {
+    const token = await this.tokens.findOne({ address })
+    assert.ok(!!token, `Token with address '${address}' not found`)
+    return token
+  }
+
+  private async tryGetDomain(colonyAddress: string, ethDomainId: number) {
+    const domain = await this.domains.findOne({ colonyAddress, ethDomainId })
+    assert.ok(
+      !!domain,
+      `Domain with ID '${ethDomainId}' of colony '${colonyAddress}' not found`,
+    )
+    return domain
   }
 
   private async createNotification(eventId: ObjectID, users: string[]) {
@@ -205,7 +232,7 @@ export class ColonyMongoApi {
   }
 
   async editUser(
-    walletAddress: string,
+    initiator: string,
     profile: {
       avatarHash?: string | null
       displayName?: string | null
@@ -214,14 +241,18 @@ export class ColonyMongoApi {
       bio?: string | null
     },
   ) {
+    await this.tryGetUser(initiator)
     return this.updateUser(
-      walletAddress,
+      initiator,
       {},
       ColonyMongoApi.profileModifier(profile),
     )
   }
 
-  async subscribeToColony(initiator, colonyAddress: string) {
+  async subscribeToColony(initiator: string, colonyAddress: string) {
+    await this.tryGetUser(initiator)
+    await this.tryGetColony(colonyAddress)
+
     return this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
@@ -230,7 +261,9 @@ export class ColonyMongoApi {
     )
   }
 
-  async unsubscribeFromColony(initiator, colonyAddress: string) {
+  async unsubscribeFromColony(initiator: string, colonyAddress: string) {
+    await this.tryGetUser(initiator)
+
     return this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
@@ -239,7 +272,10 @@ export class ColonyMongoApi {
     )
   }
 
-  async subscribeToTask(initiator, taskId: string) {
+  async subscribeToTask(initiator: string, taskId: string) {
+    await this.tryGetUser(initiator)
+    await this.tryGetTask(taskId)
+
     return this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
@@ -248,7 +284,9 @@ export class ColonyMongoApi {
     )
   }
 
-  async unsubscribeFromTask(initiator, taskId: string) {
+  async unsubscribeFromTask(initiator: string, taskId: string) {
+    await this.tryGetUser(initiator)
+
     return this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
@@ -268,6 +306,8 @@ export class ColonyMongoApi {
     tokenDecimals: number,
     tokenIconHash?: string,
   ) {
+    await this.tryGetUser(initiator)
+
     const tokenExists = !!(await this.tokens.findOne({ address: tokenAddress }))
     if (!tokenExists) {
       await this.createToken(
@@ -307,12 +347,13 @@ export class ColonyMongoApi {
     // it's not the job of a unique index to preserve data integrity.
     await this.colonies.updateOne(doc, { $setOnInsert: doc }, { upsert: true })
 
-    await this.createDomain(initiator, colonyAddress, 1, null, 'Root')
+    await this.createDomain(initiator, colonyAddress, ROOT_DOMAIN, null, 'Root')
 
     return this.subscribeToColony(initiator, colonyAddress)
   }
 
   async editColony(
+    initiator: string,
     colonyAddress: string,
     profile: {
       avatarHash?: string | null
@@ -322,6 +363,9 @@ export class ColonyMongoApi {
       website?: string | null
     },
   ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetColony(colonyAddress)
+
     return this.updateColony(
       colonyAddress,
       {},
@@ -334,6 +378,8 @@ export class ColonyMongoApi {
     tokenAddress: string,
     ipfsHash: string,
   ) {
+    await this.tryGetColony(colonyAddress)
+
     return this.updateColony(
       colonyAddress,
       // @ts-ignore $elemMatch isn't typed well
@@ -343,6 +389,8 @@ export class ColonyMongoApi {
   }
 
   async removeColonyTokenAvatar(colonyAddress: string, tokenAddress: string) {
+    await this.tryGetColony(colonyAddress)
+
     return this.updateColony(
       colonyAddress,
       // @ts-ignore $elemMatch isn't typed well
@@ -351,26 +399,12 @@ export class ColonyMongoApi {
     )
   }
 
-  async setUserTokenAvatar(
-    initiator: string,
-    tokenAddress: string,
-    ipfsHash: string,
-  ) {
-    return this.updateUser(
-      initiator,
-      // @ts-ignore $elemMatch isn't typed well
-      { tokenRefs: { $elemMatch: { address: tokenAddress } } },
-      { $set: { 'tokenRefs.$.iconHash': ipfsHash } },
+  async setUserTokens(initiator: string, tokenAddresses: string[]) {
+    await this.tryGetUser(initiator)
+    await Promise.all(
+      tokenAddresses.map(tokenAddress => this.tryGetToken(tokenAddress)),
     )
-  }
-
-  async removeUserTokenAvatar(initiator: string, tokenAddress: string) {
-    return this.updateUser(
-      initiator,
-      // @ts-ignore $elemMatch isn't typed well
-      { tokenRefs: { $elemMatch: { address: tokenAddress } } },
-      { $unset: { 'tokenRefs.$.iconHash': '' } },
-    )
+    return this.updateUser(initiator, {}, { $set: { tokenAddresses } })
   }
 
   async createTask(
@@ -378,6 +412,10 @@ export class ColonyMongoApi {
     colonyAddress: string,
     ethDomainId: number,
   ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetColony(colonyAddress)
+    await this.tryGetDomain(colonyAddress, ethDomainId)
+
     const { insertedId } = await this.tasks.insertOne({
       colonyAddress,
       creatorAddress: initiator,
@@ -399,6 +437,10 @@ export class ColonyMongoApi {
   }
 
   async setTaskDomain(initiator: string, taskId: string, ethDomainId: number) {
+    await this.tryGetUser(initiator)
+    const { colonyAddress } = await this.tryGetTask(taskId)
+    await this.tryGetDomain(colonyAddress, ethDomainId)
+
     await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskDomain, {
       taskId,
@@ -408,6 +450,9 @@ export class ColonyMongoApi {
   }
 
   async setTaskTitle(initiator: string, taskId: string, title: string) {
+    await this.tryGetUser(initiator)
+    await this.tryGetTask(taskId)
+
     await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskTitle, { taskId, title })
     return this.updateTask(taskId, {}, { $set: { title } })
@@ -418,6 +463,9 @@ export class ColonyMongoApi {
     taskId: string,
     description: string,
   ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetTask(taskId)
+
     await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskDescription, {
       taskId,
@@ -427,6 +475,9 @@ export class ColonyMongoApi {
   }
 
   async setTaskDueDate(initiator: string, taskId: string, dueDate: number) {
+    await this.tryGetUser(initiator)
+    await this.tryGetTask(taskId)
+
     await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskDueDate, {
       taskId,
@@ -436,6 +487,9 @@ export class ColonyMongoApi {
   }
 
   async setTaskSkill(initiator: string, taskId: string, ethSkillId: number) {
+    await this.tryGetUser(initiator)
+    await this.tryGetTask(taskId)
+
     await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskSkill, {
       taskId,
@@ -445,11 +499,12 @@ export class ColonyMongoApi {
   }
 
   async createWorkRequest(initiator: string, taskId: string) {
+    await this.tryGetUser(initiator)
+    const { workRequestAddresses = [], creatorAddress } = await this.tryGetTask(
+      taskId,
+    )
+
     await this.subscribeToTask(initiator, taskId)
-    const {
-      workRequestAddresses = [],
-      creatorAddress,
-    } = await this.tasks.findOne(new ObjectID(taskId))
 
     if (workRequestAddresses.includes(initiator)) {
       throw new Error(
@@ -476,10 +531,10 @@ export class ColonyMongoApi {
     taskId: string,
     workerAddress: string,
   ) {
+    await this.tryGetUser(initiator)
+    const { workInviteAddresses = [] } = await this.tryGetTask(taskId)
+
     await this.subscribeToTask(initiator, taskId)
-    const { workInviteAddresses = [] } = await this.tasks.findOne(
-      new ObjectID(taskId),
-    )
 
     if (workInviteAddresses.includes(workerAddress)) {
       throw new Error(
@@ -507,6 +562,9 @@ export class ColonyMongoApi {
     amount: string,
     token: string,
   ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetTask(taskId)
+
     await this.subscribeToTask(initiator, taskId)
     const payout = { amount, token }
     const eventId = await this.createEvent(initiator, EventType.SetTaskPayout, {
@@ -523,6 +581,9 @@ export class ColonyMongoApi {
     amount: string,
     token: string,
   ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetTask(taskId)
+
     await this.subscribeToTask(initiator, taskId)
     const payout = { amount, token }
     const eventId = await this.createEvent(
@@ -538,6 +599,9 @@ export class ColonyMongoApi {
   }
 
   async assignWorker(initiator: string, taskId: string, workerAddress: string) {
+    await this.tryGetUser(initiator)
+    await this.tryGetTask(taskId)
+
     await this.subscribeToTask(initiator, taskId)
     const eventId = await this.createEvent(initiator, EventType.AssignWorker, {
       taskId,
@@ -556,6 +620,10 @@ export class ColonyMongoApi {
     taskId: string,
     workerAddress: string,
   ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetUser(workerAddress)
+    await this.tryGetTask(taskId)
+
     await this.subscribeToTask(initiator, taskId)
     const eventId = await this.createEvent(
       initiator,
@@ -574,6 +642,9 @@ export class ColonyMongoApi {
   }
 
   async finalizeTask(initiator: string, taskId: string) {
+    await this.tryGetUser(initiator)
+    await this.tryGetTask(taskId)
+
     await this.subscribeToTask(initiator, taskId)
     // TODO for this to be valid, there needs to be: payouts, assignedWorker... check the contracts
     const eventId = await this.createEvent(initiator, EventType.FinalizeTask, {
@@ -584,6 +655,9 @@ export class ColonyMongoApi {
   }
 
   async cancelTask(initiator: string, taskId: string) {
+    await this.tryGetUser(initiator)
+    await this.tryGetTask(taskId)
+
     await this.subscribeToTask(initiator, taskId)
     const eventId = await this.createEvent(initiator, EventType.CancelTask, {
       taskId,
@@ -593,6 +667,8 @@ export class ColonyMongoApi {
   }
 
   async markNotificationAsRead(initiator: string, id: string) {
+    await this.tryGetUser(initiator)
+
     // Horrific typing to get this checked reasonably well...
     const match: QuerySelector<NotificationDoc['users']> = {
       $elemMatch: { address: initiator, read: { $ne: true } },
@@ -608,6 +684,8 @@ export class ColonyMongoApi {
   }
 
   async markAllNotificationsAsRead(initiator: string) {
+    await this.tryGetUser(initiator)
+
     // Horrific typing to get this checked reasonably well...
     const match: QuerySelector<NotificationDoc['users']> = {
       $elemMatch: { address: initiator, read: { $ne: true } },
@@ -629,6 +707,9 @@ export class ColonyMongoApi {
     ethParentDomainId: number | undefined | null,
     name: string,
   ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetColony(colonyAddress)
+
     // TODO add constant for root domain
     const isRoot = ethDomainId === 1
     const hasParent = typeof ethParentDomainId === 'number'
@@ -641,15 +722,7 @@ export class ColonyMongoApi {
     }
 
     if (hasParent) {
-      const parentExists = !!(await this.domains.findOne({
-        colonyAddress,
-        ethDomainId: ethParentDomainId,
-      }))
-      if (!parentExists) {
-        throw new Error(
-          `Parent domain '${ethParentDomainId}' does not exist for colony '${colonyAddress}'`,
-        )
-      }
+      await this.tryGetDomain(colonyAddress, ethParentDomainId)
     }
 
     const exists = !!(await this.domains.findOne({
@@ -692,19 +765,23 @@ export class ColonyMongoApi {
     ethDomainId: number,
     name: string,
   ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetDomain(colonyAddress, ethDomainId)
+
     return this.updateDomain(colonyAddress, ethDomainId, {}, { $set: { name } })
   }
 
   async sendTaskMessage(initiator: string, taskId: string, message: string) {
+    await this.tryGetUser(initiator)
+    await this.tryGetTask(taskId)
+
     await this.subscribeToTask(initiator, taskId)
     const eventId = await this.createEvent(initiator, EventType.TaskMessage, {
       taskId,
       message,
     })
 
-    const { username: currentUsername } = await this.users.findOne({
-      walletAddress: initiator,
-    })
+    const { username: currentUsername } = await this.tryGetUser(initiator)
     const mentioned = matchUsernames(message).filter(
       username => username !== currentUsername,
     )
@@ -722,6 +799,8 @@ export class ColonyMongoApi {
     decimals: number,
     iconHash?: string,
   ) {
+    await this.tryGetUser(initiator)
+
     const doc = {
       address,
       creator: initiator,
@@ -748,19 +827,9 @@ export class ColonyMongoApi {
     isExternal: boolean,
     iconHash?: string,
   ) {
-    const colonyExists = !!(await this.colonies.findOne({ colonyAddress }))
-    if (!colonyExists) {
-      throw new Error(
-        `Unable to add colony token reference: colony '${colonyAddress}' not found`,
-      )
-    }
-
-    const tokenExists = !!(await this.tokens.findOne({ address: tokenAddress }))
-    if (!tokenExists) {
-      throw new Error(
-        `Unable to add colony token reference: token '${tokenAddress}' not found`,
-      )
-    }
+    await this.tryGetUser(initiator)
+    await this.tryGetColony(colonyAddress)
+    await this.tryGetToken(tokenAddress)
 
     await this.colonies.updateOne(
       { colonyAddress, tokens: { $ne: { address: tokenAddress } } },
@@ -769,40 +838,6 @@ export class ColonyMongoApi {
           tokens: {
             address: tokenAddress,
             isExternal,
-            ...(iconHash ? { iconHash } : null),
-          },
-        },
-      },
-    )
-  }
-
-  async addUserTokenReference(
-    initiator: string,
-    tokenAddress: string,
-    iconHash?: string,
-  ) {
-    const userExists = !!(await this.users.findOne({
-      walletAddress: initiator,
-    }))
-    if (!userExists) {
-      throw new Error(
-        `Unable to add user token reference: user '${initiator}' not found`,
-      )
-    }
-
-    const tokenExists = !!(await this.tokens.findOne({ address: tokenAddress }))
-    if (!tokenExists) {
-      throw new Error(
-        `Unable to add colony token reference: token '${tokenAddress}' not found`,
-      )
-    }
-
-    await this.users.updateOne(
-      { walletAddress: initiator, tokens: { $ne: { address: tokenAddress } } },
-      {
-        $push: {
-          tokens: {
-            address: tokenAddress,
             ...(iconHash ? { iconHash } : null),
           },
         },

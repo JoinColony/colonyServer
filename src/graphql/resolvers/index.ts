@@ -1,4 +1,4 @@
-import { GraphQLDateTime } from 'graphql-iso-date';
+import { GraphQLDateTime } from 'graphql-iso-date'
 
 import { ApolloContext } from '../apolloTypes'
 import { Event, ColonyEvent, TaskEvent, IToken, EventContext } from './Event'

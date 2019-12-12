@@ -157,11 +157,6 @@ export default gql`
     iconHash: String
   }
 
-  input SetUserTokenAvatarInput {
-    tokenAddress: String!
-    iconHash: String
-  }
-
   input SetUserTokensInput {
     tokens: [String!]!
   }
@@ -197,9 +192,7 @@ export default gql`
     # Tokens
     createToken(input: CreateTokenInput!): Token
     addColonyTokenReference(input: AddColonyTokenReferenceInput!): Token
-    addUserTokenReference(input: AddUserTokenReferenceInput!): Token
     setColonyTokenAvatar(input: SetColonyTokenAvatarInput!): Token
-    setUserTokenAvatar(input: SetUserTokenAvatarInput!): Token
     # Notifications
     markAllNotificationsAsRead: Boolean!
     markNotificationAsRead(input: MarkNotificationAsReadInput!): Boolean!

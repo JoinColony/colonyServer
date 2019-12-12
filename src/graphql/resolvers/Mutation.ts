@@ -17,36 +17,39 @@ const tryAuth = async (promise: Promise<boolean>) => {
   }
 }
 
-// TODO add Required to all resolver definitions?
-export const Mutation: Required<MutationResolvers<ApolloContext>> = {
+export const Mutation: MutationResolvers<ApolloContext> = {
   // Users
   async createUser(
     parent,
     { input: { username } },
-    { user, api, dataSources: { data } },
+    { userAddress, api, dataSources: { data } },
   ) {
-    await api.createUser(user, username)
-    return data.getUserByAddress(user)
+    await api.createUser(userAddress, username)
+    return data.getUserByAddress(userAddress)
   },
-  async editUser(parent, { input }, { user, api, dataSources: { data } }) {
-    await api.editUser(user, input)
-    return data.getUserByAddress(user)
+  async editUser(
+    parent,
+    { input },
+    { userAddress, api, dataSources: { data } },
+  ) {
+    await api.editUser(userAddress, input)
+    return data.getUserByAddress(userAddress)
   },
   async subscribeToColony(
     parent,
     { input: { colonyAddress } },
-    { user, api, dataSources: { data } },
+    { userAddress, api, dataSources: { data } },
   ) {
-    await api.subscribeToColony(user, colonyAddress)
-    return data.getUserByAddress(user)
+    await api.subscribeToColony(userAddress, colonyAddress)
+    return data.getUserByAddress(userAddress)
   },
   async unsubscribeFromColony(
     parent,
     { input: { colonyAddress } },
-    { user, api, dataSources: { data } },
+    { userAddress, api, dataSources: { data } },
   ) {
-    await api.unsubscribeFromColony(user, colonyAddress)
-    return data.getUserByAddress(user)
+    await api.unsubscribeFromColony(userAddress, colonyAddress)
+    return data.getUserByAddress(userAddress)
   },
   // Colonies
   async createColony(
@@ -63,18 +66,14 @@ export const Mutation: Required<MutationResolvers<ApolloContext>> = {
         tokenIconHash,
       },
     },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
-    // No permissions-based auth call needed: anyone should be able to do this
+    // No permissions-based auth call needed: anyone should be able to do this,
+    // but the colony needs to exist on-chain.
+    await tryAuth(auth.assertColonyExists(colonyAddress))
 
-    // TODO test that the given colony address exists on-chain?
-    // Not really auth per-se, more validation (if it doesn't exist, permissions checks will fail)
-    // TODO the newly-created Colony might not be propagated... maybe we need to use events/polling?
-    // await tryAuth(auth.assertColonyExists(colonyAddress))
-
-    // TODO we need to get the right creatorAddress...
     await api.createColony(
-      user,
+      userAddress,
       colonyAddress,
       colonyName,
       displayName,
@@ -89,195 +88,264 @@ export const Mutation: Required<MutationResolvers<ApolloContext>> = {
   async editColonyProfile(
     parent,
     { input: { colonyAddress, ...profile } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
-    await tryAuth(auth.assertCanEditColonyProfile(colonyAddress, user))
-    await api.editColony(colonyAddress, profile)
+    await tryAuth(
+      auth.assertCanEditColonyProfile({ colonyAddress, userAddress }),
+    )
+    await api.editColony(userAddress, colonyAddress, profile)
     return data.getColonyByAddress(colonyAddress)
   },
   // Tasks
   async createTask(
     parent,
     { input: { colonyAddress, ethDomainId } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
-    await tryAuth(auth.assertCanCreateTask(colonyAddress, user, ethDomainId))
-    const taskId = await api.createTask(user, colonyAddress, ethDomainId)
+    await tryAuth(
+      auth.assertCanCreateTask({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
+    )
+    const taskId = await api.createTask(userAddress, colonyAddress, ethDomainId)
     return data.getTaskById(taskId)
   },
   async setTaskDomain(
     parent,
     { input: { id, ethDomainId } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
     const {
       colonyAddress,
       ethDomainId: currentEthDomainId,
     } = await data.getTaskById(id)
     await tryAuth(
-      auth.assertCanSetTaskDomain(
+      auth.assertCanSetTaskDomain({
         colonyAddress,
-        user,
-        currentEthDomainId,
-        ethDomainId,
-      ),
+        userAddress,
+        currentDomainId: currentEthDomainId,
+        newDomainId: ethDomainId,
+      }),
     )
-    await api.setTaskDomain(user, id, ethDomainId)
+    await api.setTaskDomain(userAddress, id, ethDomainId)
     return data.getTaskById(id)
   },
   async setTaskDescription(
     parent,
     { input: { id, description } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
     // TODO for all of these cases (where we need to look up the ethDomainId for an off-chain task),
     // it's ok to do this lookup, but if we have an ethTaskId, we should look up the ethDomainId
     // from on-chain.
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
     await tryAuth(
-      auth.assertCanSetTaskDescription(colonyAddress, user, ethDomainId),
+      auth.assertCanSetTaskDescription({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
     )
-    await api.setTaskDescription(user, id, description)
+    await api.setTaskDescription(userAddress, id, description)
     return data.getTaskById(id)
   },
   async setTaskTitle(
     parent,
     { input: { id, title } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
-    await tryAuth(auth.assertCanSetTaskTitle(colonyAddress, user, ethDomainId))
-    await api.setTaskTitle(user, id, title)
+    await tryAuth(
+      auth.assertCanSetTaskTitle({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
+    )
+    await api.setTaskTitle(userAddress, id, title)
     return data.getTaskById(id)
   },
   async setTaskSkill(
     parent,
     { input: { id, ethSkillId } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
-    await tryAuth(auth.assertCanSetTaskSkill(colonyAddress, user, ethDomainId))
-    await api.setTaskSkill(user, id, ethSkillId)
+    await tryAuth(
+      auth.assertCanSetTaskSkill({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
+    )
+    await api.setTaskSkill(userAddress, id, ethSkillId)
     return data.getTaskById(id)
   },
   async setTaskDueDate(
     parent,
     { input: { id, dueDate } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
     await tryAuth(
-      auth.assertCanSetTaskDueDate(colonyAddress, user, ethDomainId),
+      auth.assertCanSetTaskDueDate({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
     )
-    await api.setTaskDueDate(user, id, dueDate)
+    await api.setTaskDueDate(userAddress, id, dueDate)
     return data.getTaskById(id)
   },
   async createWorkRequest(
     parent,
     { input: { id } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data } },
   ) {
-    const { colonyAddress, ethDomainId } = await data.getTaskById(id)
-    await tryAuth(
-      auth.assertCanCreateWorkRequest(colonyAddress, user, ethDomainId),
-    )
-    await api.createWorkRequest(user, id)
+    // No auth needed here, anyone can do it
+    await api.createWorkRequest(userAddress, id)
     return data.getTaskById(id)
   },
   async sendWorkInvite(
     parent,
     { input: { id, workerAddress } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
     await tryAuth(
-      auth.assertCanSendWorkInvite(colonyAddress, user, ethDomainId),
+      auth.assertCanSendWorkInvite({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
     )
-    await api.sendWorkInvite(user, id, workerAddress)
+    await api.sendWorkInvite(userAddress, id, workerAddress)
     return data.getTaskById(id)
   },
   async setTaskPayout(
     parent,
     { input: { id, amount, tokenAddress } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
-    await tryAuth(auth.assertCanSetTaskPayout(colonyAddress, user, ethDomainId))
-    await api.setTaskPayout(user, id, amount, tokenAddress)
+    await tryAuth(
+      auth.assertCanSetTaskPayout({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
+    )
+    await api.setTaskPayout(userAddress, id, amount, tokenAddress)
     return data.getTaskById(id)
   },
   async removeTaskPayout(
     parent,
     { input: { id, amount, tokenAddress } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
     await tryAuth(
-      auth.assertCanRemoveTaskPayout(colonyAddress, user, ethDomainId),
+      auth.assertCanRemoveTaskPayout({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
     )
-    await api.removeTaskPayout(user, id, amount, tokenAddress)
+    await api.removeTaskPayout(userAddress, id, amount, tokenAddress)
     return data.getTaskById(id)
   },
   async assignWorker(
     parent,
     { input: { id, workerAddress } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
-    await tryAuth(auth.assertCanAssignWorker(colonyAddress, user, ethDomainId))
-    await api.assignWorker(user, id, workerAddress)
+    await tryAuth(
+      auth.assertCanAssignWorker({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
+    )
+    await api.assignWorker(userAddress, id, workerAddress)
     return data.getTaskById(id)
   },
   async unassignWorker(
     parent,
     { input: { id, workerAddress } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
     await tryAuth(
-      auth.assertCanUnassignWorker(colonyAddress, user, ethDomainId),
+      auth.assertCanUnassignWorker({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
     )
-    await api.unassignWorker(user, id, workerAddress)
+    await api.unassignWorker(userAddress, id, workerAddress)
     return data.getTaskById(id)
   },
   async finalizeTask(
     parent,
     { input: { id } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
-    await tryAuth(auth.assertCanFinalizeTask(colonyAddress, user, ethDomainId))
-    await api.finalizeTask(user, id)
+    await tryAuth(
+      auth.assertCanFinalizeTask({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
+    )
+    await api.finalizeTask(userAddress, id)
     return data.getTaskById(id)
   },
   async cancelTask(
     parent,
     { input: { id } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
-    await tryAuth(auth.assertCanCancelTask(colonyAddress, user, ethDomainId))
-    await api.cancelTask(user, id)
+    await tryAuth(
+      auth.assertCanCancelTask({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
+    )
+    await api.cancelTask(userAddress, id)
     return data.getTaskById(id)
   },
   // Tokens
   async createToken(
     parent,
     { input: { address, name, decimals, symbol, iconHash } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
-    // TODO verify that token exists at the given address?
-    await api.createToken(user, address, name, symbol, decimals, iconHash)
+    await api.createToken(
+      userAddress,
+      address,
+      name,
+      symbol,
+      decimals,
+      iconHash,
+    )
     return data.getTokenByAddress(address)
   },
   async addColonyTokenReference(
     parent,
     { input: { tokenAddress, colonyAddress, isExternal, iconHash } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
-    await tryAuth(auth.assertCanAddColonyTokenReference(colonyAddress, user))
+    await tryAuth(
+      auth.assertCanAddColonyTokenReference({ colonyAddress, userAddress }),
+    )
     await api.addColonyTokenReference(
-      user,
+      userAddress,
       colonyAddress,
       tokenAddress,
       isExternal,
@@ -285,21 +353,14 @@ export const Mutation: Required<MutationResolvers<ApolloContext>> = {
     )
     return data.getTokenByAddress(tokenAddress)
   },
-  async addUserTokenReference(
-    parent,
-    { input: { tokenAddress, iconHash } },
-    { user, api, dataSources: { data } },
-  ) {
-    // No auth call needed; restricted to the current authenticated user address
-    await api.addUserTokenReference(user, tokenAddress, iconHash)
-    return data.getTokenByAddress(tokenAddress)
-  },
   async setColonyTokenAvatar(
     parent,
     { input: { tokenAddress, colonyAddress, iconHash } },
-    { user, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
-    await tryAuth(auth.assertCanAddColonyTokenReference(colonyAddress, user))
+    await tryAuth(
+      auth.assertCanAddColonyTokenReference({ colonyAddress, userAddress }),
+    )
 
     if (iconHash) {
       await api.setColonyTokenAvatar(colonyAddress, tokenAddress, iconHash)
@@ -309,54 +370,59 @@ export const Mutation: Required<MutationResolvers<ApolloContext>> = {
 
     return data.getTokenByAddress(tokenAddress)
   },
-  async setUserTokenAvatar(
+  async setUserTokens(
     parent,
-    { input: { tokenAddress, iconHash } },
-    { user, api, dataSources: { data } },
+    { input: { tokens } },
+    { userAddress, api, dataSources: { data } },
   ) {
-    // No auth call needed; restricted to the current authenticated user address
-    if (iconHash) {
-      await api.setUserTokenAvatar(user, tokenAddress, iconHash)
-    } else {
-      await api.removeUserTokenAvatar(user, tokenAddress)
-    }
-
-    return data.getTokenByAddress(tokenAddress)
+    await api.setUserTokens(userAddress, tokens)
+    return data.getUserByAddress(userAddress)
   },
   // Notifications
-  async markNotificationAsRead(parent, { input: { id } }, { user, api }) {
+  async markNotificationAsRead(
+    parent,
+    { input: { id } },
+    { userAddress, api },
+  ) {
     // No auth call needed; restricted to the current authenticated user address
-    await api.markNotificationAsRead(user, id)
+    await api.markNotificationAsRead(userAddress, id)
     return true
   },
-  async markAllNotificationsAsRead(parent, input: Input<any>, { user, api }) {
+  async markAllNotificationsAsRead(
+    parent,
+    input: Input<any>,
+    { userAddress, api },
+  ) {
     // No auth call needed; restricted to the current authenticated user address
-    await api.markAllNotificationsAsRead(user)
+    await api.markAllNotificationsAsRead(userAddress)
     return true
   },
   // Messages
-  async sendTaskMessage(parent, { input: { id, message } }, { user, api }) {
+  async sendTaskMessage(
+    parent,
+    { input: { id, message } },
+    { userAddress, api },
+  ) {
     // No auth call needed; anyone can do this (for now...?)
-    // TODO assert task exists? Should this be done for all of these mutations, or in API land?
-    await api.sendTaskMessage(user, id, message)
+    await api.sendTaskMessage(userAddress, id, message)
     return true
   },
   // Domains
   async createDomain(
     parent,
     { input: { ethDomainId, ethParentDomainId, name, colonyAddress } },
-    { user, api, dataSources: { auth, data } },
+    { userAddress, api, dataSources: { auth, data } },
   ) {
     await tryAuth(
-      auth.assertCanCreateDomain(
+      auth.assertCanCreateDomain({
         colonyAddress,
-        user,
-        ethDomainId,
-        ethParentDomainId,
-      ),
+        userAddress,
+        domainId: ethDomainId,
+        parentDomainId: ethParentDomainId,
+      }),
     )
     await api.createDomain(
-      user,
+      userAddress,
       colonyAddress,
       ethDomainId,
       ethParentDomainId,
@@ -367,12 +433,16 @@ export const Mutation: Required<MutationResolvers<ApolloContext>> = {
   async editDomainName(
     parent,
     { input: { ethDomainId, name, colonyAddress } },
-    { user, api, dataSources: { auth, data } },
+    { userAddress, api, dataSources: { auth, data } },
   ) {
     await tryAuth(
-      auth.assertCanEditDomainName(colonyAddress, user, ethDomainId),
+      auth.assertCanEditDomainName({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
     )
-    await api.editDomainName(user, colonyAddress, ethDomainId, name)
+    await api.editDomainName(userAddress, colonyAddress, ethDomainId, name)
     return data.getDomainByEthId(colonyAddress, ethDomainId)
   },
 }

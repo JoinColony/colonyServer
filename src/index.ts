@@ -1,3 +1,4 @@
+import { config } from 'dotenv'
 import express from 'express'
 import { json } from 'body-parser'
 import cors from 'cors'
@@ -7,7 +8,9 @@ import { createApolloServer } from './graphql'
 import { getTokenForAddress } from './auth'
 
 import { connect } from './db/connect'
-import { provider } from './network/connect'
+import { provider } from './network/provider'
+
+config()
 
 const startServer = async () => {
   const { db } = await connect()

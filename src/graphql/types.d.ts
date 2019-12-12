@@ -224,6 +224,7 @@ export type Mutation = {
   editUser?: Maybe<User>,
   subscribeToColony?: Maybe<User>,
   unsubscribeFromColony?: Maybe<User>,
+  setUserTokens?: Maybe<User>,
   /**  Colonies */
   createColony?: Maybe<Colony>,
   editColonyProfile?: Maybe<Colony>,
@@ -248,9 +249,7 @@ export type Mutation = {
   /** Tokens */
   createToken?: Maybe<Token>,
   addColonyTokenReference?: Maybe<Token>,
-  addUserTokenReference?: Maybe<Token>,
   setColonyTokenAvatar?: Maybe<Token>,
-  setUserTokenAvatar?: Maybe<Token>,
   /** Notifications */
   markAllNotificationsAsRead: Scalars['Boolean'],
   markNotificationAsRead: Scalars['Boolean'],
@@ -276,6 +275,11 @@ export type MutationSubscribeToColonyArgs = {
 
 export type MutationUnsubscribeFromColonyArgs = {
   input: UnsubscribeFromColonyInput
+};
+
+
+export type MutationSetUserTokensArgs = {
+  input: SetUserTokensInput
 };
 
 
@@ -379,18 +383,8 @@ export type MutationAddColonyTokenReferenceArgs = {
 };
 
 
-export type MutationAddUserTokenReferenceArgs = {
-  input: AddUserTokenReferenceInput
-};
-
-
 export type MutationSetColonyTokenAvatarArgs = {
   input: SetColonyTokenAvatarInput
-};
-
-
-export type MutationSetUserTokenAvatarArgs = {
-  input: SetUserTokenAvatarInput
 };
 
 
@@ -557,9 +551,8 @@ export type SetTaskTitleInput = {
   title: Scalars['String'],
 };
 
-export type SetUserTokenAvatarInput = {
-  tokenAddress: Scalars['String'],
-  iconHash?: Maybe<Scalars['String']>,
+export type SetUserTokensInput = {
+  tokens: Array<Scalars['String']>,
 };
 
 export type SubscribeToColonyInput = {
@@ -643,7 +636,7 @@ export type User = {
   tasks: Array<Task>,
   taskIds: Array<Scalars['String']>,
   tokens: Array<UserToken>,
-  tokenRefs: Array<Maybe<UserTokenRef>>,
+  tokenAddresses: Array<Scalars['String']>,
   notifications?: Maybe<Array<Notification>>,
 };
 
@@ -670,12 +663,6 @@ export type UserToken = IToken & {
   address: Scalars['String'],
   name: Scalars['String'],
   symbol: Scalars['String'],
-  iconHash?: Maybe<Scalars['String']>,
-};
-
-export type UserTokenRef = {
-   __typename?: 'UserTokenRef',
-  address: Scalars['String'],
   iconHash?: Maybe<Scalars['String']>,
 };
 
@@ -784,7 +771,6 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>,
   ColonyTokenRef: ResolverTypeWrapper<ColonyTokenRef>,
   UserToken: ResolverTypeWrapper<UserToken>,
-  UserTokenRef: ResolverTypeWrapper<UserTokenRef>,
   Notification: ResolverTypeWrapper<Notification>,
   Token: ResolverTypeWrapper<Token>,
   Mutation: ResolverTypeWrapper<{}>,
@@ -792,6 +778,7 @@ export type ResolversTypes = {
   EditUserInput: EditUserInput,
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
+  SetUserTokensInput: SetUserTokensInput,
   CreateColonyInput: CreateColonyInput,
   EditColonyProfileInput: EditColonyProfileInput,
   CreateDomainInput: CreateDomainInput,
@@ -811,11 +798,10 @@ export type ResolversTypes = {
   UnassignWorkerInput: UnassignWorkerInput,
   CreateTokenInput: CreateTokenInput,
   AddColonyTokenReferenceInput: AddColonyTokenReferenceInput,
-  AddUserTokenReferenceInput: AddUserTokenReferenceInput,
   SetColonyTokenAvatarInput: SetColonyTokenAvatarInput,
-  SetUserTokenAvatarInput: SetUserTokenAvatarInput,
   MarkNotificationAsReadInput: MarkNotificationAsReadInput,
   SendTaskMessageInput: SendTaskMessageInput,
+  AddUserTokenReferenceInput: AddUserTokenReferenceInput,
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -854,7 +840,6 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean'],
   ColonyTokenRef: ColonyTokenRef,
   UserToken: UserToken,
-  UserTokenRef: UserTokenRef,
   Notification: Notification,
   Token: Token,
   Mutation: {},
@@ -862,6 +847,7 @@ export type ResolversParentTypes = {
   EditUserInput: EditUserInput,
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
+  SetUserTokensInput: SetUserTokensInput,
   CreateColonyInput: CreateColonyInput,
   EditColonyProfileInput: EditColonyProfileInput,
   CreateDomainInput: CreateDomainInput,
@@ -881,11 +867,10 @@ export type ResolversParentTypes = {
   UnassignWorkerInput: UnassignWorkerInput,
   CreateTokenInput: CreateTokenInput,
   AddColonyTokenReferenceInput: AddColonyTokenReferenceInput,
-  AddUserTokenReferenceInput: AddUserTokenReferenceInput,
   SetColonyTokenAvatarInput: SetColonyTokenAvatarInput,
-  SetUserTokenAvatarInput: SetUserTokenAvatarInput,
   MarkNotificationAsReadInput: MarkNotificationAsReadInput,
   SendTaskMessageInput: SendTaskMessageInput,
+  AddUserTokenReferenceInput: AddUserTokenReferenceInput,
 };
 
 export type AssignWorkerEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignWorkerEvent'] = ResolversParentTypes['AssignWorkerEvent']> = {
@@ -1011,6 +996,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   editUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationEditUserArgs, 'input'>>,
   subscribeToColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSubscribeToColonyArgs, 'input'>>,
   unsubscribeFromColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUnsubscribeFromColonyArgs, 'input'>>,
+  setUserTokens?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSetUserTokensArgs, 'input'>>,
   createColony?: Resolver<Maybe<ResolversTypes['Colony']>, ParentType, ContextType, RequireFields<MutationCreateColonyArgs, 'input'>>,
   editColonyProfile?: Resolver<Maybe<ResolversTypes['Colony']>, ParentType, ContextType, RequireFields<MutationEditColonyProfileArgs, 'input'>>,
   createDomain?: Resolver<Maybe<ResolversTypes['Domain']>, ParentType, ContextType, RequireFields<MutationCreateDomainArgs, 'input'>>,
@@ -1031,9 +1017,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   unassignWorker?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationUnassignWorkerArgs, 'input'>>,
   createToken?: Resolver<Maybe<ResolversTypes['Token']>, ParentType, ContextType, RequireFields<MutationCreateTokenArgs, 'input'>>,
   addColonyTokenReference?: Resolver<Maybe<ResolversTypes['Token']>, ParentType, ContextType, RequireFields<MutationAddColonyTokenReferenceArgs, 'input'>>,
-  addUserTokenReference?: Resolver<Maybe<ResolversTypes['Token']>, ParentType, ContextType, RequireFields<MutationAddUserTokenReferenceArgs, 'input'>>,
   setColonyTokenAvatar?: Resolver<Maybe<ResolversTypes['Token']>, ParentType, ContextType, RequireFields<MutationSetColonyTokenAvatarArgs, 'input'>>,
-  setUserTokenAvatar?: Resolver<Maybe<ResolversTypes['Token']>, ParentType, ContextType, RequireFields<MutationSetUserTokenAvatarArgs, 'input'>>,
   markAllNotificationsAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
   markNotificationAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationMarkNotificationAsReadArgs, 'input'>>,
   sendTaskMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendTaskMessageArgs, 'input'>>,
@@ -1161,7 +1145,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   tasks?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType>,
   taskIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   tokens?: Resolver<Array<ResolversTypes['UserToken']>, ParentType, ContextType>,
-  tokenRefs?: Resolver<Array<Maybe<ResolversTypes['UserTokenRef']>>, ParentType, ContextType>,
+  tokenAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   notifications?: Resolver<Maybe<Array<ResolversTypes['Notification']>>, ParentType, ContextType, UserNotificationsArgs>,
 };
 
@@ -1181,11 +1165,6 @@ export type UserTokenResolvers<ContextType = any, ParentType extends ResolversPa
   address?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   symbol?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  iconHash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
-};
-
-export type UserTokenRefResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserTokenRef'] = ResolversParentTypes['UserTokenRef']> = {
-  address?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   iconHash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
@@ -1224,7 +1203,6 @@ export type Resolvers<ContextType = any> = {
   User?: UserResolvers<ContextType>,
   UserProfile?: UserProfileResolvers<ContextType>,
   UserToken?: UserTokenResolvers<ContextType>,
-  UserTokenRef?: UserTokenRefResolvers<ContextType>,
 };
 
 

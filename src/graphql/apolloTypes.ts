@@ -3,7 +3,7 @@ import { ColonyMongoApi } from '../db/colonyMongoApi'
 import { ColonyAuthDataSource } from '../network/colonyAuthDataSource'
 
 export interface ApolloContext {
-  readonly user: string // The authenticated user address (we can trust this!)
+  readonly userAddress: string // The authenticated user address (we can trust this!)
   readonly api: ColonyMongoApi // The Colony MongoDB API to perform mutations (NOT for verification/authentication!)
   readonly dataSources: Readonly<{
     auth: ColonyAuthDataSource // A thin wrapper of Colony contracts, for on-chain authentication checks
