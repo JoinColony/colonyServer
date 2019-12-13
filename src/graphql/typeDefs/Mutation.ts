@@ -67,15 +67,12 @@ export default gql`
     id: String!
     amount: String!
     tokenAddress: String!
-    ethDomainId: Int! # TODO is this necessary?
   }
 
   input RemoveTaskPayoutInput {
     id: String!
     amount: String!
-    token: String!
     tokenAddress: String!
-    ethDomainId: Int! # TODO is this necessary?
   }
 
   input AssignWorkerInput {

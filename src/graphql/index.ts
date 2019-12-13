@@ -49,7 +49,7 @@ const authenticate = (token: string) => {
   return user
 }
 
-export const createApolloServer = async (db: Db, provider: Provider) => {
+export const createApolloServer = (db: Db, provider: Provider) => {
   const api = new ColonyMongoApi(db)
   const data = new ColonyMongoDataSource([
     db.collection(CollectionNames.Colonies),
