@@ -3,6 +3,7 @@ import express from 'express'
 import { json } from 'body-parser'
 import cors from 'cors'
 import { getChallenge, verifyEthSignature } from 'etherpass'
+import { getAddress } from 'ethers/utils'
 
 config()
 
@@ -24,14 +25,18 @@ const startServer = async () => {
   app.use(json())
 
   app.post('/auth/challenge', (req, res) => {
-    console.log(req.body)
-    // TODO: validation
-    const challenge = getChallenge(req.body.address)
+    const address = getAddress(req.body.address)
+    const challenge = getChallenge(address)
     return res.json({ challenge })
   })
 
   app.post('/auth/token', (req, res) => {
-    // TODO: validationx
+    if (
+      typeof req.body.challenge !== 'string' ||
+      req.body.signature !== 'string'
+    ) {
+      throw new Error('Invalid challenge/signature')
+    }
     const address = verifyEthSignature(req.body.challenge, req.body.signature)
     const token = getTokenForAddress(address)
     return res.json({ token, address })
