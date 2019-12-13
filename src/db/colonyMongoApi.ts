@@ -497,7 +497,11 @@ export class ColonyMongoApi {
     return this.updateTask(taskId, {}, { $set: { description } })
   }
 
-  async setTaskDueDate(initiator: string, taskId: string, dueDate: string) {
+  async setTaskDueDate(
+    initiator: string,
+    taskId: string,
+    dueDate: string | null,
+  ) {
     await this.tryGetUser(initiator)
     await this.tryGetTask(taskId)
 
@@ -506,7 +510,11 @@ export class ColonyMongoApi {
       taskId,
       dueDate,
     })
-    return this.updateTask(taskId, {}, { $set: { dueDate } })
+    return this.updateTask(
+      taskId,
+      {},
+      dueDate ? { $set: { dueDate } } : { $unset: { dueDate: '' } },
+    )
   }
 
   async setTaskSkill(initiator: string, taskId: string, ethSkillId: number) {
