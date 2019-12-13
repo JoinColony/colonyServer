@@ -674,10 +674,18 @@ export class ColonyMongoApi {
 
   async finalizeTask(initiator: string, taskId: string) {
     await this.tryGetUser(initiator)
-    await this.tryGetTask(taskId)
+    const task = await this.tryGetTask(taskId)
+
+    if (
+      !(task.payouts && task.payouts.length > 0) ||
+      !task.assignedWorkerAddress
+    ) {
+      throw new Error(
+        `Unable to finalize task with ID '${taskId}: assigned worker and payout required'`,
+      )
+    }
 
     await this.subscribeToTask(initiator, taskId)
-    // TODO for this to be valid, there needs to be: payouts, assignedWorker... check the contracts
     const eventId = await this.createEvent(initiator, EventType.FinalizeTask, {
       taskId,
     })
@@ -749,8 +757,7 @@ export class ColonyMongoApi {
     await this.tryGetUser(initiator)
     await this.tryGetColony(colonyAddress)
 
-    // TODO add constant for root domain
-    const isRoot = ethDomainId === 1
+    const isRoot = ethDomainId === ROOT_DOMAIN
     const hasParent = typeof ethParentDomainId === 'number'
 
     if (hasParent && isRoot) {
