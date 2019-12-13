@@ -506,12 +506,12 @@ export type SetTaskDueDateEvent = TaskEvent & {
    __typename?: 'SetTaskDueDateEvent',
   type: Scalars['String'],
   taskId: Scalars['String'],
-  dueDate: Scalars['Int'],
+  dueDate: Scalars['GraphQLDateTime'],
 };
 
 export type SetTaskDueDateInput = {
   id: Scalars['String'],
-  dueDate: Scalars['Int'],
+  dueDate: Scalars['GraphQLDateTime'],
 };
 
 export type SetTaskPayoutEvent = TaskEvent & {
@@ -566,10 +566,10 @@ export type Task = {
   ethTaskId?: Maybe<Scalars['Int']>,
   ethDomainId: Scalars['Int'],
   ethSkillId?: Maybe<Scalars['Int']>,
-  cancelledAt?: Maybe<Scalars['Int']>,
+  cancelledAt?: Maybe<Scalars['GraphQLDateTime']>,
   description?: Maybe<Scalars['String']>,
-  dueDate?: Maybe<Scalars['Int']>,
-  finalizedAt?: Maybe<Scalars['Int']>,
+  dueDate?: Maybe<Scalars['GraphQLDateTime']>,
+  finalizedAt?: Maybe<Scalars['GraphQLDateTime']>,
   title?: Maybe<Scalars['String']>,
   colony?: Maybe<Colony>,
   colonyAddress: Scalars['String'],
@@ -1065,7 +1065,7 @@ export type SetTaskDomainEventResolvers<ContextType = any, ParentType extends Re
 export type SetTaskDueDateEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskDueDateEvent'] = ResolversParentTypes['SetTaskDueDateEvent']> = {
   type?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  dueDate?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
+  dueDate?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
 };
 
 export type SetTaskPayoutEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskPayoutEvent'] = ResolversParentTypes['SetTaskPayoutEvent']> = {
@@ -1091,10 +1091,10 @@ export type TaskResolvers<ContextType = any, ParentType extends ResolversParentT
   ethTaskId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
   ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
   ethSkillId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
-  cancelledAt?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
+  cancelledAt?: Resolver<Maybe<ResolversTypes['GraphQLDateTime']>, ParentType, ContextType>,
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
-  dueDate?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
-  finalizedAt?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
+  dueDate?: Resolver<Maybe<ResolversTypes['GraphQLDateTime']>, ParentType, ContextType>,
+  finalizedAt?: Resolver<Maybe<ResolversTypes['GraphQLDateTime']>, ParentType, ContextType>,
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   colony?: Resolver<Maybe<ResolversTypes['Colony']>, ParentType, ContextType>,
   colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,

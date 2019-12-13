@@ -497,7 +497,7 @@ export class ColonyMongoApi {
     return this.updateTask(taskId, {}, { $set: { description } })
   }
 
-  async setTaskDueDate(initiator: string, taskId: string, dueDate: number) {
+  async setTaskDueDate(initiator: string, taskId: string, dueDate: string) {
     await this.tryGetUser(initiator)
     await this.tryGetTask(taskId)
 
@@ -674,7 +674,11 @@ export class ColonyMongoApi {
       taskId,
     })
     await this.createTaskNotification(initiator, eventId, taskId)
-    return this.updateTask(taskId, {}, { $set: { finalizedAt: Date.now() } })
+    return this.updateTask(
+      taskId,
+      {},
+      { $set: { finalizedAt: new Date().toISOString() } },
+    )
   }
 
   async cancelTask(initiator: string, taskId: string) {
@@ -686,7 +690,11 @@ export class ColonyMongoApi {
       taskId,
     })
     await this.createTaskNotification(initiator, eventId, taskId)
-    return this.updateTask(taskId, {}, { $set: { cancelledAt: Date.now() } })
+    return this.updateTask(
+      taskId,
+      {},
+      { $set: { cancelledAt: new Date().toISOString() } },
+    )
   }
 
   async markNotificationAsRead(initiator: string, id: string) {

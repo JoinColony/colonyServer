@@ -7,10 +7,10 @@ export default gql`
     ethTaskId: Int
     ethDomainId: Int!
     ethSkillId: Int
-    cancelledAt: Int
+    cancelledAt: GraphQLDateTime
     description: String
-    dueDate: Int
-    finalizedAt: Int
+    dueDate: GraphQLDateTime
+    finalizedAt: GraphQLDateTime
     title: String
     colony: Colony
     colonyAddress: String!

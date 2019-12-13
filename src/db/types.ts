@@ -83,12 +83,12 @@ export interface TaskDoc extends MongoDoc {
   creatorAddress: string
   ethDomainId: number
   assignedWorkerAddress?: string
-  cancelledAt?: number
+  cancelledAt?: string
   description?: string
-  dueDate?: number
+  dueDate?: string
   ethSkillId?: number
   ethTaskId?: number
-  finalizedAt?: number
+  finalizedAt?: string
   title?: string
   workInviteAddresses: string[]
   workRequestAddresses: string[]
