@@ -80,7 +80,7 @@ export default gql`
   type SetTaskDueDateEvent implements TaskEvent {
     type: String!
     taskId: String!
-    dueDate: Int!
+    dueDate: GraphQLDateTime!
   }
 
   type SetTaskPayoutEvent implements TaskEvent {
