@@ -1,10 +1,9 @@
 import { JWT, JWK } from 'jose'
 
-// FIXME use ENV
-const jwtKey = JWK.asKey('seeeecret')
+const JWT_KEY = JWK.asKey(process.env.JWT_SECRET)
 
 export const getTokenForAddress = (address: string) =>
-  JWT.sign({ address }, jwtKey, {
+  JWT.sign({ address }, JWT_KEY, {
     algorithm: 'HS256',
     audience: 'https://api.colony.io',
     expiresIn: '2 hours',
@@ -13,6 +12,10 @@ export const getTokenForAddress = (address: string) =>
     },
     issuer: 'https://colony.io',
   })
+
+const skipExpiryCheck =
+  process.env.NODE_ENV === 'development' &&
+  process.env.SKIP_EXPIRY_CHECK === 'true'
 
 export const getAddressFromToken = (token: string) => {
   if (typeof token != 'string') throw new Error('No token given')
@@ -23,10 +26,9 @@ export const getAddressFromToken = (token: string) => {
 
   const { address, exp } = JWT.decode(token) as { address: string; exp: number }
 
-  // FIXME enable this check
-  // if (Date.now() > exp) {
-  //   throw new Error('Authentication token expired')
-  // }
+  if (!skipExpiryCheck && Date.now() > exp) {
+    throw new Error('Authentication token expired')
+  }
 
   return address
 }

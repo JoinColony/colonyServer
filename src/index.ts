@@ -4,13 +4,14 @@ import { json } from 'body-parser'
 import cors from 'cors'
 import { getChallenge, verifyEthSignature } from 'etherpass'
 
+config()
+
 import { createApolloServer } from './graphql'
 import { getTokenForAddress } from './auth'
 
 import { connect } from './db/connect'
 import { provider } from './network/provider'
 
-config()
 
 const startServer = async () => {
   const { db } = await connect()
