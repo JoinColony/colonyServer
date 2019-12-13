@@ -5,24 +5,49 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "contracts:start-blockchain-client": "cd lib/colonyNetwork && yarn start:blockchain:client",
+    "contracts:migrate": "cd lib/colonyNetwork && yarn truffle migrate",
+    "db:start": "mongod --dbpath ./mongo-data",
+    "db:console": "mongo",
+    "db:setup": "ts-node scripts/db-setup.ts",
+    "db:clean": "ts-node scripts/db-clean.ts",
+    "typecheck": "tsc --noEmit",
+    "graphql:typegen": "graphql-codegen",
+    "contracts:typegen": "typechain --target=ethers --outDir=src/network/contracts 'lib/colonyNetwork/build/contracts/{IColony,IMetaColony,IColonyNetwork,DSToken}.json'"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/mongodb": "^3.3.11",
+    "apollo-datasource-mongo": "git://github.com/jameslefrere/apollo-datasource-mongodb.git#12f6b7977d7a6a874f8c5473e4a70239ce7ee5b1",
     "apollo-server-express": "^2.9.12",
+    "async-retry": "^1.2.3",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
     "etherpass": "^1.0.2",
+    "ethers": "^4.0.40",
     "express": "^4.17.1",
     "graphql": "^14.5.8",
-    "jose": "^1.12.1"
+    "graphql-iso-date": "^3.6.1",
+    "jose": "^1.12.1",
+    "linkify-it": "^2.2.0",
+    "mongodb": "^3.3.4"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^1.9.1",
+    "@graphql-codegen/typescript-operations": "^1.9.1",
+    "@graphql-codegen/typescript-resolvers": "^1.9.1",
     "@types/express": "^4.17.2",
+    "@types/graphql": "^14.5.0",
     "@types/node": "^12.12.11",
+    "apollo-datasource": "^0.6.3",
+    "ts-node": "^8.5.2",
     "ts-node-dev": "^1.0.0-pre.44",
+    "typechain": "^1.0.3",
+    "typechain-target-ethers": "^1.0.3",
     "typescript": "^3.7.2"
   }
 }

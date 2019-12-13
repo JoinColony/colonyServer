@@ -1,0 +1,386 @@
+import assert from 'assert'
+import { DataSource } from 'apollo-datasource'
+import { Provider } from 'ethers/providers'
+import retry from 'async-retry'
+
+import { IColony } from './contracts/IColony'
+import { IColonyFactory } from './contracts/IColonyFactory'
+import { IColonyNetwork } from './contracts/IColonyNetwork'
+import { IColonyNetworkFactory } from './contracts/IColonyNetworkFactory'
+import { ROOT_DOMAIN } from '../constants'
+
+enum ColonyRoles {
+  Recovery,
+  Root,
+  Arbitration,
+  Architecture,
+  ArchitectureSubdomain,
+  Funding,
+  Administration,
+}
+
+type ColonyAddress = string
+type UserAddress = string
+type DomainId = number
+
+enum AuthChecks {
+  AddColonyTokenReference = 'AddColonyTokenReference',
+  AssignWorker = 'AssignWorker',
+  CancelTask = 'CancelTask',
+  CreateDomain = 'CreateDomain',
+  CreateTask = 'CreateTask',
+  EditColonyProfile = 'EditColonyProfile',
+  EditDomainName = 'EditDomainName',
+  FinalizeTask = 'FinalizeTask',
+  RemoveTaskPayout = 'RemoveTaskPayout',
+  SendWorkInvite = 'SendWorkInvite',
+  SetTaskDescription = 'SetTaskDescription',
+  SetTaskDomain = 'SetTaskDomain',
+  SetTaskDueDate = 'SetTaskDueDate',
+  SetTaskPayout = 'SetTaskPayout',
+  SetTaskSkill = 'SetTaskSkill',
+  SetTaskTitle = 'SetTaskTitle',
+  UnassignWorker = 'UnassignWorker',
+}
+
+enum AuthTypes {
+  Colony,
+  Domain,
+  Task,
+}
+
+interface ColonyAuthArgs {
+  userAddress: UserAddress
+  colonyAddress: ColonyAddress
+}
+
+interface DomainAuthArgs extends ColonyAuthArgs {
+  domainId: DomainId
+}
+
+// TODO extend with { taskId: TaskID } for taskId-specific auth checks, if needed
+type TaskAuthArgs = DomainAuthArgs
+
+interface AuthDeclaration {
+  description: string
+  roles: ColonyRoles[]
+  type: AuthTypes
+}
+
+const AUTH_DECLARATIONS: Record<AuthChecks, AuthDeclaration> = {
+  // Colony
+  AddColonyTokenReference: {
+    description: 'Add colony token reference',
+    roles: [ColonyRoles.Administration, ColonyRoles.Funding],
+    type: AuthTypes.Domain,
+  },
+  EditColonyProfile: {
+    description: 'Edit colony profile',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Colony,
+  },
+  // Domain
+  CreateDomain: {
+    description: 'Create domain',
+    roles: [ColonyRoles.Architecture],
+    type: AuthTypes.Domain,
+  },
+  EditDomainName: {
+    description: 'Edit domain name',
+    roles: [ColonyRoles.Architecture],
+    type: AuthTypes.Domain,
+  },
+  CreateTask: {
+    description: 'Create a task',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Domain,
+  },
+  // Task
+  AssignWorker: {
+    description: 'Assign worker',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Task,
+  },
+  CancelTask: {
+    description: 'Cancel task',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Task,
+  },
+  FinalizeTask: {
+    description: 'Finalize task',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Task,
+  },
+  RemoveTaskPayout: {
+    description: 'Remove task payout',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Task,
+  },
+  SendWorkInvite: {
+    description: 'Send work invite',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Task,
+  },
+  SetTaskDescription: {
+    description: 'Set task description',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Task,
+  },
+  SetTaskDueDate: {
+    description: 'Set task due date',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Task,
+  },
+  SetTaskPayout: {
+    description: 'Set task payout',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Task,
+  },
+  SetTaskSkill: {
+    description: 'Set task skill',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Task,
+  },
+  SetTaskTitle: {
+    description: 'Set task title',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Task,
+  },
+  SetTaskDomain: {
+    description: 'Set task domain',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Domain,
+  },
+  UnassignWorker: {
+    description: 'Unassign worker',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Task,
+  },
+}
+
+// TODO detect and support different Colony versions
+class ColoniesMap extends Map<ColonyAddress, IColony> {
+  private readonly provider: Provider
+
+  constructor(provider: Provider) {
+    super()
+    this.provider = provider
+  }
+
+  get(colonyAddress: ColonyAddress) {
+    let colony = super.get(colonyAddress)
+    if (colony) return colony
+
+    colony = IColonyFactory.connect(
+      colonyAddress,
+      this.provider,
+    )
+    this.set(colonyAddress, colony)
+    return colony
+  }
+}
+
+export class ColonyAuthDataSource extends DataSource<any> {
+  private static notAuthorizedMessage(
+    description: string,
+    {
+      userAddress,
+      colonyAddress,
+      ...args
+    }: ColonyAuthArgs | DomainAuthArgs | TaskAuthArgs,
+  ) {
+    let message = `${description} not authorized for user '${userAddress}' on colony '${colonyAddress}'`
+
+    if ((args as DomainAuthArgs).domainId) {
+      message += ` with domain '${(args as DomainAuthArgs).domainId}'`
+    }
+
+    return message
+  }
+
+  private static async assertIsAuthorized(
+    authPromise: Promise<boolean>,
+    description: string,
+    args: ColonyAuthArgs | DomainAuthArgs | TaskAuthArgs,
+  ) {
+    const isAuthorized = await authPromise
+    assert.ok(
+      isAuthorized,
+      ColonyAuthDataSource.notAuthorizedMessage(description, args),
+    )
+    return isAuthorized
+  }
+
+  private readonly colonies: ColoniesMap
+  private readonly network: IColonyNetwork
+
+  constructor(provider: Provider) {
+    super()
+    this.colonies = new ColoniesMap(provider)
+    if (process.env.DISABLE_AUTH_CHECK !== 'true') {
+      this.network = IColonyNetworkFactory.connect(
+        process.env.NETWORK_CONTRACT_ADDRESS,
+        provider,
+      )
+    }
+  }
+
+  private async hasRole(
+    role: ColonyRoles,
+    { userAddress, colonyAddress, domainId }: DomainAuthArgs,
+  ) {
+    if (process.env.DISABLE_AUTH_CHECK === 'true') {
+      return true
+    }
+    return this.colonies
+      .get(colonyAddress)
+      .hasUserRole(userAddress, domainId, role)
+  }
+
+  private async hasSomeRole(roles: ColonyRoles[], args: DomainAuthArgs) {
+    const userRoles = await Promise.all(
+      roles.map(role => this.hasRole(role, args)),
+    )
+    return userRoles.some(Boolean)
+  }
+
+  private async assertForColony(check: AuthChecks, args: ColonyAuthArgs) {
+    // TODO check valid colony address
+    const { description, roles } = AUTH_DECLARATIONS[check]
+    return ColonyAuthDataSource.assertIsAuthorized(
+      this.hasSomeRole(roles, { ...args, domainId: ROOT_DOMAIN }),
+      description,
+      args,
+    )
+  }
+
+  private async assertForDomain(check: AuthChecks, args: DomainAuthArgs) {
+    // TODO check valid colony address
+    const { description, roles } = AUTH_DECLARATIONS[check]
+    return ColonyAuthDataSource.assertIsAuthorized(
+      this.hasSomeRole(roles, args),
+      description,
+      args,
+    )
+  }
+
+  private async assertForTask(check: AuthChecks, args: TaskAuthArgs) {
+    // `taskId` could be used here (for now, it's not part of TaskAuthArgs)
+    return this.assertForDomain(check, args)
+  }
+
+  async assertCanSetTaskDomain({
+    colonyAddress,
+    userAddress,
+    currentDomainId,
+    newDomainId,
+  }: ColonyAuthArgs & {
+    currentDomainId: DomainId
+    newDomainId: DomainId
+  }) {
+    const isAuthorizedForCurrentDomain = await this.assertForTask(
+      AuthChecks.SetTaskDomain,
+      { userAddress, colonyAddress, domainId: currentDomainId },
+    )
+    const isAuthorizedForNewDomain = await this.assertForTask(
+      AuthChecks.SetTaskDomain,
+      { userAddress, colonyAddress, domainId: newDomainId },
+    )
+    return isAuthorizedForCurrentDomain && isAuthorizedForNewDomain
+  }
+
+  async assertCanSetTaskTitle(args: TaskAuthArgs) {
+    return this.assertForTask(AuthChecks.SetTaskTitle, args)
+  }
+
+  async assertCanSetTaskDescription(args: TaskAuthArgs) {
+    return this.assertForTask(AuthChecks.SetTaskDescription, args)
+  }
+
+  async assertCanSetTaskSkill(args: TaskAuthArgs) {
+    return this.assertForTask(AuthChecks.SetTaskSkill, args)
+  }
+
+  async assertCanSetTaskDueDate(args: TaskAuthArgs) {
+    return this.assertForTask(AuthChecks.SetTaskDueDate, args)
+  }
+
+  async assertCanSendWorkInvite(args: TaskAuthArgs) {
+    return this.assertForTask(AuthChecks.SendWorkInvite, args)
+  }
+
+  async assertCanSetTaskPayout(args: TaskAuthArgs) {
+    return this.assertForTask(AuthChecks.SetTaskPayout, args)
+  }
+
+  async assertCanRemoveTaskPayout(args: TaskAuthArgs) {
+    return this.assertForTask(AuthChecks.RemoveTaskPayout, args)
+  }
+
+  async assertCanAssignWorker(args: TaskAuthArgs) {
+    return this.assertForTask(AuthChecks.AssignWorker, args)
+  }
+
+  async assertCanUnassignWorker(args: TaskAuthArgs) {
+    return this.assertForTask(AuthChecks.UnassignWorker, args)
+  }
+
+  async assertCanFinalizeTask(args: TaskAuthArgs) {
+    return this.assertForTask(AuthChecks.FinalizeTask, args)
+  }
+
+  async assertCanCancelTask(args: TaskAuthArgs) {
+    return this.assertForTask(AuthChecks.CancelTask, args)
+  }
+
+  async assertCanCreateDomain({
+    colonyAddress,
+    userAddress,
+    domainId,
+    parentDomainId,
+  }: DomainAuthArgs & {
+    parentDomainId: DomainId
+  }) {
+    const isAuthorizedForParentDomain = await this.assertForDomain(
+      AuthChecks.CreateDomain,
+      { userAddress, colonyAddress, domainId: parentDomainId },
+    )
+    const isAuthorizedForDomain = await this.assertForDomain(
+      AuthChecks.CreateDomain,
+      { userAddress, colonyAddress, domainId },
+    )
+    return isAuthorizedForParentDomain && isAuthorizedForDomain
+  }
+
+  async assertCanEditDomainName(args: DomainAuthArgs) {
+    return this.assertForDomain(AuthChecks.EditDomainName, args)
+  }
+
+  async assertCanCreateTask(args: DomainAuthArgs) {
+    return this.assertForDomain(AuthChecks.CreateTask, args)
+  }
+
+  async assertCanEditColonyProfile(args: ColonyAuthArgs) {
+    return this.assertForColony(AuthChecks.EditColonyProfile, args)
+  }
+
+  async assertCanAddColonyTokenReference(args: ColonyAuthArgs) {
+    return this.assertForColony(AuthChecks.AddColonyTokenReference, args)
+  }
+
+  async assertColonyExists(colonyAddress: ColonyAddress): Promise<boolean> {
+    if (process.env.DISABLE_AUTH_CHECK === 'true') {
+      return true
+    }
+
+    const exists = await retry(
+      async () => {
+        const exists = await this.network.isColony(colonyAddress)
+        if (exists) return exists
+      },
+      { retries: 5 },
+    )
+    assert.ok(exists, `Colony contract not found: '${colonyAddress}'`)
+    return exists
+  }
+}
