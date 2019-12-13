@@ -51,7 +51,7 @@ export default gql`
 
   input SetTaskDueDateInput {
     id: String!
-    dueDate: GraphQLDateTime!
+    dueDate: GraphQLDateTime
   }
 
   input CreateWorkRequestInput {

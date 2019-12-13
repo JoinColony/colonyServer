@@ -185,7 +185,9 @@ export const Mutation: MutationResolvers<ApolloContext> = {
   },
   async setTaskDueDate(
     parent,
-    { input: { id, dueDate } }: { input: { id: string; dueDate: string } },
+    {
+      input: { id, dueDate },
+    }: { input: { id: string; dueDate: string | null | undefined } },
     { userAddress, api, dataSources: { data, auth } },
   ) {
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
@@ -196,7 +198,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
         domainId: ethDomainId,
       }),
     )
-    await api.setTaskDueDate(userAddress, id, dueDate)
+    await api.setTaskDueDate(userAddress, id, dueDate || null)
     return data.getTaskById(id)
   },
   async createWorkRequest(

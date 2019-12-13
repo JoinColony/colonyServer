@@ -511,7 +511,7 @@ export type SetTaskDueDateEvent = TaskEvent & {
 
 export type SetTaskDueDateInput = {
   id: Scalars['String'],
-  dueDate: Scalars['GraphQLDateTime'],
+  dueDate?: Maybe<Scalars['GraphQLDateTime']>,
 };
 
 export type SetTaskPayoutEvent = TaskEvent & {
