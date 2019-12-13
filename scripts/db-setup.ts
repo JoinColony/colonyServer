@@ -1,4 +1,7 @@
 import { Db } from 'mongodb'
+import { config } from 'dotenv'
+
+config()
 
 import { connect } from '../src/db/connect'
 import { COLLECTIONS_MANIFEST } from '../src/db/collections'
