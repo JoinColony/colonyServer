@@ -18,7 +18,7 @@ const startServer = async () => {
   const apolloServer = await createApolloServer(db, provider)
 
   const app = express()
-  const port = 3000
+  const port = process.env.APOLLO_PORT
 
   app.use(cors())
   app.use(json())
