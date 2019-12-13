@@ -91,18 +91,41 @@ export class ColonyMongoApi {
     modifier: StrictUpdateQuery<TaskDoc>,
     options?: UpdateOneOptions,
   ) {
-    const filter = {
-      $and: [
-        { _id: new ObjectID(taskId) },
-        // Ensure that the task does not enter an illegal state; if either
-        // cancelledAt or finalizedAt is set, no further writes should be allowed
-        // FIXME this should throw an error (it needs to be here too, but we just need to be more explicit about it)
-        { cancelledAt: { $exists: false }, finalizedAt: { $exists: false } },
-        query,
-      ],
+    const idFilter = { _id: new ObjectID(taskId) }
+
+    // Ensure that the task does not enter an illegal state; if either
+    // cancelledAt or finalizedAt is set, no further writes should be allowed
+    if (
+      !!(await this.tasks.findOne({
+        $and: [
+          idFilter,
+          query,
+          {
+            $or: [
+              { cancelledAt: { $exists: true } },
+              { finalizedAt: { $exists: true } },
+            ],
+          },
+        ],
+      }))
+    ) {
+      throw new Error(
+        `Unable to update task with ID '${taskId}': task is cancelled or finalized`,
+      )
     }
 
-    return this.tasks.updateOne(filter, modifier, options)
+    return this.tasks.updateOne(
+      {
+        $and: [
+          idFilter,
+          query,
+          // This query is still necessary for data integrity
+          { cancelledAt: { $exists: false }, finalizedAt: { $exists: false } },
+        ],
+      },
+      modifier,
+      options,
+    )
   }
 
   private async updateDomain(
