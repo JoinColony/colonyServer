@@ -9,10 +9,8 @@ config()
 
 import { createApolloServer } from './graphql'
 import { getTokenForAddress } from './auth'
-
 import { connect } from './db/connect'
 import { provider } from './network/provider'
-
 
 const startServer = async () => {
   const { db } = await connect()
