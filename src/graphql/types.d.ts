@@ -449,9 +449,7 @@ export type RemoveTaskPayoutEvent = TaskEvent & {
 export type RemoveTaskPayoutInput = {
   id: Scalars['String'],
   amount: Scalars['String'],
-  token: Scalars['String'],
   tokenAddress: Scalars['String'],
-  ethDomainId: Scalars['Int'],
 };
 
 export type SendTaskMessageInput = {
@@ -525,7 +523,6 @@ export type SetTaskPayoutInput = {
   id: Scalars['String'],
   amount: Scalars['String'],
   tokenAddress: Scalars['String'],
-  ethDomainId: Scalars['Int'],
 };
 
 export type SetTaskSkillEvent = TaskEvent & {
