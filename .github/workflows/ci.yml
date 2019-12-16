@@ -1,0 +1,34 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: install node v12
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12
+
+    - name: npm install
+      run: npm install
+
+    - name: Run typescript
+      uses: iCrawl/action-tsc@v1
+
+    - name: Run Jest
+      uses: stefanoeb/jest-action@1.0.0
+      env:
+        DB_NAME: 'colonyServer'
+        DB_URL: 'mongodb://localhost:27017'
+        ETH_NETWORK: 'http://localhost:8545'
+        NETWORK_CONTRACT_ADDRESS: '0xde3EDaBA7c15F845F59D1058eCD70Ed33FfdB2b9'
+        DISABLE_AUTH_CHECK: true
+        JWT_SECRET: 'seeeecret'
+        SKIP_EXPIRY_CHECK: true
+        APOLLO_PORT: 3000
