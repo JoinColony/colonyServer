@@ -7,7 +7,6 @@ import {
 import { Db } from 'mongodb'
 
 import { getAddressFromToken } from '../auth'
-import { CollectionNames } from '../db/collections'
 import { ColonyMongoApi } from '../db/colonyMongoApi'
 import { ColonyMongoDataSource } from '../db/colonyMongoDataSource'
 import { ColonyAuthDataSource } from '../network/colonyAuthDataSource'
@@ -51,15 +50,7 @@ const authenticate = (token: string) => {
 
 export const createApolloServer = (db: Db, provider: Provider) => {
   const api = new ColonyMongoApi(db)
-  const data = new ColonyMongoDataSource([
-    db.collection(CollectionNames.Colonies),
-    db.collection(CollectionNames.Domains),
-    db.collection(CollectionNames.Events),
-    db.collection(CollectionNames.Notifications),
-    db.collection(CollectionNames.Tasks),
-    db.collection(CollectionNames.Tokens),
-    db.collection(CollectionNames.Users),
-  ])
+  const data = new ColonyMongoDataSource(db)
   const auth = new ColonyAuthDataSource(provider)
 
   return new ApolloServer({
