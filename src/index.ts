@@ -31,7 +31,7 @@ const startServer = async () => {
   app.post('/auth/token', (req, res) => {
     if (
       typeof req.body.challenge !== 'string' ||
-      req.body.signature !== 'string'
+      typeof req.body.signature !== 'string'
     ) {
       throw new Error('Invalid challenge/signature')
     }
