@@ -8,6 +8,8 @@ import {
   SetFields,
 } from 'mongodb'
 
+import { EventType } from '../constants'
+
 // Stricter than RootQuerySelector (only allows fields from T),
 // but doesn't allow dot-notation fields.
 export type StrictRootQuerySelector<T> = Partial<T> &
@@ -101,25 +103,6 @@ export interface TokenDoc extends MongoDoc {
   iconHash?: string
   name: string
   symbol: string
-}
-
-export enum EventType {
-  AssignWorker = 'AssignWorker',
-  CancelTask = 'CancelTask',
-  CreateDomain = 'CreateDomain',
-  CreateTask = 'CreateTask',
-  CreateWorkRequest = 'CreateWorkRequest',
-  FinalizeTask = 'FinalizeTask',
-  RemoveTaskPayout = 'RemoveTaskPayout',
-  SendWorkInvite = 'SendWorkInvite',
-  SetTaskDescription = 'SetTaskDescription',
-  SetTaskDomain = 'SetTaskDomain',
-  SetTaskDueDate = 'SetTaskDueDate',
-  SetTaskPayout = 'SetTaskPayout',
-  SetTaskSkill = 'SetTaskSkill',
-  SetTaskTitle = 'SetTaskTitle',
-  TaskMessage = 'TaskMessage',
-  UnassignWorker = 'UnassignWorker',
 }
 
 export interface NotificationDoc extends MongoDoc {

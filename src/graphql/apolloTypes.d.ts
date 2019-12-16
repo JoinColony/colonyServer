@@ -10,7 +10,3 @@ export interface ApolloContext {
     data: ColonyMongoDataSource // The Colony MongoDB data source (NOT for verification/authentication!)
   }>
 }
-
-export interface Input<T extends object> {
-  input: T
-}
