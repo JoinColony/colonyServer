@@ -14,7 +14,7 @@ import { provider } from './network/provider'
 
 const startServer = async () => {
   const { db } = await connect()
-  const apolloServer = await createApolloServer(db, provider)
+  const apolloServer = createApolloServer(db, provider)
 
   const app = express()
   const port = process.env.APOLLO_PORT

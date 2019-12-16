@@ -1,21 +1,6 @@
-import { ForbiddenError } from 'apollo-server-errors'
-
 import { ApolloContext } from '../apolloTypes'
 import { MutationResolvers } from '../types'
-
-const tryAuth = async (promise: Promise<boolean>) => {
-  let auth = false
-
-  try {
-    auth = await promise
-  } catch (caughtError) {
-    throw new ForbiddenError(caughtError.message || caughtError.toString())
-  }
-
-  if (!auth) {
-    throw new ForbiddenError('Not allowed')
-  }
-}
+import { tryAuth } from './auth'
 
 export const Mutation: MutationResolvers<ApolloContext> = {
   // Users
@@ -326,7 +311,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
   async createToken(
     parent,
     { input: { address, name, decimals, symbol, iconHash } },
-    { userAddress, api, dataSources: { data, auth } },
+    { userAddress, api, dataSources: { data } },
   ) {
     await api.createToken(
       userAddress,
