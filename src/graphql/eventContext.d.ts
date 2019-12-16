@@ -1,0 +1,43 @@
+import { EventType } from '../constants'
+import {
+  AssignWorkerEvent,
+  CancelTaskEvent,
+  CreateDomainEvent,
+  CreateTaskEvent,
+  CreateWorkRequestEvent,
+  FinalizeTaskEvent,
+  RemoveTaskPayoutEvent,
+  SendWorkInviteEvent,
+  SetTaskDescriptionEvent,
+  SetTaskDomainEvent,
+  SetTaskDueDateEvent,
+  SetTaskPayoutEvent,
+  SetTaskSkillEvent,
+  SetTaskTitleEvent,
+  TaskMessageEvent,
+  UnassignWorkerEvent,
+} from './types'
+
+interface EventContextMap {
+  [EventType.AssignWorker]: AssignWorkerEvent
+  [EventType.CancelTask]: CancelTaskEvent
+  [EventType.CreateDomain]: CreateDomainEvent
+  [EventType.CreateTask]: CreateTaskEvent
+  [EventType.CreateWorkRequest]: CreateWorkRequestEvent
+  [EventType.FinalizeTask]: FinalizeTaskEvent
+  [EventType.RemoveTaskPayout]: RemoveTaskPayoutEvent
+  [EventType.SendWorkInvite]: SendWorkInviteEvent
+  [EventType.SetTaskDescription]: SetTaskDescriptionEvent
+  [EventType.SetTaskDomain]: SetTaskDomainEvent
+  [EventType.SetTaskDueDate]: SetTaskDueDateEvent
+  [EventType.SetTaskPayout]: SetTaskPayoutEvent
+  [EventType.SetTaskSkill]: SetTaskSkillEvent
+  [EventType.SetTaskTitle]: SetTaskTitleEvent
+  [EventType.TaskMessage]: TaskMessageEvent
+  [EventType.UnassignWorker]: UnassignWorkerEvent
+}
+
+export type EventContextOfType<T extends EventType> = Omit<
+  EventContextMap[T],
+  '__typename' | 'type'
+>

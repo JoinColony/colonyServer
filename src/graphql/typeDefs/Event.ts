@@ -30,14 +30,14 @@ export default gql`
 
   type CreateDomainEvent implements ColonyEvent {
     type: String!
-    ethDomainId: String!
+    ethDomainId: Int!
     colonyAddress: String!
   }
 
   type CreateTaskEvent implements TaskEvent {
     type: String!
     taskId: String!
-    ethDomainId: String!
+    ethDomainId: Int!
     colonyAddress: String!
   }
 
@@ -61,8 +61,7 @@ export default gql`
   type SendWorkInviteEvent implements TaskEvent {
     type: String!
     taskId: String!
-    tokenAddress: String!
-    amount: String!
+    workerAddress: String!
   }
 
   type SetTaskDescriptionEvent implements TaskEvent {
@@ -74,7 +73,7 @@ export default gql`
   type SetTaskDomainEvent implements TaskEvent {
     type: String!
     taskId: String!
-    ethDomainId: String!
+    ethDomainId: Int!
   }
 
   type SetTaskDueDateEvent implements TaskEvent {
@@ -86,6 +85,8 @@ export default gql`
   type SetTaskPayoutEvent implements TaskEvent {
     type: String!
     taskId: String!
+    tokenAddress: String!
+    amount: String!
   }
 
   type SetTaskSkillEvent implements TaskEvent {

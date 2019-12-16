@@ -1,6 +1,6 @@
 import { ForbiddenError } from 'apollo-server-errors'
 
-import { ApolloContext, Input } from '../apolloTypes'
+import { ApolloContext } from '../apolloTypes'
 import { MutationResolvers } from '../types'
 
 const tryAuth = async (promise: Promise<boolean>) => {
@@ -390,11 +390,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     await api.markNotificationAsRead(userAddress, id)
     return true
   },
-  async markAllNotificationsAsRead(
-    parent,
-    input: Input<any>,
-    { userAddress, api },
-  ) {
+  async markAllNotificationsAsRead(parent, input, { userAddress, api }) {
     // No auth call needed; restricted to the current authenticated user address
     await api.markAllNotificationsAsRead(userAddress)
     return true
