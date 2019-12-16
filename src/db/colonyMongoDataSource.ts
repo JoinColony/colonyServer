@@ -1,4 +1,4 @@
-import { Collection, ObjectID } from 'mongodb'
+import { Db, ObjectID } from 'mongodb'
 import { MongoDataSource } from 'apollo-datasource-mongo'
 import { CachedCollection } from 'apollo-datasource-mongo/dist/cache'
 import { DataSource, DataSourceConfig } from 'apollo-datasource'
@@ -12,6 +12,7 @@ import {
   TokenDoc,
   UserDoc,
 } from './types'
+import { CollectionNames } from './collections'
 
 // TODO re-enable cache
 // const DEFAULT_TTL = { ttl: 10000 }
@@ -31,9 +32,16 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   implements DataSource<any> {
   public readonly collections: Collections
 
-  // This shouldn't be necessary, but there were problems with the GraphQL types
-  constructor(collections: Collection[]) {
-    super(collections)
+  constructor(db: Db) {
+    super([
+      db.collection(CollectionNames.Colonies),
+      db.collection(CollectionNames.Domains),
+      db.collection(CollectionNames.Events),
+      db.collection(CollectionNames.Notifications),
+      db.collection(CollectionNames.Tasks),
+      db.collection(CollectionNames.Tokens),
+      db.collection(CollectionNames.Users),
+    ])
   }
 
   // This shouldn't be necessary, but there were problems with the GraphQL types
@@ -284,13 +292,13 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
 
   async getReadUserNotifications(address: string) {
     return this.getUserNotifications(address, {
-      users: { $elemMatch: { address, read: true } },
+      users: { address, read: true },
     })
   }
 
   async getUnreadUserNotifications(address: string) {
     return this.getUserNotifications(address, {
-      users: { $elemMatch: { address, read: { $ne: true } } },
+      users: { address, read: false },
     })
   }
 

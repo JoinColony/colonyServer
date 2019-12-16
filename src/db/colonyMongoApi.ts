@@ -181,7 +181,7 @@ export class ColonyMongoApi {
 
     const doc = {
       eventId,
-      users: users.map(address => ({ address })),
+      users: users.map(address => ({ address, read: false })),
     }
     return this.notifications.updateOne(
       doc,

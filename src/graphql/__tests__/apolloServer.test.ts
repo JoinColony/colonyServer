@@ -38,7 +38,7 @@ const typeDefs = [
 
 describe('Apollo Server', () => {
   const api = new ColonyMongoApi({} as any)
-  const data = new ColonyMongoDataSource([])
+  const data = new ColonyMongoDataSource({} as any)
   const auth = new ColonyAuthDataSource({} as any)
 
   const ctxUserAddress = 'user address from context'

@@ -359,7 +359,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 additionalProperties: false,
                 items: {
                   bsonType: 'object',
-                  required: ['address'],
+                  required: ['address', 'read'],
                   properties: {
                     address: {
                       bsonType: 'string',
