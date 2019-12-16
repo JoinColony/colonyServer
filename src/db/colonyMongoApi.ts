@@ -11,7 +11,6 @@ import {
   ColonyDoc,
   DomainDoc,
   EventDoc,
-  EventType,
   NotificationDoc,
   StrictRootQuerySelector,
   StrictUpdateQuery,
@@ -21,7 +20,8 @@ import {
 } from './types'
 import { CollectionNames } from './collections'
 import { matchUsernames } from './matchers'
-import { ROOT_DOMAIN } from '../constants'
+import { ROOT_DOMAIN, EventType } from '../constants'
+import { EventContextOfType } from '../graphql/eventContext'
 
 export class ColonyMongoApi {
   private static profileModifier(profile: Record<string, any>) {
@@ -223,11 +223,10 @@ export class ColonyMongoApi {
     )
   }
 
-  private async createEvent<C extends object>(
-    initiatorAddress: string,
-    type: EventType,
-    context: C,
-  ) {
+  private async createEvent<
+    T extends EventType,
+    C extends EventContextOfType<T>
+  >(initiatorAddress: string, type: T, context: C) {
     const { insertedId } = await this.events.insertOne({
       context,
       initiatorAddress,
@@ -576,7 +575,7 @@ export class ColonyMongoApi {
     const eventId = await this.createEvent(
       initiator,
       EventType.SendWorkInvite,
-      { taskId },
+      { taskId, workerAddress },
     )
     await this.createNotification(eventId, [workerAddress])
 
@@ -600,7 +599,8 @@ export class ColonyMongoApi {
     const payout = { amount, token }
     const eventId = await this.createEvent(initiator, EventType.SetTaskPayout, {
       taskId,
-      payout,
+      amount,
+      tokenAddress: token,
     })
     await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(taskId, {}, { $push: { payouts: payout } })
@@ -622,7 +622,8 @@ export class ColonyMongoApi {
       EventType.RemoveTaskPayout,
       {
         taskId,
-        payout,
+        amount,
+        tokenAddress: token,
       },
     )
     await this.createTaskNotification(initiator, eventId, taskId)
@@ -741,7 +742,9 @@ export class ColonyMongoApi {
       users: match as NotificationDoc['users'],
     }
     const update: StrictUpdateQuery<
-      NotificationDoc & { 'users.$.read': boolean }
+      NotificationDoc & {
+        'users.$.read': boolean
+      }
     > = { $set: { 'users.$.read': true } }
 
     return this.notifications.updateMany(filter, update)
