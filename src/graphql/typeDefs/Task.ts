@@ -1,6 +1,11 @@
 import { gql } from 'apollo-server-express'
 
 export default gql`
+  type TaskPayout {
+    amount: String!
+    tokenAddress: String!
+  }
+
   type Task {
     id: String! # stringified ObjectId
     createdAt: GraphQLDateTime!
@@ -23,5 +28,6 @@ export default gql`
     workRequests: [User!]!
     workRequestAddresses: [String!]!
     events: [Event!]!
+    payouts: [TaskPayout!]!
   }
 `

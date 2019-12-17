@@ -16,6 +16,7 @@ export default gql`
     address: String!
     name: String!
     symbol: String!
+    decimals: Int!
     iconHash: String
   }
 `

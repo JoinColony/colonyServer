@@ -399,6 +399,7 @@ export type MutationSendTaskMessageArgs = {
 
 export type Notification = {
    __typename?: 'Notification',
+  id: Scalars['String'],
   event: Event,
   read: Scalars['Boolean'],
 };
@@ -580,6 +581,7 @@ export type Task = {
   workRequests: Array<User>,
   workRequestAddresses: Array<Scalars['String']>,
   events: Array<Event>,
+  payouts: Array<TaskPayout>,
 };
 
 export type TaskEvent = {
@@ -598,6 +600,12 @@ export type TaskMessageEvent = TaskEvent & {
   message: Scalars['String'],
 };
 
+export type TaskPayout = {
+   __typename?: 'TaskPayout',
+  amount: Scalars['String'],
+  tokenAddress: Scalars['String'],
+};
+
 export type Token = IToken & {
    __typename?: 'Token',
   id: Scalars['String'],
@@ -605,6 +613,7 @@ export type Token = IToken & {
   address: Scalars['String'],
   name: Scalars['String'],
   symbol: Scalars['String'],
+  decimals: Scalars['Int'],
   iconHash?: Maybe<Scalars['String']>,
 };
 
@@ -763,6 +772,7 @@ export type ResolversTypes = {
   SetTaskTitleEvent: ResolverTypeWrapper<SetTaskTitleEvent>,
   TaskMessageEvent: ResolverTypeWrapper<TaskMessageEvent>,
   UnassignWorkerEvent: ResolverTypeWrapper<UnassignWorkerEvent>,
+  TaskPayout: ResolverTypeWrapper<TaskPayout>,
   Domain: ResolverTypeWrapper<Domain>,
   ColonyToken: ResolverTypeWrapper<ColonyToken>,
   IToken: ResolverTypeWrapper<IToken>,
@@ -832,6 +842,7 @@ export type ResolversParentTypes = {
   SetTaskTitleEvent: SetTaskTitleEvent,
   TaskMessageEvent: TaskMessageEvent,
   UnassignWorkerEvent: UnassignWorkerEvent,
+  TaskPayout: TaskPayout,
   Domain: Domain,
   ColonyToken: ColonyToken,
   IToken: IToken,
@@ -1022,6 +1033,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 };
 
 export type NotificationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>,
   read?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
 };
@@ -1106,6 +1118,7 @@ export type TaskResolvers<ContextType = any, ParentType extends ResolversParentT
   workRequests?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>,
   workRequestAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   events?: Resolver<Array<ResolversTypes['Event']>, ParentType, ContextType>,
+  payouts?: Resolver<Array<ResolversTypes['TaskPayout']>, ParentType, ContextType>,
 };
 
 export type TaskEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['TaskEvent'] = ResolversParentTypes['TaskEvent']> = {
@@ -1120,12 +1133,18 @@ export type TaskMessageEventResolvers<ContextType = any, ParentType extends Reso
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
 };
 
+export type TaskPayoutResolvers<ContextType = any, ParentType extends ResolversParentTypes['TaskPayout'] = ResolversParentTypes['TaskPayout']> = {
+  amount?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  tokenAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+};
+
 export type TokenResolvers<ContextType = any, ParentType extends ResolversParentTypes['Token'] = ResolversParentTypes['Token']> = {
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
   address?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   symbol?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  decimals?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
   iconHash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
@@ -1197,6 +1216,7 @@ export type Resolvers<ContextType = any> = {
   Task?: TaskResolvers<ContextType>,
   TaskEvent?: TaskEventResolvers,
   TaskMessageEvent?: TaskMessageEventResolvers<ContextType>,
+  TaskPayout?: TaskPayoutResolvers<ContextType>,
   Token?: TokenResolvers<ContextType>,
   UnassignWorkerEvent?: UnassignWorkerEventResolvers<ContextType>,
   User?: UserResolvers<ContextType>,

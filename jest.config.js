@@ -4,8 +4,8 @@ const {
   globalTeardown,
   testEnvironment,
 } = require('@shelf/jest-mongodb/jest-preset')
-const { config } = require('dotenv')
 
+const { config } = require('dotenv')
 config()
 
 module.exports = {
@@ -13,4 +13,5 @@ module.exports = {
   globalSetup,
   globalTeardown,
   testEnvironment,
+  setupFilesAfterEnv: ['jest-extended'],
 }

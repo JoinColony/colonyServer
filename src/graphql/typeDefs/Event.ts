@@ -136,6 +136,7 @@ export default gql`
   }
 
   type Notification {
+    id: String!
     event: Event!
     read: Boolean!
   }

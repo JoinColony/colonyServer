@@ -198,7 +198,7 @@ export class ColonyMongoApi {
     taskId: string,
   ) {
     const users = await this.users
-      .find({ taskIds: taskId, _id: { $ne: new ObjectID(initiator) } })
+      .find({ taskIds: taskId, walletAddress: { $ne: initiator } })
       .toArray()
     return this.createNotification(
       eventId,
@@ -590,17 +590,17 @@ export class ColonyMongoApi {
     initiator: string,
     taskId: string,
     amount: string,
-    token: string,
+    tokenAddress: string,
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
-    const payout = { amount, token }
+    const payout = { amount, tokenAddress }
     const eventId = await this.createEvent(initiator, EventType.SetTaskPayout, {
       taskId,
       amount,
-      tokenAddress: token,
+      tokenAddress,
     })
     await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(taskId, {}, { $push: { payouts: payout } })
@@ -610,20 +610,20 @@ export class ColonyMongoApi {
     initiator: string,
     taskId: string,
     amount: string,
-    token: string,
+    tokenAddress: string,
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
-    const payout = { amount, token }
+    const payout = { amount, tokenAddress }
     const eventId = await this.createEvent(
       initiator,
       EventType.RemoveTaskPayout,
       {
         taskId,
         amount,
-        tokenAddress: token,
+        tokenAddress,
       },
     )
     await this.createTaskNotification(initiator, eventId, taskId)
@@ -727,7 +727,7 @@ export class ColonyMongoApi {
     }
 
     return this.notifications.updateOne(filter, {
-      'users.$.read': true,
+      $set: { 'users.$.read': true },
     } as StrictUpdateQuery<NotificationDoc>)
   }
 
