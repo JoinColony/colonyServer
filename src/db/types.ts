@@ -91,7 +91,7 @@ export interface TaskDoc extends MongoDoc {
   ethSkillId?: number
   ethTaskId?: number
   finalizedAt?: string
-  payouts: { token: string; amount: string }[]
+  payouts: { tokenAddress: string; amount: string }[]
   title?: string
   workInviteAddresses: string[]
   workRequestAddresses: string[]

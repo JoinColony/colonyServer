@@ -1,6 +1,8 @@
+import { ObjectID } from 'mongodb'
 import { ApolloContext } from '../apolloTypes'
 import { MutationResolvers } from '../types'
 import { tryAuth } from './auth'
+import { ColonyMongoDataSource } from '../../db/colonyMongoDataSource'
 
 export const Mutation: MutationResolvers<ApolloContext> = {
   // Users

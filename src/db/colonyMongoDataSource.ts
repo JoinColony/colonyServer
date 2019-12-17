@@ -125,6 +125,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   private static transformTask({
     workInviteAddresses = [],
     workRequestAddresses = [],
+    payouts = [],
     _id,
     ...doc
   }: TaskDoc) {
@@ -135,16 +136,17 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       events: [],
       workInvites: [],
       workRequests: [],
+      payouts,
       workRequestAddresses,
       workInviteAddresses,
     }
   }
 
-  async getColonyByAddress(colonyAddress: string) {
-    const [doc] = await this.collections.colonies.findManyByQuery(
-      { colonyAddress },
-      DEFAULT_TTL,
-    )
+  async getColonyByAddress(colonyAddress: string, ttl?: number) {
+    const query = { colonyAddress }
+    const [doc] = ttl
+      ? await this.collections.colonies.findManyByQuery(query, { ttl })
+      : [await this.collections.colonies.collection.findOne(query)]
 
     if (!doc) {
       throw new Error(`Colony with address '${colonyAddress}' not found`)
@@ -153,27 +155,31 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return ColonyMongoDataSource.transformColony(doc)
   }
 
-  async getColoniesByAddress(colonyAddresses: string[]) {
-    const docs = await this.collections.colonies.findManyByQuery(
-      { colonyAddress: { $in: colonyAddresses } },
-      DEFAULT_TTL,
-    )
+  async getColoniesByAddress(colonyAddresses: string[], ttl?: number) {
+    const query = { colonyAddress: { $in: colonyAddresses } }
+    const docs = ttl
+      ? await this.collections.colonies.findManyByQuery(query, { ttl })
+      : await this.collections.colonies.collection.find(query).toArray()
     return docs.map(ColonyMongoDataSource.transformColony)
   }
 
-  async getTaskById(taskId: string) {
-    const doc = await this.collections.tasks.findOneById(taskId, DEFAULT_TTL)
+  async getTaskById(taskId: string, ttl?: number) {
+    const doc = ttl
+      ? await this.collections.tasks.findOneById(taskId, { ttl })
+      : await this.collections.tasks.collection.findOne({
+          _id: new ObjectID(taskId),
+        })
 
     if (!doc) throw new Error(`Task with id '${taskId}' not found`)
 
     return ColonyMongoDataSource.transformTask(doc)
   }
 
-  async getTaskByEthId(colonyAddress: string, ethTaskId: number) {
-    const [doc] = await this.collections.tasks.findManyByQuery(
-      { colonyAddress, ethTaskId },
-      DEFAULT_TTL,
-    )
+  async getTaskByEthId(colonyAddress: string, ethTaskId: number, ttl?: number) {
+    const query = { colonyAddress, ethTaskId }
+    const [doc] = ttl
+      ? await this.collections.tasks.findManyByQuery(query, { ttl })
+      : [await this.collections.tasks.collection.findOne(query)]
 
     if (!doc)
       throw new Error(
@@ -183,29 +189,38 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return ColonyMongoDataSource.transformTask(doc)
   }
 
-  async getTasksById(taskIds: string[]) {
-    const docs = await this.collections.tasks.findManyByIds(
-      taskIds,
-      DEFAULT_TTL,
-    )
+  async getTasksById(taskIds: string[], ttl?: number) {
+    const docs = ttl
+      ? await this.collections.tasks.findManyByIds(taskIds, { ttl })
+      : await this.collections.tasks.collection
+          .find({ _id: { $in: taskIds.map(id => new ObjectID(id)) } })
+          .toArray()
 
     return docs.map(ColonyMongoDataSource.transformTask)
   }
 
-  async getTasksByEthDomainId(colonyAddress: string, ethDomainId: number) {
-    const docs = await this.collections.tasks.findManyByQuery(
-      { colonyAddress, ethDomainId },
-      DEFAULT_TTL,
-    )
+  async getTasksByEthDomainId(
+    colonyAddress: string,
+    ethDomainId: number,
+    ttl?: number,
+  ) {
+    const query = { colonyAddress, ethDomainId }
+    const docs = ttl
+      ? await this.collections.tasks.findManyByQuery(query, { ttl })
+      : await this.collections.tasks.collection.find(query).toArray()
 
     return docs.map(ColonyMongoDataSource.transformTask)
   }
 
-  async getDomainByEthId(colonyAddress: string, ethDomainId: number) {
-    const [doc] = await this.collections.domains.findManyByQuery(
-      { colonyAddress, ethDomainId },
-      DEFAULT_TTL,
-    )
+  async getDomainByEthId(
+    colonyAddress: string,
+    ethDomainId: number,
+    ttl?: number,
+  ) {
+    const query = { colonyAddress, ethDomainId }
+    const [doc] = ttl
+      ? await this.collections.domains.findManyByQuery(query, { ttl })
+      : [await this.collections.domains.collection.findOne(query)]
 
     if (!doc)
       throw new Error(
@@ -215,43 +230,43 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return ColonyMongoDataSource.transformDomain(doc)
   }
 
-  async getColonyDomains(colonyAddress: string) {
-    const docs = await this.collections.domains.findManyByQuery(
-      { colonyAddress },
-      DEFAULT_TTL,
-    )
+  async getColonyDomains(colonyAddress: string, ttl?: number) {
+    const query = { colonyAddress }
+    const docs = ttl
+      ? await this.collections.domains.findManyByQuery(query, { ttl })
+      : await this.collections.domains.collection.find(query).toArray()
     return docs.map(ColonyMongoDataSource.transformDomain)
   }
 
-  async getUserByAddress(walletAddress: string) {
-    const [doc] = await this.collections.users.findManyByQuery(
-      { walletAddress },
-      DEFAULT_TTL,
-    )
+  async getUserByAddress(walletAddress: string, ttl?: number) {
+    const query = { walletAddress }
+    const [doc] = ttl
+      ? await this.collections.users.findManyByQuery(query, { ttl })
+      : [await this.collections.users.collection.findOne(query)]
 
     if (!doc) throw new Error(`User with address '${walletAddress}' not found`)
 
     return ColonyMongoDataSource.transformUser(doc)
   }
 
-  async getUsersByAddress(walletAddresses: string[]) {
-    const docs = await this.collections.users.findManyByQuery(
-      { walletAddress: { $in: walletAddresses } },
-      DEFAULT_TTL,
-    )
+  async getUsersByAddress(walletAddresses: string[], ttl?: number) {
+    const query = { walletAddress: { $in: walletAddresses } }
+    const docs = ttl
+      ? await this.collections.users.findManyByQuery(query, { ttl })
+      : await this.collections.users.collection.find(query).toArray()
     return docs.map(ColonyMongoDataSource.transformUser)
   }
 
-  async getColonySubscribedUsers(colonyAddress: string) {
-    const docs = await this.collections.users.findManyByQuery(
-      { colonies: colonyAddress },
-      DEFAULT_TTL,
-    )
+  async getColonySubscribedUsers(colonyAddress: string, ttl?: number) {
+    const query = { colonies: colonyAddress }
+    const docs = ttl
+      ? await this.collections.users.findManyByQuery(query, { ttl })
+      : await this.collections.users.collection.find(query).toArray()
     return docs.map(ColonyMongoDataSource.transformUser)
   }
 
   private async getUserNotifications(address: string, query: object) {
-    const docs = ((await this.collections.notifications['collection']
+    const docs = ((await this.collections.notifications.collection
       .aggregate([
         { $match: query },
         { $unwind: '$users' },
@@ -302,21 +317,19 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     })
   }
 
-  async getTaskEvents(taskId: string) {
-    const events = await this.collections.events.findManyByQuery(
-      {
-        'context.taskId': taskId,
-      },
-      DEFAULT_TTL,
-    )
+  async getTaskEvents(taskId: string, ttl?: number) {
+    const query = { 'context.taskId': taskId }
+    const events = ttl
+      ? await this.collections.events.findManyByQuery(query, { ttl })
+      : await this.collections.events.collection.find(query).toArray()
     return events.map(ColonyMongoDataSource.transformEvent)
   }
 
-  async getTokenByAddress(tokenAddress: string) {
-    const [token] = await this.collections.tokens.findManyByQuery(
-      { address: tokenAddress },
-      DEFAULT_TTL,
-    )
+  async getTokenByAddress(tokenAddress: string, ttl?: number) {
+    const query = { address: tokenAddress }
+    const [token] = ttl
+      ? await this.collections.tokens.findManyByQuery(query, { ttl })
+      : [await this.collections.tokens.collection.findOne(query)]
 
     if (!token) {
       throw new Error(`Token with address '${tokenAddress}' not found`)
@@ -325,11 +338,11 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return ColonyMongoDataSource.transformToken(token)
   }
 
-  async getTokensByAddress(tokenAddresses: string[]) {
-    const tokens = await this.collections.tokens.findManyByQuery(
-      { address: { $in: tokenAddresses } },
-      DEFAULT_TTL,
-    )
+  async getTokensByAddress(tokenAddresses: string[], ttl?: number) {
+    const query = { address: { $in: tokenAddresses } }
+    const tokens = ttl
+      ? await this.collections.tokens.findManyByQuery(query, { ttl })
+      : await this.collections.tokens.collection.find(query).toArray()
     return tokens.map(ColonyMongoDataSource.transformToken)
   }
 }
