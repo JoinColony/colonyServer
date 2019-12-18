@@ -106,13 +106,10 @@ describe('Apollo Server', () => {
   }
 
   beforeAll(async () => {
-    connection = await MongoClient.connect(
-      process.env.DB_URL,
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      },
-    )
+    connection = await MongoClient.connect(process.env.DB_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
     db = await connection.db()
     api = new ColonyMongoApi(db)
     data = new ColonyMongoDataSource(db)
@@ -345,6 +342,39 @@ describe('Apollo Server', () => {
           createUser: {
             id: user1Doc.walletAddress,
             profile: { username },
+          },
+        },
+        errors: undefined,
+      })
+
+      // A `NewUser` notification should have been sent to the user
+      await expect(
+        query({
+          query: gql`
+            query user($address: String!) {
+              user(address: $address) {
+                id
+                notifications {
+                  event {
+                    type
+                  }
+                  read
+                }
+              }
+            }
+          `,
+          variables: { address: user1Doc.walletAddress },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          user: {
+            id: user1Doc.walletAddress,
+            notifications: [
+              {
+                event: { type: EventType.NewUser },
+                read: false,
+              },
+            ],
           },
         },
         errors: undefined,

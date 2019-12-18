@@ -6,6 +6,7 @@ import {
   CreateTaskEvent,
   CreateWorkRequestEvent,
   FinalizeTaskEvent,
+  NewUserEvent,
   RemoveTaskPayoutEvent,
   SendWorkInviteEvent,
   SetTaskDescriptionEvent,
@@ -35,6 +36,7 @@ interface EventContextMap {
   [EventType.SetTaskTitle]: SetTaskTitleEvent
   [EventType.TaskMessage]: TaskMessageEvent
   [EventType.UnassignWorker]: UnassignWorkerEvent
+  [EventType.NewUser]: NewUserEvent
 }
 
 export type EventContextOfType<T extends EventType> = Omit<

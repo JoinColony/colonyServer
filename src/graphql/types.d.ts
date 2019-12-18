@@ -195,7 +195,7 @@ export type Event = {
   context: EventContext,
 };
 
-export type EventContext = AssignWorkerEvent | CancelTaskEvent | CreateDomainEvent | CreateTaskEvent | CreateWorkRequestEvent | FinalizeTaskEvent | RemoveTaskPayoutEvent | SendWorkInviteEvent | SetTaskDescriptionEvent | SetTaskDomainEvent | SetTaskDueDateEvent | SetTaskPayoutEvent | SetTaskSkillEvent | SetTaskTitleEvent | TaskMessageEvent | UnassignWorkerEvent;
+export type EventContext = AssignWorkerEvent | CancelTaskEvent | CreateDomainEvent | CreateTaskEvent | CreateWorkRequestEvent | FinalizeTaskEvent | NewUserEvent | RemoveTaskPayoutEvent | SendWorkInviteEvent | SetTaskDescriptionEvent | SetTaskDomainEvent | SetTaskDueDateEvent | SetTaskPayoutEvent | SetTaskSkillEvent | SetTaskTitleEvent | TaskMessageEvent | UnassignWorkerEvent;
 
 export type FinalizeTaskEvent = TaskEvent & {
    __typename?: 'FinalizeTaskEvent',
@@ -224,7 +224,6 @@ export type Mutation = {
   editUser?: Maybe<User>,
   subscribeToColony?: Maybe<User>,
   unsubscribeFromColony?: Maybe<User>,
-  setUserTokens?: Maybe<User>,
   /**  Colonies */
   createColony?: Maybe<Colony>,
   editColonyProfile?: Maybe<Colony>,
@@ -275,11 +274,6 @@ export type MutationSubscribeToColonyArgs = {
 
 export type MutationUnsubscribeFromColonyArgs = {
   input: UnsubscribeFromColonyInput
-};
-
-
-export type MutationSetUserTokensArgs = {
-  input: SetUserTokensInput
 };
 
 
@@ -395,6 +389,11 @@ export type MutationMarkNotificationAsReadArgs = {
 
 export type MutationSendTaskMessageArgs = {
   input: SendTaskMessageInput
+};
+
+export type NewUserEvent = {
+   __typename?: 'NewUserEvent',
+  type: Scalars['String'],
 };
 
 export type Notification = {
@@ -548,6 +547,11 @@ export type SetTaskTitleEvent = TaskEvent & {
 export type SetTaskTitleInput = {
   id: Scalars['String'],
   title: Scalars['String'],
+};
+
+export type SetUserTokenAvatarInput = {
+  tokenAddress: Scalars['String'],
+  iconHash?: Maybe<Scalars['String']>,
 };
 
 export type SetUserTokensInput = {
@@ -753,7 +757,7 @@ export type ResolversTypes = {
   Task: ResolverTypeWrapper<Task>,
   Int: ResolverTypeWrapper<Scalars['Int']>,
   Event: ResolverTypeWrapper<Omit<Event, 'context'> & { context: ResolversTypes['EventContext'] }>,
-  EventContext: ResolversTypes['AssignWorkerEvent'] | ResolversTypes['CancelTaskEvent'] | ResolversTypes['CreateDomainEvent'] | ResolversTypes['CreateTaskEvent'] | ResolversTypes['CreateWorkRequestEvent'] | ResolversTypes['FinalizeTaskEvent'] | ResolversTypes['RemoveTaskPayoutEvent'] | ResolversTypes['SendWorkInviteEvent'] | ResolversTypes['SetTaskDescriptionEvent'] | ResolversTypes['SetTaskDomainEvent'] | ResolversTypes['SetTaskDueDateEvent'] | ResolversTypes['SetTaskPayoutEvent'] | ResolversTypes['SetTaskSkillEvent'] | ResolversTypes['SetTaskTitleEvent'] | ResolversTypes['TaskMessageEvent'] | ResolversTypes['UnassignWorkerEvent'],
+  EventContext: ResolversTypes['AssignWorkerEvent'] | ResolversTypes['CancelTaskEvent'] | ResolversTypes['CreateDomainEvent'] | ResolversTypes['CreateTaskEvent'] | ResolversTypes['CreateWorkRequestEvent'] | ResolversTypes['FinalizeTaskEvent'] | ResolversTypes['NewUserEvent'] | ResolversTypes['RemoveTaskPayoutEvent'] | ResolversTypes['SendWorkInviteEvent'] | ResolversTypes['SetTaskDescriptionEvent'] | ResolversTypes['SetTaskDomainEvent'] | ResolversTypes['SetTaskDueDateEvent'] | ResolversTypes['SetTaskPayoutEvent'] | ResolversTypes['SetTaskSkillEvent'] | ResolversTypes['SetTaskTitleEvent'] | ResolversTypes['TaskMessageEvent'] | ResolversTypes['UnassignWorkerEvent'],
   AssignWorkerEvent: ResolverTypeWrapper<AssignWorkerEvent>,
   TaskEvent: ResolverTypeWrapper<TaskEvent>,
   CancelTaskEvent: ResolverTypeWrapper<CancelTaskEvent>,
@@ -762,6 +766,7 @@ export type ResolversTypes = {
   CreateTaskEvent: ResolverTypeWrapper<CreateTaskEvent>,
   CreateWorkRequestEvent: ResolverTypeWrapper<CreateWorkRequestEvent>,
   FinalizeTaskEvent: ResolverTypeWrapper<FinalizeTaskEvent>,
+  NewUserEvent: ResolverTypeWrapper<NewUserEvent>,
   RemoveTaskPayoutEvent: ResolverTypeWrapper<RemoveTaskPayoutEvent>,
   SendWorkInviteEvent: ResolverTypeWrapper<SendWorkInviteEvent>,
   SetTaskDescriptionEvent: ResolverTypeWrapper<SetTaskDescriptionEvent>,
@@ -786,7 +791,6 @@ export type ResolversTypes = {
   EditUserInput: EditUserInput,
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
-  SetUserTokensInput: SetUserTokensInput,
   CreateColonyInput: CreateColonyInput,
   EditColonyProfileInput: EditColonyProfileInput,
   CreateDomainInput: CreateDomainInput,
@@ -810,6 +814,8 @@ export type ResolversTypes = {
   MarkNotificationAsReadInput: MarkNotificationAsReadInput,
   SendTaskMessageInput: SendTaskMessageInput,
   AddUserTokenReferenceInput: AddUserTokenReferenceInput,
+  SetUserTokenAvatarInput: SetUserTokenAvatarInput,
+  SetUserTokensInput: SetUserTokensInput,
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -823,7 +829,7 @@ export type ResolversParentTypes = {
   Task: Task,
   Int: Scalars['Int'],
   Event: Omit<Event, 'context'> & { context: ResolversParentTypes['EventContext'] },
-  EventContext: ResolversParentTypes['AssignWorkerEvent'] | ResolversParentTypes['CancelTaskEvent'] | ResolversParentTypes['CreateDomainEvent'] | ResolversParentTypes['CreateTaskEvent'] | ResolversParentTypes['CreateWorkRequestEvent'] | ResolversParentTypes['FinalizeTaskEvent'] | ResolversParentTypes['RemoveTaskPayoutEvent'] | ResolversParentTypes['SendWorkInviteEvent'] | ResolversParentTypes['SetTaskDescriptionEvent'] | ResolversParentTypes['SetTaskDomainEvent'] | ResolversParentTypes['SetTaskDueDateEvent'] | ResolversParentTypes['SetTaskPayoutEvent'] | ResolversParentTypes['SetTaskSkillEvent'] | ResolversParentTypes['SetTaskTitleEvent'] | ResolversParentTypes['TaskMessageEvent'] | ResolversParentTypes['UnassignWorkerEvent'],
+  EventContext: ResolversParentTypes['AssignWorkerEvent'] | ResolversParentTypes['CancelTaskEvent'] | ResolversParentTypes['CreateDomainEvent'] | ResolversParentTypes['CreateTaskEvent'] | ResolversParentTypes['CreateWorkRequestEvent'] | ResolversParentTypes['FinalizeTaskEvent'] | ResolversParentTypes['NewUserEvent'] | ResolversParentTypes['RemoveTaskPayoutEvent'] | ResolversParentTypes['SendWorkInviteEvent'] | ResolversParentTypes['SetTaskDescriptionEvent'] | ResolversParentTypes['SetTaskDomainEvent'] | ResolversParentTypes['SetTaskDueDateEvent'] | ResolversParentTypes['SetTaskPayoutEvent'] | ResolversParentTypes['SetTaskSkillEvent'] | ResolversParentTypes['SetTaskTitleEvent'] | ResolversParentTypes['TaskMessageEvent'] | ResolversParentTypes['UnassignWorkerEvent'],
   AssignWorkerEvent: AssignWorkerEvent,
   TaskEvent: TaskEvent,
   CancelTaskEvent: CancelTaskEvent,
@@ -832,6 +838,7 @@ export type ResolversParentTypes = {
   CreateTaskEvent: CreateTaskEvent,
   CreateWorkRequestEvent: CreateWorkRequestEvent,
   FinalizeTaskEvent: FinalizeTaskEvent,
+  NewUserEvent: NewUserEvent,
   RemoveTaskPayoutEvent: RemoveTaskPayoutEvent,
   SendWorkInviteEvent: SendWorkInviteEvent,
   SetTaskDescriptionEvent: SetTaskDescriptionEvent,
@@ -856,7 +863,6 @@ export type ResolversParentTypes = {
   EditUserInput: EditUserInput,
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
-  SetUserTokensInput: SetUserTokensInput,
   CreateColonyInput: CreateColonyInput,
   EditColonyProfileInput: EditColonyProfileInput,
   CreateDomainInput: CreateDomainInput,
@@ -880,6 +886,8 @@ export type ResolversParentTypes = {
   MarkNotificationAsReadInput: MarkNotificationAsReadInput,
   SendTaskMessageInput: SendTaskMessageInput,
   AddUserTokenReferenceInput: AddUserTokenReferenceInput,
+  SetUserTokenAvatarInput: SetUserTokenAvatarInput,
+  SetUserTokensInput: SetUserTokensInput,
 };
 
 export type AssignWorkerEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignWorkerEvent'] = ResolversParentTypes['AssignWorkerEvent']> = {
@@ -978,7 +986,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
 };
 
 export type EventContextResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventContext'] = ResolversParentTypes['EventContext']> = {
-  __resolveType: TypeResolveFn<'AssignWorkerEvent' | 'CancelTaskEvent' | 'CreateDomainEvent' | 'CreateTaskEvent' | 'CreateWorkRequestEvent' | 'FinalizeTaskEvent' | 'RemoveTaskPayoutEvent' | 'SendWorkInviteEvent' | 'SetTaskDescriptionEvent' | 'SetTaskDomainEvent' | 'SetTaskDueDateEvent' | 'SetTaskPayoutEvent' | 'SetTaskSkillEvent' | 'SetTaskTitleEvent' | 'TaskMessageEvent' | 'UnassignWorkerEvent', ParentType, ContextType>
+  __resolveType: TypeResolveFn<'AssignWorkerEvent' | 'CancelTaskEvent' | 'CreateDomainEvent' | 'CreateTaskEvent' | 'CreateWorkRequestEvent' | 'FinalizeTaskEvent' | 'NewUserEvent' | 'RemoveTaskPayoutEvent' | 'SendWorkInviteEvent' | 'SetTaskDescriptionEvent' | 'SetTaskDomainEvent' | 'SetTaskDueDateEvent' | 'SetTaskPayoutEvent' | 'SetTaskSkillEvent' | 'SetTaskTitleEvent' | 'TaskMessageEvent' | 'UnassignWorkerEvent', ParentType, ContextType>
 };
 
 export type FinalizeTaskEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['FinalizeTaskEvent'] = ResolversParentTypes['FinalizeTaskEvent']> = {
@@ -1005,7 +1013,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   editUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationEditUserArgs, 'input'>>,
   subscribeToColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSubscribeToColonyArgs, 'input'>>,
   unsubscribeFromColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUnsubscribeFromColonyArgs, 'input'>>,
-  setUserTokens?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSetUserTokensArgs, 'input'>>,
   createColony?: Resolver<Maybe<ResolversTypes['Colony']>, ParentType, ContextType, RequireFields<MutationCreateColonyArgs, 'input'>>,
   editColonyProfile?: Resolver<Maybe<ResolversTypes['Colony']>, ParentType, ContextType, RequireFields<MutationEditColonyProfileArgs, 'input'>>,
   createDomain?: Resolver<Maybe<ResolversTypes['Domain']>, ParentType, ContextType, RequireFields<MutationCreateDomainArgs, 'input'>>,
@@ -1030,6 +1037,10 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   markAllNotificationsAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
   markNotificationAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationMarkNotificationAsReadArgs, 'input'>>,
   sendTaskMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendTaskMessageArgs, 'input'>>,
+};
+
+export type NewUserEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['NewUserEvent'] = ResolversParentTypes['NewUserEvent']> = {
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
 };
 
 export type NotificationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = {
@@ -1203,6 +1214,7 @@ export type Resolvers<ContextType = any> = {
   GraphQLDateTime?: GraphQLScalarType,
   IToken?: ITokenResolvers,
   Mutation?: MutationResolvers<ContextType>,
+  NewUserEvent?: NewUserEventResolvers<ContextType>,
   Notification?: NotificationResolvers<ContextType>,
   Query?: QueryResolvers<ContextType>,
   RemoveTaskPayoutEvent?: RemoveTaskPayoutEventResolvers<ContextType>,

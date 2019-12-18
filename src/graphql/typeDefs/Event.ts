@@ -107,6 +107,10 @@ export default gql`
     message: String!
   }
 
+  type NewUserEvent {
+    type: String!
+  }
+
   union EventContext =
       AssignWorkerEvent
     | CancelTaskEvent
@@ -114,6 +118,7 @@ export default gql`
     | CreateTaskEvent
     | CreateWorkRequestEvent
     | FinalizeTaskEvent
+    | NewUserEvent
     | RemoveTaskPayoutEvent
     | SendWorkInviteEvent
     | SetTaskDescriptionEvent
