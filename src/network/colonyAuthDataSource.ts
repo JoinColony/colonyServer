@@ -8,6 +8,7 @@ import { IColonyFactory } from './contracts/IColonyFactory'
 import { IColonyNetwork } from './contracts/IColonyNetwork'
 import { IColonyNetworkFactory } from './contracts/IColonyNetworkFactory'
 import { ROOT_DOMAIN } from '../constants'
+import { disableAuthCheck } from '../env'
 
 enum ColonyRoles {
   Recovery,
@@ -229,7 +230,7 @@ export class ColonyAuthDataSource extends DataSource<any> {
     role: ColonyRoles,
     { userAddress, colonyAddress, domainId }: DomainAuthArgs,
   ) {
-    if (process.env.DISABLE_AUTH_CHECK === 'true') {
+    if (disableAuthCheck) {
       return true
     }
     return this.colonies
@@ -369,7 +370,7 @@ export class ColonyAuthDataSource extends DataSource<any> {
   }
 
   async assertColonyExists(colonyAddress: ColonyAddress): Promise<boolean> {
-    if (process.env.DISABLE_AUTH_CHECK === 'true') {
+    if (disableAuthCheck) {
       return true
     }
 
