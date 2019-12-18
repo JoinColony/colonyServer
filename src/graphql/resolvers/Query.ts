@@ -33,4 +33,7 @@ export const Query: QueryResolvers<ApolloContext> = {
   ) {
     return data.getTokenByAddress(address)
   },
+  async allTokens(parent, input, { dataSources: { data } }) {
+    return data.getAllTokens()
+  },
 }

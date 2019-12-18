@@ -345,4 +345,11 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       : await this.collections.tokens.collection.find(query).toArray()
     return tokens.map(ColonyMongoDataSource.transformToken)
   }
+
+  async getAllTokens(ttl?: number) {
+    const tokens = ttl
+      ? await this.collections.tokens.findManyByQuery({}, { ttl })
+      : await this.collections.tokens.collection.find({}).toArray()
+    return tokens.map(ColonyMongoDataSource.transformToken)
+  }
 }

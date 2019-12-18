@@ -315,6 +315,51 @@ describe('Apollo Server', () => {
         errors: undefined,
       })
     })
+
+    it('allTokens', async () => {
+      const token1Doc = {
+        address: 'token address 1',
+        name: 'Token name 1',
+        symbol: 'TKN1',
+        decimals: 18,
+      }
+      const token2Doc = {
+        address: 'token address 2',
+        name: 'Token name 2',
+        symbol: 'TKN2',
+        decimals: 18,
+      }
+      const token3Doc = {
+        address: 'token address 3',
+        name: 'Token name 3',
+        symbol: 'TKN3',
+        decimals: 18,
+      }
+
+      await insertDocs(db, {
+        tokens: [token1Doc, token2Doc, token3Doc],
+      })
+
+      await expect(
+        query({
+          query: gql`
+            query {
+              allTokens {
+                address
+                decimals
+                name
+                symbol
+              }
+            }
+          `,
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          allTokens: [token1Doc, token2Doc, token3Doc],
+        },
+        errors: undefined,
+      })
+    })
   })
 
   describe('Mutation', () => {
