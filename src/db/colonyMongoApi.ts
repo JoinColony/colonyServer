@@ -1,11 +1,5 @@
 import assert from 'assert'
-import {
-  Collection,
-  Db,
-  ObjectID,
-  QuerySelector,
-  UpdateOneOptions,
-} from 'mongodb'
+import { Collection, Db, ObjectID, QuerySelector, UpdateOneOptions } from 'mongodb'
 
 import {
   ColonyDoc,
@@ -20,7 +14,7 @@ import {
 } from './types'
 import { CollectionNames } from './collections'
 import { matchUsernames } from './matchers'
-import { ROOT_DOMAIN, EventType } from '../constants'
+import { EventType, ROOT_DOMAIN } from '../constants'
 import { EventContextOfType } from '../graphql/eventContext'
 
 export class ColonyMongoApi {
@@ -250,7 +244,10 @@ export class ColonyMongoApi {
 
     // An upsert is used even if it's not strictly necessary because
     // it's not the job of a unique index to preserve data integrity.
-    return this.users.updateOne(doc, { $setOnInsert: doc }, { upsert: true })
+    await this.users.updateOne(doc, { $setOnInsert: doc }, { upsert: true })
+
+    const eventId = await this.createEvent(walletAddress, EventType.NewUser, {})
+    await this.createNotification(eventId, [walletAddress])
   }
 
   async editUser(
