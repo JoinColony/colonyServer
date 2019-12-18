@@ -18,7 +18,9 @@ const insertMany = async <T>(
 ): Promise<string[]> => {
   if (!docs.length) return []
 
-  const { insertedIds } = await db.collection(collectionName).insertMany(docs)
+  const { insertedIds } = await db
+    .collection(collectionName)
+    .insertMany(docs.map(doc => Object.assign({}, doc)))
   return Object.keys(insertedIds)
     .sort()
     .map(idx => insertedIds[idx].toHexString())
