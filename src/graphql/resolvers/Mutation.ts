@@ -359,14 +359,6 @@ export const Mutation: MutationResolvers<ApolloContext> = {
 
     return data.getTokenByAddress(tokenAddress)
   },
-  async setUserTokens(
-    parent,
-    { input: { tokens } },
-    { userAddress, api, dataSources: { data } },
-  ) {
-    await api.setUserTokens(userAddress, tokens)
-    return data.getUserByAddress(userAddress)
-  },
   // Notifications
   async markNotificationAsRead(
     parent,
