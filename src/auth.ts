@@ -1,5 +1,7 @@
 import { JWT, JWK } from 'jose'
 
+import { disableExpiryCheck } from './env'
+
 const JWT_KEY = JWK.asKey(process.env.JWT_SECRET)
 
 export const getTokenForAddress = (address: string) =>
@@ -13,10 +15,6 @@ export const getTokenForAddress = (address: string) =>
     issuer: 'https://colony.io',
   })
 
-const skipExpiryCheck =
-  process.env.NODE_ENV === 'development' &&
-  process.env.SKIP_EXPIRY_CHECK === 'true'
-
 export const getAddressFromToken = (token: string) => {
   if (typeof token != 'string') throw new Error('No token given')
   if (token.startsWith('Bearer ')) {
@@ -26,7 +24,7 @@ export const getAddressFromToken = (token: string) => {
 
   const { address, exp } = JWT.decode(token) as { address: string; exp: number }
 
-  if (!skipExpiryCheck && Date.now() > exp) {
+  if (!disableExpiryCheck && Date.now() > exp) {
     throw new Error('Authentication token expired')
   }
 
