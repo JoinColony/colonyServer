@@ -855,9 +855,9 @@ export class ColonyMongoApi {
   ) {
     await this.tryGetUser(initiator)
 
-    const doc = {
+    const doc: Omit<TokenDoc, '_id'> = {
       address,
-      creator: initiator,
+      creatorAddress: initiator,
       decimals,
       name,
       symbol,
