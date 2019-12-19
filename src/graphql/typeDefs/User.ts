@@ -9,7 +9,7 @@ export default gql`
     colonyAddresses: [String!]!
     tasks: [Task!]!
     taskIds: [String!]!
-    tokens: [UserToken!]!
+    tokens(addresses: [String!]): [UserToken!]!
     tokenAddresses: [String!]!
     notifications(read: Boolean): [Notification!] # Only provided for the current user
   }
@@ -24,12 +24,11 @@ export default gql`
     website: String
   }
 
-  type UserToken implements IToken {
-    id: String!
+  type UserToken {
+    id: String! # token address
     createdAt: GraphQLDateTime!
     address: String!
-    name: String!
-    symbol: String!
     iconHash: String
+    info: TokenInfo!
   }
 `

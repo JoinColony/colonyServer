@@ -57,12 +57,9 @@ export interface ColonyDoc extends MongoDoc {
   description?: string
   guideline?: string
   website?: string
-  tokenRefs: {
-    address: string
-    iconHash?: string
-    isExternal?: boolean
-    isNative?: boolean
-  }[]
+  nativeTokenAddress: string
+  isNativeTokenExternal: boolean
+  tokenAddresses: string[]
   taskIds: string[]
 }
 
@@ -99,6 +96,7 @@ export interface TaskDoc extends MongoDoc {
 
 export interface TokenDoc extends MongoDoc {
   address: string
+  creatorAddress: string
   decimals: number
   iconHash?: string
   name: string

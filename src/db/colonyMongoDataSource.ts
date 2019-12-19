@@ -13,6 +13,7 @@ import {
   UserDoc,
 } from './types'
 import { CollectionNames } from './collections'
+import { ETH_ADDRESS } from '../constants'
 
 // TODO re-enable cache
 // const DEFAULT_TTL = { ttl: 10000 }
@@ -52,7 +53,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   // TODO consider extending API of MongoDataSource for document transformation
   private static transformColony({
     _id,
-    tokenRefs = [],
+    tokenAddresses = [],
     taskIds = [],
     ...doc
   }: ColonyDoc) {
@@ -61,7 +62,8 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       createdAt: _id.getTimestamp(),
       id: doc.colonyAddress,
       taskIds,
-      tokenRefs,
+      tokenAddresses,
+      nativeToken: undefined,
       tasks: [],
       tokens: [],
       domains: [],
@@ -109,8 +111,19 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
   }
 
-  private static transformToken({ _id, ...doc }: TokenDoc) {
-    return { ...doc, id: doc.address, createdAt: _id.getTimestamp() }
+  private static transformToken({
+    _id,
+    name,
+    decimals,
+    symbol,
+    ...doc
+  }: TokenDoc) {
+    return {
+      ...doc,
+      id: doc.address,
+      createdAt: _id.getTimestamp(),
+      info: { name, decimals, symbol },
+    }
   }
 
   private static transformDomain({ _id, ...doc }: DomainDoc) {
@@ -273,7 +286,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
         { $match: { 'users.address': address } },
         {
           $lookup: {
-            from: this.collections.events['collection'].collectionName,
+            from: this.collections.events.collection.collectionName,
             localField: 'eventId',
             foreignField: '_id',
             as: 'events',
@@ -344,6 +357,44 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       ? await this.collections.tokens.findManyByQuery(query, { ttl })
       : await this.collections.tokens.collection.find(query).toArray()
     return tokens.map(ColonyMongoDataSource.transformToken)
+  }
+
+  async getColonyTokens(colonyAddress: string) {
+    const docs = ((await this.collections.colonies.collection
+      .aggregate([
+        { $match: { colonyAddress } },
+        {
+          $project: {
+            _id: '$_id',
+            tokenAddresses: {
+              $concatArrays: [[ETH_ADDRESS], '$tokenAddresses'],
+            },
+          },
+        },
+        { $unwind: '$tokenAddresses' },
+        {
+          $lookup: {
+            from: this.collections.tokens.collection.collectionName,
+            localField: 'tokenAddresses',
+            foreignField: 'address',
+            as: 'tokens',
+          },
+        },
+        { $unwind: '$tokens' },
+        {
+          $project: {
+            _id: '$tokens._id',
+            address: '$tokens.address',
+            creatorAddress: '$tokens.creatorAddress',
+            decimals: '$tokens.decimals',
+            iconHash: '$tokens.iconHash',
+            name: '$tokens.name',
+            symbol: '$tokens.symbol',
+          },
+        },
+      ])
+      .toArray()) as unknown) as TokenDoc[]
+    return docs.map(ColonyMongoDataSource.transformToken)
   }
 
   async getAllTokens(ttl?: number) {

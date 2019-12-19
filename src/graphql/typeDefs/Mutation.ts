@@ -21,6 +21,7 @@ export default gql`
     tokenName: String!
     tokenSymbol: String!
     tokenDecimals: Int!
+    tokenIsExternal: Boolean!
     tokenIconHash: String
   }
 
@@ -136,31 +137,18 @@ export default gql`
     iconHash: String
   }
 
-  input AddColonyTokenReferenceInput {
-    tokenAddress: String!
+  input SetColonyTokensInput {
+    tokenAddresses: [String]!
     colonyAddress: String!
-    isExternal: Boolean!
-    iconHash: String
   }
 
-  input AddUserTokenReferenceInput {
-    tokenAddress: String!
-    iconHash: String
-  }
-
-  input SetColonyTokenAvatarInput {
-    tokenAddress: String!
-    colonyAddress: String!
-    iconHash: String
-  }
-
-  input SetUserTokenAvatarInput {
+  input SetTokenIconInput {
     tokenAddress: String!
     iconHash: String
   }
 
   input SetUserTokensInput {
-    tokens: [String!]!
+    tokenAddresses: [String!]!
   }
 
   type Mutation {
@@ -169,9 +157,11 @@ export default gql`
     editUser(input: EditUserInput!): User
     subscribeToColony(input: SubscribeToColonyInput!): User
     unsubscribeFromColony(input: UnsubscribeFromColonyInput!): User
+    setUserTokens(input: SetUserTokensInput!): User
     # Colonies
     createColony(input: CreateColonyInput!): Colony
     editColonyProfile(input: EditColonyProfileInput!): Colony
+    setColonyTokens(input: SetColonyTokensInput!): Colony
     # Domains
     createDomain(input: CreateDomainInput!): Domain
     editDomainName(input: EditDomainNameInput!): Domain
@@ -192,8 +182,7 @@ export default gql`
     unassignWorker(input: UnassignWorkerInput!): Task
     # Tokens
     createToken(input: CreateTokenInput!): Token
-    addColonyTokenReference(input: AddColonyTokenReferenceInput!): Token
-    setColonyTokenAvatar(input: SetColonyTokenAvatarInput!): Token
+    setTokenIcon(input: SetTokenIconInput!): Token
     # Notifications
     markAllNotificationsAsRead: Boolean!
     markNotificationAsRead(input: MarkNotificationAsReadInput!): Boolean!

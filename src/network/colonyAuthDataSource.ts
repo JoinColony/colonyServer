@@ -25,7 +25,6 @@ type UserAddress = string
 type DomainId = number
 
 enum AuthChecks {
-  AddColonyTokenReference = 'AddColonyTokenReference',
   AssignWorker = 'AssignWorker',
   CancelTask = 'CancelTask',
   CreateDomain = 'CreateDomain',
@@ -35,6 +34,7 @@ enum AuthChecks {
   FinalizeTask = 'FinalizeTask',
   RemoveTaskPayout = 'RemoveTaskPayout',
   SendWorkInvite = 'SendWorkInvite',
+  SetColonyTokens = 'SetColonyTokens',
   SetTaskDescription = 'SetTaskDescription',
   SetTaskDomain = 'SetTaskDomain',
   SetTaskDueDate = 'SetTaskDueDate',
@@ -70,8 +70,8 @@ interface AuthDeclaration {
 
 const AUTH_DECLARATIONS: Record<AuthChecks, AuthDeclaration> = {
   // Colony
-  AddColonyTokenReference: {
-    description: 'Add colony token reference',
+  SetColonyTokens: {
+    description: 'Set colony tokens',
     roles: [ColonyRoles.Administration, ColonyRoles.Funding],
     type: AuthTypes.Domain,
   },
@@ -365,8 +365,8 @@ export class ColonyAuthDataSource extends DataSource<any> {
     return this.assertForColony(AuthChecks.EditColonyProfile, args)
   }
 
-  async assertCanAddColonyTokenReference(args: ColonyAuthArgs) {
-    return this.assertForColony(AuthChecks.AddColonyTokenReference, args)
+  async assertCanSetColonyTokens(args: ColonyAuthArgs) {
+    return this.assertForColony(AuthChecks.SetColonyTokens, args)
   }
 
   async assertColonyExists(colonyAddress: ColonyAddress): Promise<boolean> {

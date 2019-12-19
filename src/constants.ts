@@ -1,5 +1,7 @@
 export const ROOT_DOMAIN = 1
 
+export const ETH_ADDRESS = '0x0'
+
 export enum EventType {
   AssignWorker = 'AssignWorker',
   CancelTask = 'CancelTask',

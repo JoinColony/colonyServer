@@ -2,7 +2,6 @@ import { ApolloContext } from '../apolloTypes'
 import {
   EventResolvers,
   EventContextResolvers,
-  ITokenResolvers,
   TaskEventResolvers,
   ColonyEventResolvers,
 } from '../types'
@@ -17,12 +16,6 @@ export const EventContext: EventContextResolvers<ApolloContext> = {
   // @ts-ignore
   __resolveType({ type }: { type: string }) {
     return `${type}Event`
-  },
-}
-
-export const IToken: ITokenResolvers<ApolloContext> = {
-  __resolveType() {
-    return 'Token'
   },
 }
 
