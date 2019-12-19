@@ -12,18 +12,6 @@ export type Scalars = {
   GraphQLDateTime: any,
 };
 
-export type AddColonyTokenReferenceInput = {
-  tokenAddress: Scalars['String'],
-  colonyAddress: Scalars['String'],
-  isExternal: Scalars['Boolean'],
-  iconHash?: Maybe<Scalars['String']>,
-};
-
-export type AddUserTokenReferenceInput = {
-  tokenAddress: Scalars['String'],
-  iconHash?: Maybe<Scalars['String']>,
-};
-
 export type AssignWorkerEvent = TaskEvent & {
    __typename?: 'AssignWorkerEvent',
   type: Scalars['String'],
@@ -58,34 +46,22 @@ export type Colony = {
   tasks: Array<Task>,
   domains: Array<Domain>,
   founder?: Maybe<User>,
+  nativeToken: Token,
+  isNativeTokenExternal: Scalars['Boolean'],
+  nativeTokenAddress: Scalars['String'],
   subscribedUsers: Array<User>,
-  tokens: Array<ColonyToken>,
-  tokenRefs: Array<ColonyTokenRef>,
+  tokens: Array<Token>,
+  tokenAddresses: Array<Scalars['String']>,
+};
+
+
+export type ColonyTokensArgs = {
+  addresses?: Maybe<Array<Scalars['String']>>
 };
 
 export type ColonyEvent = {
   type: Scalars['String'],
   colonyAddress: Scalars['String'],
-};
-
-export type ColonyToken = IToken & {
-   __typename?: 'ColonyToken',
-  id: Scalars['String'],
-  createdAt: Scalars['GraphQLDateTime'],
-  address: Scalars['String'],
-  name: Scalars['String'],
-  symbol: Scalars['String'],
-  iconHash?: Maybe<Scalars['String']>,
-  isExternal: Scalars['Boolean'],
-  isNative: Scalars['Boolean'],
-};
-
-export type ColonyTokenRef = {
-   __typename?: 'ColonyTokenRef',
-  address: Scalars['String'],
-  isExternal?: Maybe<Scalars['Boolean']>,
-  isNative?: Maybe<Scalars['Boolean']>,
-  iconHash?: Maybe<Scalars['String']>,
 };
 
 export type CreateColonyInput = {
@@ -96,6 +72,7 @@ export type CreateColonyInput = {
   tokenName: Scalars['String'],
   tokenSymbol: Scalars['String'],
   tokenDecimals: Scalars['Int'],
+  tokenIsExternal: Scalars['Boolean'],
   tokenIconHash?: Maybe<Scalars['String']>,
 };
 
@@ -204,15 +181,6 @@ export type FinalizeTaskEvent = TaskEvent & {
 };
 
 
-export type IToken = {
-  id: Scalars['String'],
-  createdAt: Scalars['GraphQLDateTime'],
-  address: Scalars['String'],
-  name: Scalars['String'],
-  symbol: Scalars['String'],
-  iconHash?: Maybe<Scalars['String']>,
-};
-
 export type MarkNotificationAsReadInput = {
   id: Scalars['String'],
 };
@@ -224,9 +192,11 @@ export type Mutation = {
   editUser?: Maybe<User>,
   subscribeToColony?: Maybe<User>,
   unsubscribeFromColony?: Maybe<User>,
+  setUserTokens?: Maybe<User>,
   /**  Colonies */
   createColony?: Maybe<Colony>,
   editColonyProfile?: Maybe<Colony>,
+  setColonyTokens?: Maybe<Colony>,
   /** Domains */
   createDomain?: Maybe<Domain>,
   editDomainName?: Maybe<Domain>,
@@ -247,8 +217,7 @@ export type Mutation = {
   unassignWorker?: Maybe<Task>,
   /** Tokens */
   createToken?: Maybe<Token>,
-  addColonyTokenReference?: Maybe<Token>,
-  setColonyTokenAvatar?: Maybe<Token>,
+  setTokenIcon?: Maybe<Token>,
   /** Notifications */
   markAllNotificationsAsRead: Scalars['Boolean'],
   markNotificationAsRead: Scalars['Boolean'],
@@ -277,6 +246,11 @@ export type MutationUnsubscribeFromColonyArgs = {
 };
 
 
+export type MutationSetUserTokensArgs = {
+  input: SetUserTokensInput
+};
+
+
 export type MutationCreateColonyArgs = {
   input: CreateColonyInput
 };
@@ -284,6 +258,11 @@ export type MutationCreateColonyArgs = {
 
 export type MutationEditColonyProfileArgs = {
   input: EditColonyProfileInput
+};
+
+
+export type MutationSetColonyTokensArgs = {
+  input: SetColonyTokensInput
 };
 
 
@@ -372,13 +351,8 @@ export type MutationCreateTokenArgs = {
 };
 
 
-export type MutationAddColonyTokenReferenceArgs = {
-  input: AddColonyTokenReferenceInput
-};
-
-
-export type MutationSetColonyTokenAvatarArgs = {
-  input: SetColonyTokenAvatarInput
+export type MutationSetTokenIconArgs = {
+  input: SetTokenIconInput
 };
 
 
@@ -410,6 +384,7 @@ export type Query = {
   domain: Domain,
   task: Task,
   token: Token,
+  allTokens: Array<Token>,
 };
 
 
@@ -469,10 +444,9 @@ export type SendWorkInviteInput = {
   workerAddress: Scalars['String'],
 };
 
-export type SetColonyTokenAvatarInput = {
-  tokenAddress: Scalars['String'],
+export type SetColonyTokensInput = {
+  tokenAddresses: Array<Maybe<Scalars['String']>>,
   colonyAddress: Scalars['String'],
-  iconHash?: Maybe<Scalars['String']>,
 };
 
 export type SetTaskDescriptionEvent = TaskEvent & {
@@ -549,13 +523,13 @@ export type SetTaskTitleInput = {
   title: Scalars['String'],
 };
 
-export type SetUserTokenAvatarInput = {
+export type SetTokenIconInput = {
   tokenAddress: Scalars['String'],
   iconHash?: Maybe<Scalars['String']>,
 };
 
 export type SetUserTokensInput = {
-  tokens: Array<Scalars['String']>,
+  tokenAddresses: Array<Scalars['String']>,
 };
 
 export type SubscribeToColonyInput = {
@@ -610,15 +584,20 @@ export type TaskPayout = {
   tokenAddress: Scalars['String'],
 };
 
-export type Token = IToken & {
+export type Token = {
    __typename?: 'Token',
   id: Scalars['String'],
   createdAt: Scalars['GraphQLDateTime'],
   address: Scalars['String'],
-  name: Scalars['String'],
-  symbol: Scalars['String'],
-  decimals: Scalars['Int'],
   iconHash?: Maybe<Scalars['String']>,
+  info: TokenInfo,
+};
+
+export type TokenInfo = {
+   __typename?: 'TokenInfo',
+  name?: Maybe<Scalars['String']>,
+  decimals?: Maybe<Scalars['Int']>,
+  symbol?: Maybe<Scalars['String']>,
 };
 
 export type UnassignWorkerEvent = TaskEvent & {
@@ -652,6 +631,11 @@ export type User = {
 };
 
 
+export type UserTokensArgs = {
+  addresses?: Maybe<Array<Scalars['String']>>
+};
+
+
 export type UserNotificationsArgs = {
   read?: Maybe<Scalars['Boolean']>
 };
@@ -667,14 +651,13 @@ export type UserProfile = {
   website?: Maybe<Scalars['String']>,
 };
 
-export type UserToken = IToken & {
+export type UserToken = {
    __typename?: 'UserToken',
   id: Scalars['String'],
   createdAt: Scalars['GraphQLDateTime'],
   address: Scalars['String'],
-  name: Scalars['String'],
-  symbol: Scalars['String'],
   iconHash?: Maybe<Scalars['String']>,
+  info: TokenInfo,
 };
 
 
@@ -779,20 +762,20 @@ export type ResolversTypes = {
   UnassignWorkerEvent: ResolverTypeWrapper<UnassignWorkerEvent>,
   TaskPayout: ResolverTypeWrapper<TaskPayout>,
   Domain: ResolverTypeWrapper<Domain>,
-  ColonyToken: ResolverTypeWrapper<ColonyToken>,
-  IToken: ResolverTypeWrapper<IToken>,
+  Token: ResolverTypeWrapper<Token>,
+  TokenInfo: ResolverTypeWrapper<TokenInfo>,
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>,
-  ColonyTokenRef: ResolverTypeWrapper<ColonyTokenRef>,
   UserToken: ResolverTypeWrapper<UserToken>,
   Notification: ResolverTypeWrapper<Notification>,
-  Token: ResolverTypeWrapper<Token>,
   Mutation: ResolverTypeWrapper<{}>,
   CreateUserInput: CreateUserInput,
   EditUserInput: EditUserInput,
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
+  SetUserTokensInput: SetUserTokensInput,
   CreateColonyInput: CreateColonyInput,
   EditColonyProfileInput: EditColonyProfileInput,
+  SetColonyTokensInput: SetColonyTokensInput,
   CreateDomainInput: CreateDomainInput,
   EditDomainNameInput: EditDomainNameInput,
   AssignWorkerInput: AssignWorkerInput,
@@ -809,13 +792,9 @@ export type ResolversTypes = {
   SetTaskTitleInput: SetTaskTitleInput,
   UnassignWorkerInput: UnassignWorkerInput,
   CreateTokenInput: CreateTokenInput,
-  AddColonyTokenReferenceInput: AddColonyTokenReferenceInput,
-  SetColonyTokenAvatarInput: SetColonyTokenAvatarInput,
+  SetTokenIconInput: SetTokenIconInput,
   MarkNotificationAsReadInput: MarkNotificationAsReadInput,
   SendTaskMessageInput: SendTaskMessageInput,
-  AddUserTokenReferenceInput: AddUserTokenReferenceInput,
-  SetUserTokenAvatarInput: SetUserTokenAvatarInput,
-  SetUserTokensInput: SetUserTokensInput,
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -851,20 +830,20 @@ export type ResolversParentTypes = {
   UnassignWorkerEvent: UnassignWorkerEvent,
   TaskPayout: TaskPayout,
   Domain: Domain,
-  ColonyToken: ColonyToken,
-  IToken: IToken,
+  Token: Token,
+  TokenInfo: TokenInfo,
   Boolean: Scalars['Boolean'],
-  ColonyTokenRef: ColonyTokenRef,
   UserToken: UserToken,
   Notification: Notification,
-  Token: Token,
   Mutation: {},
   CreateUserInput: CreateUserInput,
   EditUserInput: EditUserInput,
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
+  SetUserTokensInput: SetUserTokensInput,
   CreateColonyInput: CreateColonyInput,
   EditColonyProfileInput: EditColonyProfileInput,
+  SetColonyTokensInput: SetColonyTokensInput,
   CreateDomainInput: CreateDomainInput,
   EditDomainNameInput: EditDomainNameInput,
   AssignWorkerInput: AssignWorkerInput,
@@ -881,13 +860,9 @@ export type ResolversParentTypes = {
   SetTaskTitleInput: SetTaskTitleInput,
   UnassignWorkerInput: UnassignWorkerInput,
   CreateTokenInput: CreateTokenInput,
-  AddColonyTokenReferenceInput: AddColonyTokenReferenceInput,
-  SetColonyTokenAvatarInput: SetColonyTokenAvatarInput,
+  SetTokenIconInput: SetTokenIconInput,
   MarkNotificationAsReadInput: MarkNotificationAsReadInput,
   SendTaskMessageInput: SendTaskMessageInput,
-  AddUserTokenReferenceInput: AddUserTokenReferenceInput,
-  SetUserTokenAvatarInput: SetUserTokenAvatarInput,
-  SetUserTokensInput: SetUserTokensInput,
 };
 
 export type AssignWorkerEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignWorkerEvent'] = ResolversParentTypes['AssignWorkerEvent']> = {
@@ -916,33 +891,18 @@ export type ColonyResolvers<ContextType = any, ParentType extends ResolversParen
   tasks?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType>,
   domains?: Resolver<Array<ResolversTypes['Domain']>, ParentType, ContextType>,
   founder?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>,
+  nativeToken?: Resolver<ResolversTypes['Token'], ParentType, ContextType>,
+  isNativeTokenExternal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
+  nativeTokenAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   subscribedUsers?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>,
-  tokens?: Resolver<Array<ResolversTypes['ColonyToken']>, ParentType, ContextType>,
-  tokenRefs?: Resolver<Array<ResolversTypes['ColonyTokenRef']>, ParentType, ContextType>,
+  tokens?: Resolver<Array<ResolversTypes['Token']>, ParentType, ContextType, ColonyTokensArgs>,
+  tokenAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type ColonyEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['ColonyEvent'] = ResolversParentTypes['ColonyEvent']> = {
   __resolveType: TypeResolveFn<'CreateDomainEvent', ParentType, ContextType>,
   type?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-};
-
-export type ColonyTokenResolvers<ContextType = any, ParentType extends ResolversParentTypes['ColonyToken'] = ResolversParentTypes['ColonyToken']> = {
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
-  address?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  symbol?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  iconHash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
-  isExternal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
-  isNative?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
-};
-
-export type ColonyTokenRefResolvers<ContextType = any, ParentType extends ResolversParentTypes['ColonyTokenRef'] = ResolversParentTypes['ColonyTokenRef']> = {
-  address?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  isExternal?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>,
-  isNative?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>,
-  iconHash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type CreateDomainEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['CreateDomainEvent'] = ResolversParentTypes['CreateDomainEvent']> = {
@@ -998,23 +958,15 @@ export interface GraphQlDateTimeScalarConfig extends GraphQLScalarTypeConfig<Res
   name: 'GraphQLDateTime'
 }
 
-export type ITokenResolvers<ContextType = any, ParentType extends ResolversParentTypes['IToken'] = ResolversParentTypes['IToken']> = {
-  __resolveType: TypeResolveFn<'ColonyToken' | 'UserToken' | 'Token', ParentType, ContextType>,
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
-  address?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  symbol?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  iconHash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
-};
-
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>,
   editUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationEditUserArgs, 'input'>>,
   subscribeToColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSubscribeToColonyArgs, 'input'>>,
   unsubscribeFromColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUnsubscribeFromColonyArgs, 'input'>>,
+  setUserTokens?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSetUserTokensArgs, 'input'>>,
   createColony?: Resolver<Maybe<ResolversTypes['Colony']>, ParentType, ContextType, RequireFields<MutationCreateColonyArgs, 'input'>>,
   editColonyProfile?: Resolver<Maybe<ResolversTypes['Colony']>, ParentType, ContextType, RequireFields<MutationEditColonyProfileArgs, 'input'>>,
+  setColonyTokens?: Resolver<Maybe<ResolversTypes['Colony']>, ParentType, ContextType, RequireFields<MutationSetColonyTokensArgs, 'input'>>,
   createDomain?: Resolver<Maybe<ResolversTypes['Domain']>, ParentType, ContextType, RequireFields<MutationCreateDomainArgs, 'input'>>,
   editDomainName?: Resolver<Maybe<ResolversTypes['Domain']>, ParentType, ContextType, RequireFields<MutationEditDomainNameArgs, 'input'>>,
   assignWorker?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationAssignWorkerArgs, 'input'>>,
@@ -1032,8 +984,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   setTaskTitle?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationSetTaskTitleArgs, 'input'>>,
   unassignWorker?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationUnassignWorkerArgs, 'input'>>,
   createToken?: Resolver<Maybe<ResolversTypes['Token']>, ParentType, ContextType, RequireFields<MutationCreateTokenArgs, 'input'>>,
-  addColonyTokenReference?: Resolver<Maybe<ResolversTypes['Token']>, ParentType, ContextType, RequireFields<MutationAddColonyTokenReferenceArgs, 'input'>>,
-  setColonyTokenAvatar?: Resolver<Maybe<ResolversTypes['Token']>, ParentType, ContextType, RequireFields<MutationSetColonyTokenAvatarArgs, 'input'>>,
+  setTokenIcon?: Resolver<Maybe<ResolversTypes['Token']>, ParentType, ContextType, RequireFields<MutationSetTokenIconArgs, 'input'>>,
   markAllNotificationsAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
   markNotificationAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationMarkNotificationAsReadArgs, 'input'>>,
   sendTaskMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendTaskMessageArgs, 'input'>>,
@@ -1055,6 +1006,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   domain?: Resolver<ResolversTypes['Domain'], ParentType, ContextType, RequireFields<QueryDomainArgs, 'colonyAddress' | 'ethDomainId'>>,
   task?: Resolver<ResolversTypes['Task'], ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>,
   token?: Resolver<ResolversTypes['Token'], ParentType, ContextType, RequireFields<QueryTokenArgs, 'address'>>,
+  allTokens?: Resolver<Array<ResolversTypes['Token']>, ParentType, ContextType>,
 };
 
 export type RemoveTaskPayoutEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['RemoveTaskPayoutEvent'] = ResolversParentTypes['RemoveTaskPayoutEvent']> = {
@@ -1153,10 +1105,14 @@ export type TokenResolvers<ContextType = any, ParentType extends ResolversParent
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
   address?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  symbol?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  decimals?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
   iconHash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  info?: Resolver<ResolversTypes['TokenInfo'], ParentType, ContextType>,
+};
+
+export type TokenInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['TokenInfo'] = ResolversParentTypes['TokenInfo']> = {
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  decimals?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
+  symbol?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type UnassignWorkerEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['UnassignWorkerEvent'] = ResolversParentTypes['UnassignWorkerEvent']> = {
@@ -1173,7 +1129,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   colonyAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   tasks?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType>,
   taskIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
-  tokens?: Resolver<Array<ResolversTypes['UserToken']>, ParentType, ContextType>,
+  tokens?: Resolver<Array<ResolversTypes['UserToken']>, ParentType, ContextType, UserTokensArgs>,
   tokenAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   notifications?: Resolver<Maybe<Array<ResolversTypes['Notification']>>, ParentType, ContextType, UserNotificationsArgs>,
 };
@@ -1192,9 +1148,8 @@ export type UserTokenResolvers<ContextType = any, ParentType extends ResolversPa
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
   address?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  symbol?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   iconHash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  info?: Resolver<ResolversTypes['TokenInfo'], ParentType, ContextType>,
 };
 
 export type Resolvers<ContextType = any> = {
@@ -1202,8 +1157,6 @@ export type Resolvers<ContextType = any> = {
   CancelTaskEvent?: CancelTaskEventResolvers<ContextType>,
   Colony?: ColonyResolvers<ContextType>,
   ColonyEvent?: ColonyEventResolvers,
-  ColonyToken?: ColonyTokenResolvers<ContextType>,
-  ColonyTokenRef?: ColonyTokenRefResolvers<ContextType>,
   CreateDomainEvent?: CreateDomainEventResolvers<ContextType>,
   CreateTaskEvent?: CreateTaskEventResolvers<ContextType>,
   CreateWorkRequestEvent?: CreateWorkRequestEventResolvers<ContextType>,
@@ -1212,7 +1165,6 @@ export type Resolvers<ContextType = any> = {
   EventContext?: EventContextResolvers,
   FinalizeTaskEvent?: FinalizeTaskEventResolvers<ContextType>,
   GraphQLDateTime?: GraphQLScalarType,
-  IToken?: ITokenResolvers,
   Mutation?: MutationResolvers<ContextType>,
   NewUserEvent?: NewUserEventResolvers<ContextType>,
   Notification?: NotificationResolvers<ContextType>,
@@ -1230,6 +1182,7 @@ export type Resolvers<ContextType = any> = {
   TaskMessageEvent?: TaskMessageEventResolvers<ContextType>,
   TaskPayout?: TaskPayoutResolvers<ContextType>,
   Token?: TokenResolvers<ContextType>,
+  TokenInfo?: TokenInfoResolvers<ContextType>,
   UnassignWorkerEvent?: UnassignWorkerEventResolvers<ContextType>,
   User?: UserResolvers<ContextType>,
   UserProfile?: UserProfileResolvers<ContextType>,

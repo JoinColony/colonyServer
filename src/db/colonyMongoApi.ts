@@ -1,5 +1,11 @@
 import assert from 'assert'
-import { Collection, Db, ObjectID, QuerySelector, UpdateOneOptions } from 'mongodb'
+import {
+  Collection,
+  Db,
+  ObjectID,
+  QuerySelector,
+  UpdateOneOptions,
+} from 'mongodb'
 
 import {
   ColonyDoc,
@@ -323,6 +329,7 @@ export class ColonyMongoApi {
     tokenName: string,
     tokenSymbol: string,
     tokenDecimals: number,
+    tokenIsExternal: boolean,
     tokenIconHash?: string,
   ) {
     await this.tryGetUser(initiator)
@@ -344,13 +351,9 @@ export class ColonyMongoApi {
       colonyName,
       displayName,
       founderAddress: initiator,
-      tokenRefs: [
-        {
-          address: tokenAddress,
-          isNative: true,
-          isExternal: tokenExists,
-        },
-      ],
+      nativeTokenAddress: tokenAddress,
+      isNativeTokenExternal: tokenIsExternal,
+      tokenAddresses: [tokenAddress],
     }
 
     const exists = !!(await this.colonies.findOne({
@@ -392,29 +395,23 @@ export class ColonyMongoApi {
     )
   }
 
-  async setColonyTokenAvatar(
-    colonyAddress: string,
+  async setTokenIcon(
+    initiator: string,
     tokenAddress: string,
-    ipfsHash: string,
+    ipfsHash: string | null,
   ) {
-    await this.tryGetColony(colonyAddress)
+    await this.tryGetUser(initiator)
+    const { creatorAddress } = await this.tryGetToken(tokenAddress)
 
-    return this.updateColony(
-      colonyAddress,
-      // @ts-ignore $elemMatch isn't typed well
-      { tokenRefs: { $elemMatch: { address: tokenAddress } } },
-      { $set: { 'tokenRefs.$.iconHash': ipfsHash } },
-    )
-  }
+    if (creatorAddress !== initiator) {
+      throw new Error(
+        'Unable to set token icon: must be performed as token creator',
+      )
+    }
 
-  async removeColonyTokenAvatar(colonyAddress: string, tokenAddress: string) {
-    await this.tryGetColony(colonyAddress)
-
-    return this.updateColony(
-      colonyAddress,
-      // @ts-ignore $elemMatch isn't typed well
-      { tokenRefs: { $elemMatch: { address: tokenAddress } } },
-      { $unset: { 'tokenRefs.$.iconHash': '' } },
+    return this.tokens.updateOne(
+      { address: tokenAddress, creatorAddress: initiator },
+      ipfsHash ? { $set: { ipfsHash } } : { $unset: { ipfsHash: null } },
     )
   }
 
@@ -424,6 +421,17 @@ export class ColonyMongoApi {
       tokenAddresses.map(tokenAddress => this.tryGetToken(tokenAddress)),
     )
     return this.updateUser(initiator, {}, { $set: { tokenAddresses } })
+  }
+
+  async setColonyTokens(
+    initiator: string,
+    colonyAddress: string,
+    tokenAddresses: string[],
+  ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetColony(colonyAddress)
+    await Promise.all(tokenAddresses.map(address => this.tryGetToken(address)))
+    return this.updateColony(colonyAddress, {}, { $set: { tokenAddresses } })
   }
 
   async createTask(
@@ -864,30 +872,5 @@ export class ColonyMongoApi {
     // An upsert is used even if it's not strictly necessary because
     // it's not the job of a unique index to preserve data integrity.
     return this.tokens.updateOne(doc, { $setOnInsert: doc }, { upsert: true })
-  }
-
-  async addColonyTokenReference(
-    initiator: string,
-    colonyAddress: string,
-    tokenAddress: string,
-    isExternal: boolean,
-    iconHash?: string,
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetColony(colonyAddress)
-    await this.tryGetToken(tokenAddress)
-
-    await this.colonies.updateOne(
-      { colonyAddress, tokens: { $ne: { address: tokenAddress } } },
-      {
-        $push: {
-          tokens: {
-            address: tokenAddress,
-            isExternal,
-            ...(iconHash ? { iconHash } : null),
-          },
-        },
-      },
-    )
   }
 }

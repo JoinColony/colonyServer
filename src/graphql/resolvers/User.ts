@@ -1,5 +1,6 @@
 import { ApolloContext } from '../apolloTypes'
-import { UserResolvers, UserToken } from '../types'
+import { UserResolvers } from '../types'
+import { ETH_ADDRESS } from '../../constants'
 
 export const User: UserResolvers<ApolloContext> = {
   async colonies({ colonyAddresses }, input, { dataSources: { data } }) {
@@ -13,7 +14,7 @@ export const User: UserResolvers<ApolloContext> = {
     return data.getTasksById(taskIds)
   },
   async tokens({ tokenAddresses }, input, { dataSources: { data } }) {
-    return data.getTokensByAddress(tokenAddresses)
+    return data.getTokensByAddress([ETH_ADDRESS, ...tokenAddresses])
   },
   async notifications(
     { id },

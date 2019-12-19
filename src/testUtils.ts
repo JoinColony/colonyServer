@@ -1,6 +1,6 @@
 import { Db } from 'mongodb'
 
-import { CollectionNames } from './db/collections'
+import { CollectionNames, COLLECTIONS_MANIFEST } from './db/collections'
 import {
   ColonyDoc,
   DomainDoc,
@@ -26,26 +26,17 @@ const insertMany = async <T>(
     .map(idx => insertedIds[idx].toHexString())
 }
 
-export const insertDocs = async (
-  db: Db,
-  {
-    colonies = [],
-    domains = [],
-    events = [],
-    notifications = [],
-    tasks = [],
-    tokens = [],
-    users = [],
-  }: {
-    colonies?: Partial<ColonyDoc>[]
-    domains?: Partial<DomainDoc>[]
-    events?: Partial<EventDoc<any>>[]
-    notifications?: Partial<NotificationDoc>[]
-    tasks?: Partial<TaskDoc>[]
-    tokens?: Partial<TokenDoc>[]
-    users?: Partial<UserDoc>[]
-  },
-): Promise<{
+interface DocsToInsert {
+  colonies?: Partial<ColonyDoc>[]
+  domains?: Partial<DomainDoc>[]
+  events?: Partial<EventDoc<any>>[]
+  notifications?: Partial<NotificationDoc>[]
+  tasks?: Partial<TaskDoc>[]
+  tokens?: Partial<TokenDoc>[]
+  users?: Partial<UserDoc>[]
+}
+
+interface InsertedDocs {
   colonies: string[]
   domains: string[]
   events: string[]
@@ -53,16 +44,46 @@ export const insertDocs = async (
   tasks: string[]
   tokens: string[]
   users: string[]
-}> => ({
-  colonies: await insertMany(db, CollectionNames.Colonies, colonies),
-  domains: await insertMany(db, CollectionNames.Domains, domains),
-  events: await insertMany(db, CollectionNames.Events, events),
-  notifications: await insertMany(
-    db,
-    CollectionNames.Notifications,
-    notifications,
-  ),
-  tasks: await insertMany(db, CollectionNames.Tasks, tasks),
-  tokens: await insertMany(db, CollectionNames.Tokens, tokens),
-  users: await insertMany(db, CollectionNames.Users, users),
-})
+}
+
+export const insertDocs = async (
+  db: Db,
+  docs: DocsToInsert,
+): Promise<InsertedDocs> => {
+  // Insert seeded docs first (as defined on the collection manifest) to reflect
+  // how the database should be set up in practise
+  const seededDocs = await Promise.all(
+    Object.keys(docs).map(async (collectionName: CollectionNames) => {
+      const seedDocs = COLLECTIONS_MANIFEST.get(collectionName).seedDocs
+      const ids =
+        seedDocs && seedDocs.length
+          ? await insertMany(db, collectionName, seedDocs)
+          : []
+      return [collectionName, ids]
+    }),
+  )
+
+  const givenDocs = await Promise.all(
+    Object.keys(docs).map(async (collectionName: CollectionNames) => {
+      const ids = await insertMany(db, collectionName, docs[collectionName])
+      return [collectionName, ids]
+    }),
+  )
+
+  // Construct the InsertedDocs from the seeded and given docs that were inserted
+  return [...seededDocs, ...givenDocs].reduce(
+    (acc, [collectionName, ids]: [CollectionNames, string[]]) => ({
+      ...acc,
+      [collectionName]: [...acc[collectionName], ...ids],
+    }),
+    {
+      colonies: [],
+      domains: [],
+      events: [],
+      notifications: [],
+      tasks: [],
+      tokens: [],
+      users: [],
+    },
+  )
+}

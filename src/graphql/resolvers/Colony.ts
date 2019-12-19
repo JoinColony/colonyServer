@@ -1,5 +1,5 @@
 import { ApolloContext } from '../apolloTypes'
-import { ColonyResolvers, ColonyToken } from '../types'
+import { ColonyResolvers } from '../types'
 
 export const Colony: ColonyResolvers<ApolloContext> = {
   async tasks(
@@ -17,18 +17,11 @@ export const Colony: ColonyResolvers<ApolloContext> = {
   async founder({ founderAddress }, input, { dataSources: { data } }) {
     return data.getUserByAddress(founderAddress)
   },
-  async tokens({ tokenRefs }, input, { dataSources: { data } }) {
-    // Combine generic token data (e.g. `symbol`) with colony-specific token data (e.g. `isNative`)
-    const tokenData = await data.getTokensByAddress(
-      tokenRefs.map(({ address }) => address),
-    )
-    return tokenRefs.map(
-      token =>
-        ({
-          ...token,
-          ...(tokenData.find(({ address }) => address === token.address) || {}),
-        } as ColonyToken),
-    )
+  async tokens({ colonyAddress }, input, { dataSources: { data } }) {
+    return data.getColonyTokens(colonyAddress)
+  },
+  async nativeToken({ nativeTokenAddress }, input, { dataSources: { data } }) {
+    return data.getTokenByAddress(nativeTokenAddress)
   },
   async subscribedUsers({ colonyAddress }, input, { dataSources: { data } }) {
     return data.getColonySubscribedUsers(colonyAddress)

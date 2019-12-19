@@ -36,6 +36,14 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     await api.unsubscribeFromColony(userAddress, colonyAddress)
     return data.getUserByAddress(userAddress)
   },
+  async setUserTokens(
+    parent,
+    { input: { tokenAddresses } },
+    { userAddress, api, dataSources: { data } },
+  ) {
+    await api.setUserTokens(userAddress, tokenAddresses)
+    return data.getUserByAddress(userAddress)
+  },
   // Colonies
   async createColony(
     parent,
@@ -48,6 +56,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
         tokenName,
         tokenSymbol,
         tokenDecimals,
+        tokenIsExternal,
         tokenIconHash,
       },
     },
@@ -66,6 +75,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
       tokenName,
       tokenSymbol,
       tokenDecimals,
+      tokenIsExternal,
       tokenIconHash,
     )
     return data.getColonyByAddress(colonyAddress)
@@ -323,38 +333,21 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     )
     return data.getTokenByAddress(address)
   },
-  async addColonyTokenReference(
+  async setColonyTokens(
     parent,
-    { input: { tokenAddress, colonyAddress, isExternal, iconHash } },
+    { input: { tokenAddresses, colonyAddress } },
     { userAddress, api, dataSources: { data, auth } },
   ) {
-    await tryAuth(
-      auth.assertCanAddColonyTokenReference({ colonyAddress, userAddress }),
-    )
-    await api.addColonyTokenReference(
-      userAddress,
-      colonyAddress,
-      tokenAddress,
-      isExternal,
-      iconHash,
-    )
-    return data.getTokenByAddress(tokenAddress)
+    await tryAuth(auth.assertCanSetColonyTokens({ colonyAddress, userAddress }))
+    await api.setColonyTokens(userAddress, colonyAddress, tokenAddresses)
+    return data.getColonyByAddress(colonyAddress)
   },
-  async setColonyTokenAvatar(
+  async setTokenIcon(
     parent,
-    { input: { tokenAddress, colonyAddress, iconHash } },
-    { userAddress, api, dataSources: { data, auth } },
+    { input: { tokenAddress, iconHash } },
+    { userAddress, api, dataSources: { data } },
   ) {
-    await tryAuth(
-      auth.assertCanAddColonyTokenReference({ colonyAddress, userAddress }),
-    )
-
-    if (iconHash) {
-      await api.setColonyTokenAvatar(colonyAddress, tokenAddress, iconHash)
-    } else {
-      await api.removeColonyTokenAvatar(colonyAddress, tokenAddress)
-    }
-
+    await api.setTokenIcon(userAddress, tokenAddress, iconHash)
     return data.getTokenByAddress(tokenAddress)
   },
   // Notifications

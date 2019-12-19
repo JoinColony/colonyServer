@@ -1,4 +1,6 @@
 import { CollectionCreateOptions, IndexOptions } from 'mongodb'
+import { TokenDoc } from './types'
+import { ETH_ADDRESS } from '../constants'
 
 export enum CollectionNames {
   Colonies = 'colonies',
@@ -12,7 +14,11 @@ export enum CollectionNames {
 
 export type CollectionsManifest = Map<
   CollectionNames,
-  { create: CollectionCreateOptions; indexes: [string, IndexOptions][] }
+  {
+    create: CollectionCreateOptions
+    indexes: [string, IndexOptions][]
+    seedDocs?: any[]
+  }
 >
 
 export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
@@ -157,31 +163,22 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   bsonType: 'string',
                 },
               },
-              tokenRefs: {
+              nativeTokenAddress: {
+                bsonType: 'string',
+                description: 'must be a string and is required',
+                maxLength: 42,
+              },
+              isNativeTokenExternal: {
+                bsonType: 'boolean',
+                description: 'must be a boolean',
+              },
+              tokenAddresses: {
                 bsonType: 'array',
-                description: 'must be an array of colony token references',
+                description: 'must be an array of token addresses',
                 uniqueItems: true,
                 additionalProperties: false,
                 items: {
-                  bsonType: 'object',
-                  required: ['address'],
-                  properties: {
-                    address: {
-                      bsonType: 'string',
-                    },
-                    creator: {
-                      bsonType: 'string',
-                    },
-                    iconHash: {
-                      bsonType: 'string',
-                    },
-                    isExternal: {
-                      bsonType: 'bool',
-                    },
-                    isNative: {
-                      bsonType: 'bool',
-                    },
-                  },
+                  bsonType: 'string',
                 },
               },
             },
@@ -430,7 +427,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 bsonType: 'string',
                 maxLength: 42,
               },
-              creator: {
+              creatorAddress: {
                 bsonType: 'string',
                 maxLength: 42,
               },
@@ -454,6 +451,15 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         },
       },
       indexes: [['address', {}]],
+      seedDocs: [
+        {
+          name: 'Ether',
+          symbol: 'ETH',
+          address: ETH_ADDRESS,
+          creatorAddress: '',
+          decimals: 18,
+        },
+      ] as TokenDoc[],
     },
   ],
 ])

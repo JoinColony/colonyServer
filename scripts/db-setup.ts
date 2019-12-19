@@ -9,7 +9,7 @@ import { COLLECTIONS_MANIFEST } from '../src/db/collections'
 const createCollections = async (db: Db) =>
   Promise.all(
     Array.from(COLLECTIONS_MANIFEST.entries()).map(
-      async ([name, { create, indexes }]) => {
+      async ([name, { create, indexes, seedDocs = [] }]) => {
         console.info(`Creating collection ${name}`)
         await db.createCollection(name, create)
         await Promise.all(
@@ -17,6 +17,9 @@ const createCollections = async (db: Db) =>
             db.createIndex(name, fieldName, options),
           ),
         )
+        if (seedDocs.length) {
+          await db.collection(name).insertMany(seedDocs)
+        }
       },
     ),
   )

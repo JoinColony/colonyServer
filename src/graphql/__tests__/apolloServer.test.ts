@@ -13,7 +13,7 @@ import Event from '../typeDefs/Event'
 import Mutation from '../typeDefs/Mutation'
 import Query from '../typeDefs/Query'
 import Task from '../typeDefs/Task'
-import Token from '../typeDefs/Token'
+import Token from '../typeDefs/TokenInfo'
 import User from '../typeDefs/User'
 import scalars from '../typeDefs/scalars'
 import { resolvers } from '../resolvers'
@@ -65,7 +65,9 @@ const colonyDoc: Omit<ColonyDoc, '_id'> = {
   colonyName: 'colony name',
   founderAddress: user1Doc.walletAddress,
   taskIds: [],
-  tokenRefs: [],
+  nativeTokenAddress: 'token address',
+  isNativeTokenExternal: false,
+  tokenAddresses: [],
 }
 const rootDomainDoc: Omit<DomainDoc, '_id'> = {
   colonyAddress: 'colony address',
@@ -81,10 +83,25 @@ const taskDoc: Omit<TaskDoc, '_id'> = {
   workInviteAddresses: [],
   workRequestAddresses: [],
 }
-const tokenDoc: Omit<TokenDoc, '_id'> = {
-  address: 'token address',
-  name: 'Token name',
-  symbol: 'TKN',
+const token1Doc = {
+  address: 'token address 1',
+  creatorAddress: user1Doc.walletAddress,
+  name: 'Token name 1',
+  symbol: 'TKN1',
+  decimals: 18,
+}
+const token2Doc = {
+  address: 'token address 2',
+  creatorAddress: user1Doc.walletAddress,
+  name: 'Token name 2',
+  symbol: 'TKN2',
+  decimals: 18,
+}
+const token3Doc = {
+  address: 'token address 3',
+  creatorAddress: user1Doc.walletAddress,
+  name: 'Token name 3',
+  symbol: 'TKN3',
   decimals: 18,
 }
 
@@ -144,9 +161,6 @@ describe('Apollo Server', () => {
   })
 
   const { query, mutate } = createTestClient(server as any)
-
-  /** @deprecated */
-  const runMutation = async (node: DocumentNode) => mutate({ mutation: node })
 
   describe('Query', () => {
     it('user', async () => {
@@ -284,7 +298,7 @@ describe('Apollo Server', () => {
 
     it('token', async () => {
       await insertDocs(db, {
-        tokens: [tokenDoc],
+        tokens: [token1Doc],
       })
 
       await expect(
@@ -293,23 +307,27 @@ describe('Apollo Server', () => {
             query token($address: String!) {
               token(address: $address) {
                 address
-                decimals
-                name
-                symbol
+                info {
+                  decimals
+                  name
+                  symbol
+                }
               }
             }
           `,
           variables: {
-            address: tokenDoc.address,
+            address: token1Doc.address,
           },
         }),
       ).resolves.toMatchObject({
         data: {
           token: {
-            address: tokenDoc.address,
-            decimals: tokenDoc.decimals,
-            name: tokenDoc.name,
-            symbol: tokenDoc.symbol,
+            address: token1Doc.address,
+            info: {
+              decimals: token1Doc.decimals,
+              name: token1Doc.name,
+              symbol: token1Doc.symbol,
+            },
           },
         },
         errors: undefined,
@@ -317,25 +335,6 @@ describe('Apollo Server', () => {
     })
 
     it('allTokens', async () => {
-      const token1Doc = {
-        address: 'token address 1',
-        name: 'Token name 1',
-        symbol: 'TKN1',
-        decimals: 18,
-      }
-      const token2Doc = {
-        address: 'token address 2',
-        name: 'Token name 2',
-        symbol: 'TKN2',
-        decimals: 18,
-      }
-      const token3Doc = {
-        address: 'token address 3',
-        name: 'Token name 3',
-        symbol: 'TKN3',
-        decimals: 18,
-      }
-
       await insertDocs(db, {
         tokens: [token1Doc, token2Doc, token3Doc],
       })
@@ -346,16 +345,126 @@ describe('Apollo Server', () => {
             query {
               allTokens {
                 address
-                decimals
-                name
-                symbol
+                info {
+                  decimals
+                  name
+                  symbol
+                }
               }
             }
           `,
         }),
       ).resolves.toMatchObject({
         data: {
-          allTokens: [token1Doc, token2Doc, token3Doc],
+          allTokens: [
+            // This document is from seeded data when the collection was created
+            {
+              address: '0x0',
+              info: {
+                name: 'Ether',
+                decimals: 18,
+                symbol: 'ETH',
+              },
+            },
+            {
+              address: token1Doc.address,
+              info: {
+                name: token1Doc.name,
+                decimals: token1Doc.decimals,
+                symbol: token1Doc.symbol,
+              },
+            },
+            {
+              address: token2Doc.address,
+              info: {
+                name: token2Doc.name,
+                decimals: token2Doc.decimals,
+                symbol: token2Doc.symbol,
+              },
+            },
+            {
+              address: token3Doc.address,
+              info: {
+                name: token3Doc.name,
+                decimals: token3Doc.decimals,
+                symbol: token3Doc.symbol,
+              },
+            },
+          ],
+        },
+        errors: undefined,
+      })
+    })
+  })
+
+  describe('Colony', () => {
+    it('tokens', async () => {
+      const colonyDoc = {
+        colonyAddress: 'colony address',
+        colonyName: 'colony name',
+        founderAddress: user1Doc.walletAddress,
+        taskIds: [],
+        nativeTokenAddress: token1Doc.address,
+        isNativeTokenExternal: false,
+        tokenAddresses: [token1Doc.address, token2Doc.address],
+      }
+
+      await insertDocs(db, {
+        tokens: [token1Doc, token2Doc, token3Doc],
+        colonies: [colonyDoc],
+      })
+
+      await expect(
+        query({
+          query: gql`
+            query colonyTokens($colonyAddress: String!) {
+              colony(address: $colonyAddress) {
+                tokens {
+                  address
+                  info {
+                    decimals
+                    name
+                    symbol
+                  }
+                }
+              }
+            }
+          `,
+          variables: { colonyAddress: colonyDoc.colonyAddress },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          colony: {
+            tokens: [
+              // This document is from seeded data when the collection was created
+              {
+                address: '0x0',
+                info: {
+                  name: 'Ether',
+                  decimals: 18,
+                  symbol: 'ETH',
+                },
+              },
+              {
+                address: token1Doc.address,
+                info: {
+                  name: token1Doc.name,
+                  decimals: token1Doc.decimals,
+                  symbol: token1Doc.symbol,
+                },
+              },
+              {
+                address: token2Doc.address,
+                info: {
+                  name: token2Doc.name,
+                  decimals: token2Doc.decimals,
+                  symbol: token2Doc.symbol,
+                },
+              },
+              // token3 should not have been included because it is not
+              // in the tokenAddresses of this colony
+            ],
+          },
         },
         errors: undefined,
       })
@@ -540,6 +649,39 @@ describe('Apollo Server', () => {
       expect(tryAuth).not.toHaveBeenCalled()
     })
 
+    it('setUserTokens', async () => {
+      await insertDocs(db, {
+        users: [user1Doc],
+        tokens: [token1Doc, token2Doc, token3Doc],
+      })
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation setUserTokens($input: SetUserTokensInput!) {
+              setUserTokens(input: $input) {
+                id
+                tokenAddresses
+              }
+            }
+          `,
+          variables: {
+            input: { tokenAddresses: [token1Doc.address, token2Doc.address] },
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          setUserTokens: {
+            id: user1Doc.walletAddress,
+            tokenAddresses: [token1Doc.address, token2Doc.address],
+          },
+        },
+        errors: undefined,
+      })
+
+      expect(tryAuth).not.toHaveBeenCalled()
+    })
+
     it('createColony', async () => {
       await insertDocs(db, {
         users: [user1Doc],
@@ -552,6 +694,7 @@ describe('Apollo Server', () => {
         tokenAddress: '0xT',
         tokenDecimals: 18,
         tokenName: 'Token',
+        tokenIsExternal: false,
         tokenSymbol: 'TKN',
       }
 
@@ -564,9 +707,9 @@ describe('Apollo Server', () => {
                 colonyAddress
                 colonyName
                 displayName
-                tokens {
-                  address
-                }
+                isNativeTokenExternal
+                nativeTokenAddress
+                tokenAddresses
               }
             }
           `,
@@ -581,7 +724,9 @@ describe('Apollo Server', () => {
             colonyAddress: colonyDoc.colonyAddress,
             colonyName: createColonyInput.colonyName,
             displayName: createColonyInput.displayName,
-            tokens: [{ address: createColonyInput.tokenAddress }],
+            nativeTokenAddress: createColonyInput.tokenAddress,
+            isNativeTokenExternal: createColonyInput.tokenIsExternal,
+            tokenAddresses: [createColonyInput.tokenAddress],
           },
         },
         errors: undefined,
@@ -589,6 +734,49 @@ describe('Apollo Server', () => {
 
       expect(tryAuth).toHaveBeenCalled()
       expect(auth.assertColonyExists).toHaveBeenCalledWith('colony address')
+    })
+
+    it('setColonyTokens', async () => {
+      await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        tokens: [token1Doc, token2Doc],
+      })
+
+      const setColonyTokensInput = {
+        colonyAddress: colonyDoc.colonyAddress,
+        tokenAddresses: [token1Doc.address, token2Doc.address],
+      }
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation setColonyTokens($input: SetColonyTokensInput!) {
+              setColonyTokens(input: $input) {
+                id
+                tokenAddresses
+              }
+            }
+          `,
+          variables: {
+            input: setColonyTokensInput,
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          setColonyTokens: {
+            id: setColonyTokensInput.colonyAddress,
+            tokenAddresses: setColonyTokensInput.tokenAddresses,
+          },
+        },
+        errors: undefined,
+      })
+
+      expect(tryAuth).toHaveBeenCalled()
+      expect(auth.assertCanSetColonyTokens).toHaveBeenCalledWith({
+        colonyAddress: setColonyTokensInput.colonyAddress,
+        userAddress: user1Doc.walletAddress,
+      })
     })
 
     it('createTask', async () => {
@@ -864,11 +1052,11 @@ describe('Apollo Server', () => {
         colonies: [colonyDoc],
         domains: [rootDomainDoc],
         tasks: [taskDoc],
-        tokens: [tokenDoc],
+        tokens: [token1Doc],
       })
 
       const amount = '100'
-      const tokenAddress = tokenDoc.address
+      const tokenAddress = token1Doc.address
 
       await expect(
         mutate({
@@ -915,11 +1103,11 @@ describe('Apollo Server', () => {
         colonies: [colonyDoc],
         domains: [rootDomainDoc],
         tasks: [taskDoc],
-        tokens: [tokenDoc],
+        tokens: [token1Doc],
       })
 
       const amount = '100'
-      const tokenAddress = tokenDoc.address
+      const tokenAddress = token1Doc.address
 
       await expect(
         mutate({
@@ -1057,12 +1245,12 @@ describe('Apollo Server', () => {
         users: [user1Doc, user2Doc],
         colonies: [colonyDoc],
         domains: [rootDomainDoc],
-        tokens: [tokenDoc],
+        tokens: [token1Doc],
         tasks: [
           {
             ...taskDoc,
             assignedWorkerAddress: user2Doc.walletAddress,
-            payouts: [{ amount: '100', tokenAddress: tokenDoc.address }],
+            payouts: [{ amount: '100', tokenAddress: token1Doc.address }],
           },
         ],
       })
@@ -1164,10 +1352,12 @@ describe('Apollo Server', () => {
             mutation createToken($input: CreateTokenInput!) {
               createToken(input: $input) {
                 address
-                name
-                symbol
-                decimals
                 iconHash
+                info {
+                  name
+                  symbol
+                  decimals
+                }
               }
             }
           `,
@@ -1177,113 +1367,20 @@ describe('Apollo Server', () => {
         }),
       ).resolves.toMatchObject({
         data: {
-          createToken: tokenInput,
+          createToken: {
+            address: tokenInput.address,
+            iconHash: tokenInput.iconHash,
+            info: {
+              name: tokenInput.name,
+              symbol: tokenInput.symbol,
+              decimals: tokenInput.decimals,
+            },
+          },
         },
         errors: undefined,
       })
 
       expect(tryAuth).not.toHaveBeenCalled()
-    })
-
-    // TODO reinstate this test; API changing soon
-    it.skip('addColonyTokenReference', async () => {
-      await runMutation(gql`
-        mutation {
-          addColonyTokenReference(
-            input: {
-              tokenAddress: "token address"
-              colonyAddress: "colony address"
-              isExternal: false
-              iconHash: "icon hash"
-            }
-          ) {
-            id
-          }
-        }
-      `)
-
-      expect(tryAuth).toHaveBeenCalled()
-      expect(auth.assertCanAddColonyTokenReference).toHaveBeenCalledWith({
-        colonyAddress: 'colony address',
-        userAddress: ctxUserAddress,
-      })
-      expect(api.addColonyTokenReference).toHaveBeenCalledWith(
-        ctxUserAddress,
-        'colony address',
-        'token address',
-        false,
-        'icon hash',
-      )
-    })
-
-    // TODO reinstate this test; API changing soon
-    it.skip('setColonyTokenAvatar', async () => {
-      // Set to an icon hash
-      await runMutation(gql`
-        mutation {
-          setColonyTokenAvatar(
-            input: {
-              tokenAddress: "token address"
-              colonyAddress: "colony address"
-              iconHash: "icon hash"
-            }
-          ) {
-            id
-          }
-        }
-      `)
-
-      expect(tryAuth).toHaveBeenCalled()
-      expect(auth.assertCanAddColonyTokenReference).toHaveBeenCalledWith({
-        colonyAddress: 'colony address',
-        userAddress: ctxUserAddress,
-      })
-      expect(api.removeColonyTokenAvatar).not.toHaveBeenCalled()
-      expect(api.setColonyTokenAvatar).toHaveBeenCalledWith(
-        'colony address',
-        'token address',
-        'icon hash',
-      )
-
-      mocked(api.setColonyTokenAvatar).mockClear()
-
-      // Remove the icon
-      await runMutation(gql`
-        mutation {
-          setColonyTokenAvatar(
-            input: {
-              tokenAddress: "token address"
-              colonyAddress: "colony address"
-              iconHash: null
-            }
-          ) {
-            id
-          }
-        }
-      `)
-
-      expect(api.setColonyTokenAvatar).not.toHaveBeenCalled()
-      expect(api.removeColonyTokenAvatar).toHaveBeenCalledWith(
-        'colony address',
-        'token address',
-      )
-    })
-
-    // TODO reinstate this test; API changing soon
-    it.skip('setUserTokens', async () => {
-      await runMutation(gql`
-        mutation {
-          setUserTokens(input: { tokens: ["token 1", "token 2"] }) {
-            id
-          }
-        }
-      `)
-
-      expect(tryAuth).not.toHaveBeenCalled()
-      expect(api.setUserTokens).toHaveBeenCalledWith(ctxUserAddress, [
-        'token 1',
-        'token 2',
-      ])
     })
 
     it('markNotificationAsRead', async () => {
