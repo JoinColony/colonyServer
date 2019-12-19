@@ -123,10 +123,13 @@ describe('Apollo Server', () => {
   }
 
   beforeAll(async () => {
-    connection = await MongoClient.connect(process.env.DB_URL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    })
+    connection = await MongoClient.connect(
+      process.env.DB_URL,
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      },
+    )
     db = await connection.db()
     api = new ColonyMongoApi(db)
     data = new ColonyMongoDataSource(db)
@@ -261,10 +264,32 @@ describe('Apollo Server', () => {
     })
 
     it('task', async () => {
+      const taskDoc: Omit<TaskDoc, '_id'> = {
+        colonyAddress: 'colony address',
+        ethDomainId: 1,
+        creatorAddress: user1Doc.walletAddress,
+        payouts: [
+          {
+            amount: '420',
+            tokenAddress: token1Doc.address,
+          },
+          {
+            amount: '69',
+            tokenAddress: token2Doc.address,
+          },
+        ],
+        workInviteAddresses: [user2Doc.walletAddress],
+        workRequestAddresses: [user2Doc.walletAddress],
+        assignedWorkerAddress: user2Doc.walletAddress,
+      }
       const {
         tasks: [id],
       } = await insertDocs(db, {
         tasks: [taskDoc],
+        colonies: [colonyDoc],
+        domains: [rootDomainDoc],
+        tokens: [token1Doc, token2Doc],
+        users: [user1Doc, user2Doc],
       })
 
       await expect(
@@ -273,9 +298,24 @@ describe('Apollo Server', () => {
             query task($id: String!) {
               task(id: $id) {
                 id
-                ethDomainId
-                colonyAddress
-                creatorAddress
+                colony {
+                  id
+                }
+                assignedWorker {
+                  id
+                }
+                creator {
+                  id
+                }
+                domain {
+                  ethDomainId
+                }
+                payouts {
+                  amount
+                  token {
+                    address
+                  }
+                }
               }
             }
           `,
@@ -287,9 +327,32 @@ describe('Apollo Server', () => {
         data: {
           task: {
             id,
-            ethDomainId: taskDoc.ethDomainId,
-            colonyAddress: taskDoc.colonyAddress,
-            creatorAddress: taskDoc.creatorAddress,
+            colony: {
+              id: colonyDoc.colonyAddress,
+            },
+            creator: {
+              id: user1Doc.walletAddress,
+            },
+            assignedWorker: {
+              id: user2Doc.walletAddress,
+            },
+            domain: {
+              ethDomainId: rootDomainDoc.ethDomainId,
+            },
+            payouts: [
+              {
+                amount: taskDoc.payouts[0].amount,
+                token: {
+                  address: taskDoc.payouts[0].tokenAddress,
+                },
+              },
+              {
+                amount: taskDoc.payouts[1].amount,
+                token: {
+                  address: taskDoc.payouts[1].tokenAddress,
+                },
+              },
+            ],
           },
         },
         errors: undefined,
