@@ -169,7 +169,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 maxLength: 42,
               },
               isNativeTokenExternal: {
-                bsonType: 'boolean',
+                bsonType: 'bool',
                 description: 'must be a boolean',
               },
               tokenAddresses: {
