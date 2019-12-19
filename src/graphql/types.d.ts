@@ -627,7 +627,7 @@ export type User = {
   colonyAddresses: Array<Scalars['String']>,
   tasks: Array<Task>,
   taskIds: Array<Scalars['String']>,
-  tokens: Array<UserToken>,
+  tokens: Array<Token>,
   tokenAddresses: Array<Scalars['String']>,
   notifications?: Maybe<Array<Notification>>,
 };
@@ -651,15 +651,6 @@ export type UserProfile = {
   location?: Maybe<Scalars['String']>,
   walletAddress: Scalars['String'],
   website?: Maybe<Scalars['String']>,
-};
-
-export type UserToken = {
-   __typename?: 'UserToken',
-  id: Scalars['String'],
-  createdAt: Scalars['GraphQLDateTime'],
-  address: Scalars['String'],
-  iconHash?: Maybe<Scalars['String']>,
-  info: TokenInfo,
 };
 
 
@@ -767,7 +758,6 @@ export type ResolversTypes = {
   Token: ResolverTypeWrapper<Token>,
   TokenInfo: ResolverTypeWrapper<TokenInfo>,
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>,
-  UserToken: ResolverTypeWrapper<UserToken>,
   Notification: ResolverTypeWrapper<Notification>,
   Mutation: ResolverTypeWrapper<{}>,
   CreateUserInput: CreateUserInput,
@@ -835,7 +825,6 @@ export type ResolversParentTypes = {
   Token: Token,
   TokenInfo: TokenInfo,
   Boolean: Scalars['Boolean'],
-  UserToken: UserToken,
   Notification: Notification,
   Mutation: {},
   CreateUserInput: CreateUserInput,
@@ -1133,7 +1122,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   colonyAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   tasks?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType>,
   taskIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
-  tokens?: Resolver<Array<ResolversTypes['UserToken']>, ParentType, ContextType, UserTokensArgs>,
+  tokens?: Resolver<Array<ResolversTypes['Token']>, ParentType, ContextType, UserTokensArgs>,
   tokenAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   notifications?: Resolver<Maybe<Array<ResolversTypes['Notification']>>, ParentType, ContextType, UserNotificationsArgs>,
 };
@@ -1146,14 +1135,6 @@ export type UserProfileResolvers<ContextType = any, ParentType extends Resolvers
   location?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   walletAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
-};
-
-export type UserTokenResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserToken'] = ResolversParentTypes['UserToken']> = {
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
-  address?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  iconHash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
-  info?: Resolver<ResolversTypes['TokenInfo'], ParentType, ContextType>,
 };
 
 export type Resolvers<ContextType = any> = {
@@ -1190,7 +1171,6 @@ export type Resolvers<ContextType = any> = {
   UnassignWorkerEvent?: UnassignWorkerEventResolvers<ContextType>,
   User?: UserResolvers<ContextType>,
   UserProfile?: UserProfileResolvers<ContextType>,
-  UserToken?: UserTokenResolvers<ContextType>,
 };
 
 
