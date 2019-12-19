@@ -12,6 +12,10 @@ const createCollections = async (db: Db) =>
       async ([name, { create, indexes, seedDocs = [] }]) => {
         console.info(`Creating collection ${name}`)
         await db.createCollection(name, create)
+
+        // If the collection already exists, remove all documents
+        await db.collection(name).deleteMany({})
+
         await Promise.all(
           indexes.map(([fieldName, options]) =>
             db.createIndex(name, fieldName, options),
