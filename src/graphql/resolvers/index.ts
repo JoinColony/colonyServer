@@ -6,7 +6,7 @@ import { Query } from './Query'
 import { Domain } from './Domain'
 import { Colony } from './Colony'
 import { User } from './User'
-import { Task } from './Task'
+import { Task, TaskPayout } from './Task'
 import { Mutation } from './Mutation'
 import { Resolvers } from '../types'
 
@@ -20,6 +20,7 @@ export const resolvers: Resolvers<ApolloContext> = {
   Colony,
   User,
   Task,
+  TaskPayout,
   Mutation,
   GraphQLDateTime,
 }

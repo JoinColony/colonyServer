@@ -4,6 +4,7 @@ export default gql`
   type TaskPayout {
     amount: String!
     tokenAddress: String!
+    token: Token!
   }
 
   type Task {
@@ -21,6 +22,7 @@ export default gql`
     colonyAddress: String!
     creator: User
     creatorAddress: String!
+    domain: Domain!
     assignedWorker: User
     assignedWorkerAddress: String
     workInvites: [User!]!

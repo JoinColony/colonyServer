@@ -149,7 +149,8 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       events: [],
       workInvites: [],
       workRequests: [],
-      payouts,
+      domain: undefined,
+      payouts: payouts.map(payout => ({ ...payout, token: undefined })),
       workRequestAddresses,
       workInviteAddresses,
     }

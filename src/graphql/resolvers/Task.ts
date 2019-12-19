@@ -1,5 +1,11 @@
 import { ApolloContext } from '../apolloTypes'
-import { TaskResolvers } from '../types'
+import { TaskResolvers, TaskPayoutResolvers } from '../types'
+
+export const TaskPayout: TaskPayoutResolvers<ApolloContext> = {
+  async token({ tokenAddress }, input, { dataSources: { data } }) {
+    return data.getTokenByAddress(tokenAddress)
+  },
+}
 
 export const Task: TaskResolvers<ApolloContext> = {
   async colony({ colonyAddress }, input, { dataSources: { data } }) {
@@ -7,6 +13,13 @@ export const Task: TaskResolvers<ApolloContext> = {
   },
   async creator({ creatorAddress }, input, { dataSources: { data } }) {
     return data.getUserByAddress(creatorAddress)
+  },
+  async domain(
+    { colonyAddress, ethDomainId },
+    input,
+    { dataSources: { data } },
+  ) {
+    return data.getDomainByEthId(colonyAddress, ethDomainId)
   },
   async assignedWorker(
     { assignedWorkerAddress },
