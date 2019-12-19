@@ -1,5 +1,13 @@
 import { CollectionCreateOptions, IndexOptions } from 'mongodb'
-import { TokenDoc } from './types'
+import {
+  ColonyDoc,
+  DomainDoc,
+  EventDoc,
+  NotificationDoc,
+  TaskDoc,
+  TokenDoc,
+  UserDoc,
+} from './types'
 import { ETH_ADDRESS } from '../constants'
 
 export enum CollectionNames {
@@ -20,6 +28,10 @@ export type CollectionsManifest = Map<
     seedDocs?: any[]
   }
 >
+
+type SchemaFields<T> = {
+  readonly [P in keyof T]: {}
+}
 
 export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
   [
@@ -92,7 +104,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   bsonType: 'string',
                 },
               },
-            },
+            } as SchemaFields<UserDoc>,
           },
         },
       },
@@ -181,7 +193,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   bsonType: 'string',
                 },
               },
-            },
+            } as SchemaFields<ColonyDoc>,
           },
         },
       },
@@ -271,7 +283,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   },
                 },
               },
-            },
+            } as SchemaFields<TaskDoc>,
           },
         },
       },
@@ -325,7 +337,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   },
                 ],
               },
-            },
+            } as SchemaFields<DomainDoc>,
           },
         },
       },
@@ -367,7 +379,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   },
                 },
               },
-            },
+            } as SchemaFields<NotificationDoc>,
           },
         },
       },
@@ -400,7 +412,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
               context: {
                 bsonType: 'object',
               },
-            },
+            } as SchemaFields<EventDoc<any>>,
           },
         },
       },
@@ -446,7 +458,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
               iconHash: {
                 bsonType: 'string',
               },
-            },
+            } as SchemaFields<TokenDoc>,
           },
         },
       },

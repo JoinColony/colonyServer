@@ -346,7 +346,7 @@ export class ColonyMongoApi {
       )
     }
 
-    const doc = {
+    const doc: Omit<ColonyDoc, '_id'> = {
       colonyAddress,
       colonyName,
       displayName,
@@ -354,6 +354,7 @@ export class ColonyMongoApi {
       nativeTokenAddress: tokenAddress,
       isNativeTokenExternal: tokenIsExternal,
       tokenAddresses: [tokenAddress],
+      taskIds: [],
     }
 
     const exists = !!(await this.colonies.findOne({
@@ -746,11 +747,9 @@ export class ColonyMongoApi {
     const filter: StrictRootQuerySelector<NotificationDoc> = {
       users: match as NotificationDoc['users'],
     }
-    const update: StrictUpdateQuery<
-      NotificationDoc & {
-        'users.$.read': boolean
-      }
-    > = { $set: { 'users.$.read': true } }
+    const update: StrictUpdateQuery<NotificationDoc & {
+      'users.$.read': boolean
+    }> = { $set: { 'users.$.read': true } }
 
     return this.notifications.updateMany(filter, update)
   }
@@ -839,9 +838,9 @@ export class ColonyMongoApi {
     const mentioned = matchUsernames(message).filter(
       username => username !== currentUsername,
     )
-    const users = (await this.users
-      .find({ username: { $in: mentioned } })
-      .toArray()).map(({ walletAddress }) => walletAddress)
+    const users = (
+      await this.users.find({ username: { $in: mentioned } }).toArray()
+    ).map(({ walletAddress }) => walletAddress)
     await this.createNotification(eventId, users)
   }
 
@@ -855,9 +854,9 @@ export class ColonyMongoApi {
   ) {
     await this.tryGetUser(initiator)
 
-    const doc = {
+    const doc: Omit<TokenDoc, '_id'> = {
       address,
-      creator: initiator,
+      creatorAddress: initiator,
       decimals,
       name,
       symbol,
