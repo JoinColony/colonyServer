@@ -422,7 +422,7 @@ describe('Apollo Server', () => {
           allTokens: [
             // This document is from seeded data when the collection was created
             {
-              address: '0x0',
+              address: '0x0000000000000000000000000000000000000000',
               info: {
                 name: 'Ether',
                 decimals: 18,
@@ -501,7 +501,7 @@ describe('Apollo Server', () => {
             tokens: [
               // This document is from seeded data when the collection was created
               {
-                address: '0x0',
+                address: '0x0000000000000000000000000000000000000000',
                 info: {
                   name: 'Ether',
                   decimals: 18,
