@@ -1,6 +1,6 @@
 export const ROOT_DOMAIN = 1
 
-export const ETH_ADDRESS = '0x0'
+export const ETH_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 export enum EventType {
   AssignWorker = 'AssignWorker',
