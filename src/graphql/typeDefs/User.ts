@@ -11,7 +11,7 @@ export default gql`
     taskIds: [String!]!
     tokens(addresses: [String!]): [Token!]!
     tokenAddresses: [String!]!
-    notifications(read: Boolean): [Notification!] # Only provided for the current user
+    notifications(read: Boolean): [Notification!]! # Only provided for the current user
   }
 
   type UserProfile {

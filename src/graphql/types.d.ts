@@ -568,9 +568,9 @@ export type Task = {
   dueDate?: Maybe<Scalars['GraphQLDateTime']>,
   finalizedAt?: Maybe<Scalars['GraphQLDateTime']>,
   title?: Maybe<Scalars['String']>,
-  colony?: Maybe<Colony>,
+  colony: Colony,
   colonyAddress: Scalars['String'],
-  creator?: Maybe<User>,
+  creator: User,
   creatorAddress: Scalars['String'],
   domain: Domain,
   assignedWorker?: Maybe<User>,
@@ -649,7 +649,7 @@ export type User = {
   taskIds: Array<Scalars['String']>,
   tokens: Array<Token>,
   tokenAddresses: Array<Scalars['String']>,
-  notifications?: Maybe<Array<Notification>>,
+  notifications: Array<Notification>,
 };
 
 
@@ -1083,9 +1083,9 @@ export type TaskResolvers<ContextType = any, ParentType extends ResolversParentT
   dueDate?: Resolver<Maybe<ResolversTypes['GraphQLDateTime']>, ParentType, ContextType>,
   finalizedAt?: Resolver<Maybe<ResolversTypes['GraphQLDateTime']>, ParentType, ContextType>,
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
-  colony?: Resolver<Maybe<ResolversTypes['Colony']>, ParentType, ContextType>,
+  colony?: Resolver<ResolversTypes['Colony'], ParentType, ContextType>,
   colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  creator?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>,
+  creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>,
   creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   domain?: Resolver<ResolversTypes['Domain'], ParentType, ContextType>,
   assignedWorker?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>,
@@ -1146,7 +1146,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   taskIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   tokens?: Resolver<Array<ResolversTypes['Token']>, ParentType, ContextType, UserTokensArgs>,
   tokenAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
-  notifications?: Resolver<Maybe<Array<ResolversTypes['Notification']>>, ParentType, ContextType, UserNotificationsArgs>,
+  notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType, UserNotificationsArgs>,
 };
 
 export type UserProfileResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserProfile'] = ResolversParentTypes['UserProfile']> = {
