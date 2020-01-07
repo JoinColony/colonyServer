@@ -175,23 +175,23 @@ export type Event = {
 export type EventContext = AssignWorkerEvent | CancelTaskEvent | CreateDomainEvent | CreateTaskEvent | CreateWorkRequestEvent | FinalizeTaskEvent | NewUserEvent | RemoveTaskPayoutEvent | SendWorkInviteEvent | SetTaskDescriptionEvent | SetTaskDomainEvent | SetTaskDueDateEvent | SetTaskPayoutEvent | SetTaskSkillEvent | SetTaskTitleEvent | TaskMessageEvent | UnassignWorkerEvent;
 
 export enum EventType {
-  AssignWorker = 'ASSIGN_WORKER',
-  CancelTask = 'CANCEL_TASK',
-  CreateDomain = 'CREATE_DOMAIN',
-  CreateTask = 'CREATE_TASK',
-  CreateWorkRequest = 'CREATE_WORK_REQUEST',
-  FinalizeTask = 'FINALIZE_TASK',
-  NewUser = 'NEW_USER',
-  RemoveTaskPayout = 'REMOVE_TASK_PAYOUT',
-  SendWorkInvite = 'SEND_WORK_INVITE',
-  SetTaskDescription = 'SET_TASK_DESCRIPTION',
-  SetTaskDomain = 'SET_TASK_DOMAIN',
-  SetTaskDueDate = 'SET_TASK_DUE_DATE',
-  SetTaskPayout = 'SET_TASK_PAYOUT',
-  SetTaskSkill = 'SET_TASK_SKILL',
-  SetTaskTitle = 'SET_TASK_TITLE',
-  TaskMessage = 'TASK_MESSAGE',
-  UnassignWorker = 'UNASSIGN_WORKER'
+  AssignWorker = 'AssignWorker',
+  CancelTask = 'CancelTask',
+  CreateDomain = 'CreateDomain',
+  CreateTask = 'CreateTask',
+  CreateWorkRequest = 'CreateWorkRequest',
+  FinalizeTask = 'FinalizeTask',
+  NewUser = 'NewUser',
+  RemoveTaskPayout = 'RemoveTaskPayout',
+  SendWorkInvite = 'SendWorkInvite',
+  SetTaskDescription = 'SetTaskDescription',
+  SetTaskDomain = 'SetTaskDomain',
+  SetTaskDueDate = 'SetTaskDueDate',
+  SetTaskPayout = 'SetTaskPayout',
+  SetTaskSkill = 'SetTaskSkill',
+  SetTaskTitle = 'SetTaskTitle',
+  TaskMessage = 'TaskMessage',
+  UnassignWorker = 'UnassignWorker'
 }
 
 export type FinalizeTaskEvent = TaskEvent & {
