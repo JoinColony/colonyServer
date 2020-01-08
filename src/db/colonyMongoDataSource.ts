@@ -275,7 +275,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   async getColonySubscribedUsers(colonyAddress: string, ttl?: number) {
-    const query = { colonies: colonyAddress }
+    const query = { colonyAddresses: colonyAddress }
     const docs = ttl
       ? await this.collections.users.findManyByQuery(query, { ttl })
       : await this.collections.users.collection.find(query).toArray()
