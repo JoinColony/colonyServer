@@ -25,7 +25,7 @@ export const getAddressFromToken = (token: string) => {
   const { address, exp } = JWT.decode(token) as { address: string; exp: number }
 
   // `exp` is a timestamp without milliseconds
-  if (!disableExpiryCheck && (Date.now() / 1000) > exp) {
+  if (!disableExpiryCheck && Date.now() / 1000 > exp) {
     throw new Error('Authentication token expired')
   }
 

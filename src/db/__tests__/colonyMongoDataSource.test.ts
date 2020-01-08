@@ -10,13 +10,10 @@ describe('ColonyMongoDataSource', () => {
   let data
 
   beforeAll(async () => {
-    connection = await MongoClient.connect(
-      process.env.DB_URL,
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      },
-    )
+    connection = await MongoClient.connect(process.env.DB_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
     db = await connection.db()
     data = new ColonyMongoDataSource(db)
     data.initialize({} as any)

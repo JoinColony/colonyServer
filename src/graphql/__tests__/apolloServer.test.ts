@@ -123,13 +123,10 @@ describe('Apollo Server', () => {
   }
 
   beforeAll(async () => {
-    connection = await MongoClient.connect(
-      process.env.DB_URL,
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      },
-    )
+    connection = await MongoClient.connect(process.env.DB_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
     db = await connection.db()
     api = new ColonyMongoApi(db)
     data = new ColonyMongoDataSource(db)

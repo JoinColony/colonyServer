@@ -172,10 +172,7 @@ class ColoniesMap extends Map<ColonyAddress, IColony> {
     let colony = super.get(colonyAddress)
     if (colony) return colony
 
-    colony = IColonyFactory.connect(
-      colonyAddress,
-      this.provider,
-    )
+    colony = IColonyFactory.connect(colonyAddress, this.provider)
     this.set(colonyAddress, colony)
     return colony
   }
