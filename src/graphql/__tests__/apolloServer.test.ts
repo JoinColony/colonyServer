@@ -1318,7 +1318,7 @@ describe('Apollo Server', () => {
       await expect(
         mutate({
           mutation: gql`
-            mutation finalizeTask($input: TaskIdInput!) {
+            mutation finalizeTask($input: FinalizeTaskInput!) {
               finalizeTask(input: $input) {
                 id
                 finalizedAt
@@ -1328,7 +1328,7 @@ describe('Apollo Server', () => {
               }
             }
           `,
-          variables: { input: { id } },
+          variables: { input: { id, ethPotId: 1 } },
         }),
       ).resolves.toMatchObject({
         data: {

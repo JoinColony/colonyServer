@@ -133,7 +133,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     { userAddress, api, dataSources: { data, auth } },
   ) {
     // TODO for all of these cases (where we need to look up the ethDomainId for an off-chain task),
-    // it's ok to do this lookup, but if we have an ethTaskId, we should look up the ethDomainId
+    // it's ok to do this lookup, but if we have an ethPotId, we should look up the ethDomainId
     // from on-chain.
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
     await tryAuth(
@@ -182,7 +182,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     parent,
     {
       input: { id, dueDate },
-    }: { input: { id: string; dueDate: string | null | undefined } },
+    },
     { userAddress, api, dataSources: { data, auth } },
   ) {
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
@@ -287,7 +287,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
   },
   async finalizeTask(
     parent,
-    { input: { id } },
+    { input: { id, ethPotId } },
     { userAddress, api, dataSources: { data, auth } },
   ) {
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)
@@ -298,7 +298,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
         domainId: ethDomainId,
       }),
     )
-    await api.finalizeTask(userAddress, id)
+    await api.finalizeTask(userAddress, { taskId: id, ethPotId })
     return data.getTaskById(id)
   },
   async cancelTask(

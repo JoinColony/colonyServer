@@ -233,7 +233,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 bsonType: 'number',
                 minimum: 1,
               },
-              ethTaskId: {
+              ethPotId: {
                 bsonType: 'number',
                 minimum: 1,
               },
@@ -296,7 +296,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['colonyAddress', {}],
         ['creatorAddress', {}],
         ['ethDomainId', {}],
-        ['ethTaskId', { sparse: true }],
+        ['ethPotId', { sparse: true }],
       ],
     },
   ],

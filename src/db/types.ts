@@ -81,13 +81,13 @@ export interface TaskDoc extends MongoDoc {
   colonyAddress: string
   creatorAddress: string
   ethDomainId: number
+  ethPotId?: number
   assignedWorkerAddress?: string
-  cancelledAt?: string
+  cancelledAt?: Date
   description?: string
-  dueDate?: string
+  dueDate?: Date
   ethSkillId?: number
-  ethTaskId?: number
-  finalizedAt?: string
+  finalizedAt?: Date
   payouts: { tokenAddress: string; amount: string }[]
   title?: string
   workInviteAddresses: string[]

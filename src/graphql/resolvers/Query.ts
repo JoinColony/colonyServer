@@ -22,7 +22,7 @@ export const Query: QueryResolvers<ApolloContext> = {
   ) {
     return data.getDomainByEthId(colonyAddress, ethDomainId)
   },
-  // TODO task by ethTaskId/colonyAddress
+  // TODO task by ethPotId/colonyAddress
   async task(parent, { id }: { id: string }, { dataSources: { data } }) {
     return data.getTaskById(id)
   },

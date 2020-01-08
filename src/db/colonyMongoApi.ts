@@ -518,7 +518,9 @@ export class ColonyMongoApi {
     return this.updateTask(
       taskId,
       {},
-      dueDate ? { $set: { dueDate } } : { $unset: { dueDate: '' } },
+      dueDate
+        ? { $set: { dueDate: new Date(dueDate) } }
+        : { $unset: { dueDate: '' } },
     )
   }
 
@@ -679,7 +681,10 @@ export class ColonyMongoApi {
     )
   }
 
-  async finalizeTask(initiator: string, taskId: string) {
+  async finalizeTask(
+    initiator: string,
+    { taskId, ethPotId }: { taskId: string; ethPotId: number },
+  ) {
     await this.tryGetUser(initiator)
     const task = await this.tryGetTask(taskId)
 
@@ -700,7 +705,7 @@ export class ColonyMongoApi {
     return this.updateTask(
       taskId,
       {},
-      { $set: { finalizedAt: new Date().toISOString() } },
+      { $set: { finalizedAt: new Date(), ethPotId } },
     )
   }
 
@@ -716,7 +721,7 @@ export class ColonyMongoApi {
     return this.updateTask(
       taskId,
       {},
-      { $set: { cancelledAt: new Date().toISOString() } },
+      { $set: { cancelledAt: new Date() } },
     )
   }
 

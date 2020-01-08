@@ -10,8 +10,8 @@ export default gql`
   type Task {
     id: String! # stringified ObjectId
     createdAt: GraphQLDateTime!
-    ethTaskId: Int
     ethDomainId: Int!
+    ethPotId: Int
     ethSkillId: Int
     cancelledAt: GraphQLDateTime
     description: String

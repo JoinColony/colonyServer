@@ -200,6 +200,11 @@ export type FinalizeTaskEvent = TaskEvent & {
   taskId: Scalars['String'],
 };
 
+export type FinalizeTaskInput = {
+  id: Scalars['String'],
+  ethPotId: Scalars['Int'],
+};
+
 
 export type MarkNotificationAsReadInput = {
   id: Scalars['String'],
@@ -317,7 +322,7 @@ export type MutationCreateWorkRequestArgs = {
 
 
 export type MutationFinalizeTaskArgs = {
-  input: TaskIdInput
+  input: FinalizeTaskInput
 };
 
 
@@ -560,8 +565,8 @@ export type Task = {
    __typename?: 'Task',
   id: Scalars['String'],
   createdAt: Scalars['GraphQLDateTime'],
-  ethTaskId?: Maybe<Scalars['Int']>,
   ethDomainId: Scalars['Int'],
+  ethPotId?: Maybe<Scalars['Int']>,
   ethSkillId?: Maybe<Scalars['Int']>,
   cancelledAt?: Maybe<Scalars['GraphQLDateTime']>,
   description?: Maybe<Scalars['String']>,
@@ -795,6 +800,7 @@ export type ResolversTypes = {
   TaskIdInput: TaskIdInput,
   CreateTaskInput: CreateTaskInput,
   CreateWorkRequestInput: CreateWorkRequestInput,
+  FinalizeTaskInput: FinalizeTaskInput,
   RemoveTaskPayoutInput: RemoveTaskPayoutInput,
   SendWorkInviteInput: SendWorkInviteInput,
   SetTaskDomainInput: SetTaskDomainInput,
@@ -863,6 +869,7 @@ export type ResolversParentTypes = {
   TaskIdInput: TaskIdInput,
   CreateTaskInput: CreateTaskInput,
   CreateWorkRequestInput: CreateWorkRequestInput,
+  FinalizeTaskInput: FinalizeTaskInput,
   RemoveTaskPayoutInput: RemoveTaskPayoutInput,
   SendWorkInviteInput: SendWorkInviteInput,
   SetTaskDomainInput: SetTaskDomainInput,
@@ -1075,8 +1082,8 @@ export type SetTaskTitleEventResolvers<ContextType = any, ParentType extends Res
 export type TaskResolvers<ContextType = any, ParentType extends ResolversParentTypes['Task'] = ResolversParentTypes['Task']> = {
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
-  ethTaskId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
   ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
+  ethPotId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
   ethSkillId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
   cancelledAt?: Resolver<Maybe<ResolversTypes['GraphQLDateTime']>, ParentType, ContextType>,
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,

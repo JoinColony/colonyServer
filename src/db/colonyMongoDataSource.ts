@@ -192,15 +192,15 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return ColonyMongoDataSource.transformTask(doc)
   }
 
-  async getTaskByEthId(colonyAddress: string, ethTaskId: number, ttl?: number) {
-    const query = { colonyAddress, ethTaskId }
+  async getTaskByEthId(colonyAddress: string, ethPotId: number, ttl?: number) {
+    const query = { colonyAddress, ethPotId }
     const [doc] = ttl
       ? await this.collections.tasks.findManyByQuery(query, { ttl })
       : [await this.collections.tasks.collection.findOne(query)]
 
     if (!doc)
       throw new Error(
-        `Task with ID '${ethTaskId}' for colony '${colonyAddress}' not found`,
+        `Task with potId '${ethPotId}' for colony '${colonyAddress}' not found`,
       )
 
     return ColonyMongoDataSource.transformTask(doc)
