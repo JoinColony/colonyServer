@@ -214,6 +214,11 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
             required: ['creatorAddress', 'colonyAddress', 'ethDomainId'],
             properties: {
               _id: { bsonType: 'objectId' },
+              assignedWorkerAddress: {
+                bsonType: 'string',
+                description: 'must be a string',
+                maxLength: 42,
+              },
               colonyAddress: {
                 bsonType: 'string',
                 description: 'must be a string and is required',
