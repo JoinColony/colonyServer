@@ -12,7 +12,7 @@
     "contracts:start-blockchain-client": "cd lib/colonyNetwork && yarn start:blockchain:client",
     "contracts:migrate": "cd lib/colonyNetwork && yarn truffle migrate",
     "db:start": "mongod --dbpath ./mongo-data",
-    "db:start:prod": "mongod --fork --logpath log/mongod.log --dbpath mongo-data --cpu",
+    "db:start:prod": "mongod --fork --logpath logs/mongod.log --dbpath mongo-data --cpu",
     "db:console": "mongo",
     "db:setup": "ts-node scripts/db-setup.ts",
     "db:clean": "ts-node scripts/db-clean.ts",
