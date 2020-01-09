@@ -11,6 +11,7 @@ import { createApolloServer } from './graphql'
 import { getTokenForAddress } from './auth'
 import { connect } from './db/connect'
 import { provider } from './network/provider'
+import { isDevelopment } from './env';
 
 const startServer = async () => {
   const { db } = await connect()
@@ -44,9 +45,11 @@ const startServer = async () => {
 
   app.listen(port, () => {
     console.log(`Started on port ${port}`)
-    console.log(
-      `GraphQL at http://localhost:${port}${apolloServer.graphqlPath}`,
-    )
+    if (isDevelopment) {
+      console.log(
+        `GraphQL at http://localhost:${port}${apolloServer.graphqlPath}`,
+      )
+    }
   })
 }
 
