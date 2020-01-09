@@ -1,3 +1,8 @@
 import { providers } from 'ethers'
 
-export const provider = new providers.JsonRpcProvider(process.env.ETH_NETWORK)
+import { blockchainNetwork, infuraId } from '../env'
+import { NETWORK_LOCAL, NETWORK_LOCAL_URL } from '../constants';
+
+export const provider = blockchainNetwork === NETWORK_LOCAL
+  ? new providers.JsonRpcProvider(NETWORK_LOCAL_URL)
+  : new providers.InfuraProvider(blockchainNetwork, infuraId);
