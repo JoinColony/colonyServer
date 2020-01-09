@@ -4,3 +4,4 @@ export const disableAuthCheck =
 export const disableExpiryCheck =
   isDevelopment && process.env.DISABLE_EXPIRY_CHECK === 'true'
 export const blockchainNetwork = process.env.NETWORK || 'local';
+export const infuraId = process.env.INFURA_ID;
