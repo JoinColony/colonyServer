@@ -86,6 +86,5 @@ export const createApolloServer = (db: Db, provider: Provider) => {
         userAddress,
       }
     },
-    playground: isDevelopment,
   })
 }
