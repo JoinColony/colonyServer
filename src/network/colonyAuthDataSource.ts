@@ -210,12 +210,12 @@ export class ColonyAuthDataSource extends DataSource<any> {
   }
 
   private readonly colonies: ColoniesMap
-  private readonly network: IColonyNetwork
+  private readonly network?: IColonyNetwork
 
   constructor(provider: Provider) {
     super()
     this.colonies = new ColoniesMap(provider)
-    if (process.env.DISABLE_AUTH_CHECK !== 'true') {
+    if (!disableAuthCheck) {
       this.network = IColonyNetworkFactory.connect(
         process.env.NETWORK_CONTRACT_ADDRESS,
         provider,
