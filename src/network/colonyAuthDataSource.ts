@@ -339,15 +339,10 @@ export class ColonyAuthDataSource extends DataSource<any> {
   }: DomainAuthArgs & {
     parentDomainId: DomainId
   }) {
-    const isAuthorizedForParentDomain = await this.assertForDomain(
+    return this.assertForDomain(
       AuthChecks.CreateDomain,
       { userAddress, colonyAddress, domainId: parentDomainId },
     )
-    const isAuthorizedForDomain = await this.assertForDomain(
-      AuthChecks.CreateDomain,
-      { userAddress, colonyAddress, domainId },
-    )
-    return isAuthorizedForParentDomain && isAuthorizedForDomain
   }
 
   async assertCanEditDomainName(args: DomainAuthArgs) {
