@@ -11,7 +11,6 @@ import { ColonyMongoApi } from '../db/colonyMongoApi'
 import { ColonyMongoDataSource } from '../db/colonyMongoDataSource'
 import { ColonyAuthDataSource } from '../network/colonyAuthDataSource'
 import { resolvers } from './resolvers'
-import { isDevelopment } from '../env';
 
 import Colony from './typeDefs/Colony'
 import Domain from './typeDefs/Domain'
@@ -86,6 +85,5 @@ export const createApolloServer = (db: Db, provider: Provider) => {
         userAddress,
       }
     },
-    playground: isDevelopment,
   })
 }

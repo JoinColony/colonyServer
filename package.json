@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "NODE_ENV=production ./scripts/build.sh",
-    "start": "node dist/index.js",
+    "start": "NODE_ENV=production node dist/index.js",
     "dev": "ts-node-dev src/index.ts",
-    "prod": "NODE_ENV=production npm run db:start:prod && npm run db:setup && npm run start",
+    "prod": "npm run db:start:prod && npm run db:setup && npm run start",
     "test": "jest",
     "contracts:start-blockchain-client": "cd lib/colonyNetwork && yarn start:blockchain:client",
     "contracts:migrate": "cd lib/colonyNetwork && yarn truffle migrate",
