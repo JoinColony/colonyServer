@@ -255,11 +255,16 @@ export class ColonyAuthDataSource extends DataSource<any> {
   private async assertForDomain(check: AuthChecks, args: DomainAuthArgs) {
     // TODO check valid colony address
     const { description, roles } = AUTH_DECLARATIONS[check]
-    return ColonyAuthDataSource.assertIsAuthorized(
-      this.hasSomeRole(roles, args),
-      description,
-      args,
-    )
+    try {
+      return await ColonyAuthDataSource.assertIsAuthorized(
+        this.hasSomeRole(roles, args),
+        description,
+        args,
+      )
+    } catch (e) {
+      // As long as we only have 1 level of domains in the dapp, we just check the root domain additionally
+      return this.assertForColony(check, args)
+    }
   }
 
   private async assertForTask(check: AuthChecks, args: TaskAuthArgs) {
@@ -339,10 +344,11 @@ export class ColonyAuthDataSource extends DataSource<any> {
   }: DomainAuthArgs & {
     parentDomainId: DomainId
   }) {
-    return this.assertForDomain(
-      AuthChecks.CreateDomain,
-      { userAddress, colonyAddress, domainId: parentDomainId },
-    )
+    return this.assertForDomain(AuthChecks.CreateDomain, {
+      userAddress,
+      colonyAddress,
+      domainId: parentDomainId,
+    })
   }
 
   async assertCanEditDomainName(args: DomainAuthArgs) {
