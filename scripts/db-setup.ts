@@ -11,20 +11,20 @@ const createCollections = async (db: Db) => {
   return Promise.all(
     Array.from(COLLECTIONS_MANIFEST.entries()).map(
       async ([name, { create, indexes, seedDocs = [] }]) => {
-        if (!collections.map(c => c.collectionName).includes(name)) {
-          console.info(`Creating collection ${name}`)
-          await db.createCollection(name, create)
+        console.info(`Creating collection ${name}`)
+        await db.createCollection(name, create)
 
-          await Promise.all(
-            indexes.map(([fieldName, options]) =>
-              db.createIndex(name, fieldName, options),
-            ),
-          )
-          if (seedDocs.length) {
-            await db.collection(name).insertMany(seedDocs)
-          }
-        } else {
-          console.info(`Skip creating collection ${name}, as it already exists`);
+        await Promise.all(
+          indexes.map(([fieldName, options]) =>
+            db.createIndex(name, fieldName, options),
+          ),
+        )
+        if (collections.map(c => c.collectionName).includes(name)) {
+          console.log(`${name} collection already exists, don't seed it again`);
+          return;
+        }
+        if (seedDocs.length) {
+          await db.collection(name).insertMany(seedDocs)
         }
       },
     ),
