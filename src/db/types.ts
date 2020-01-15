@@ -77,6 +77,21 @@ export interface EventDoc<C extends object> extends MongoDoc {
   context: C
 }
 
+enum SuggestionStatus {
+  Open = 'Open',
+  NotPlanned = 'NotPlanned',
+  Accepted = 'Accepted',
+  Deleted = 'Deleted',
+}
+
+export interface SuggestionDoc extends MongoDoc {
+  colonyAddress: string
+  creatorAddress: string
+  status: SuggestionStatus
+  upvotes: string[]
+  title: string
+}
+
 export interface TaskDoc extends MongoDoc {
   colonyAddress: string
   creatorAddress: string
