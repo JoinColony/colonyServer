@@ -14,6 +14,9 @@ export const Colony: ColonyResolvers<ApolloContext> = {
   async subscribedUsers({ colonyAddress }, input, { dataSources: { data } }) {
     return data.getColonySubscribedUsers(colonyAddress)
   },
+  async suggestions({ colonyAddress }, input, { dataSources: { data } }) {
+    return data.getColonySuggestions(colonyAddress);
+  },
   async tasks(
     { taskIds },
     // TODO select on-chain tasks by ethPotId, so that we can start from on-chain and select from there

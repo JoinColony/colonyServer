@@ -8,11 +8,13 @@ import {
   DomainDoc,
   EventDoc,
   NotificationDoc,
+  SuggestionDoc,
   TaskDoc,
   TokenDoc,
   UserDoc,
 } from './types'
 import { CollectionNames } from './collections'
+import { SuggestionStatus } from '../graphql/types.d';
 import { ETH_ADDRESS } from '../constants'
 
 // TODO re-enable cache
@@ -24,6 +26,7 @@ interface Collections {
   domains: CachedCollection<DomainDoc>
   events: CachedCollection<EventDoc<any>>
   notifications: CachedCollection<NotificationDoc>
+  suggestions: CachedCollection<SuggestionDoc>
   tasks: CachedCollection<TaskDoc>
   tokens: CachedCollection<TokenDoc>
   users: CachedCollection<UserDoc>
@@ -39,6 +42,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       db.collection(CollectionNames.Domains),
       db.collection(CollectionNames.Events),
       db.collection(CollectionNames.Notifications),
+      db.collection(CollectionNames.Suggestions),
       db.collection(CollectionNames.Tasks),
       db.collection(CollectionNames.Tokens),
       db.collection(CollectionNames.Users),
@@ -51,6 +55,8 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   // TODO consider extending API of MongoDataSource for document transformation
+  // @NOTE: This is where you add resolver fields to avoid super weird TS errors
+  // LOOK AT MEE I'M MR MESEEKS
   private static transformColony({
     _id,
     tokenAddresses = [],
@@ -68,6 +74,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       tokens: [],
       domains: [],
       subscribedUsers: [],
+      suggestions: [],
     }
   }
 
@@ -131,6 +138,14 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return {
       ...doc,
       tasks: [],
+      id: _id.toHexString(),
+      createdAt: _id.getTimestamp(),
+    }
+  }
+
+  private static transformSuggestion({ _id, ...doc }: SuggestionDoc) {
+    return {
+      ...doc,
       id: _id.toHexString(),
       createdAt: _id.getTimestamp(),
     }
@@ -253,6 +268,14 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       ? await this.collections.domains.findManyByQuery(query, { ttl })
       : await this.collections.domains.collection.find(query).toArray()
     return docs.map(ColonyMongoDataSource.transformDomain)
+  }
+
+  async getColonySuggestions(colonyAddress: string, ttl?: number) {
+    const query = { colonyAddress, status: { $ne: SuggestionStatus.Deleted } }
+    const docs = ttl
+      ? await this.collections.suggestions.findManyByQuery(query, { ttl })
+      : await this.collections.suggestions.collection.find(query).toArray()
+    return docs.map(ColonyMongoDataSource.transformSuggestion)
   }
 
   async getUserByAddress(walletAddress: string, ttl?: number) {
