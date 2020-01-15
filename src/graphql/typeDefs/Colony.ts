@@ -20,6 +20,7 @@ export default gql`
     isNativeTokenExternal: Boolean!
     nativeTokenAddress: String!
     subscribedUsers: [User!]!
+    suggestions: [Suggestion!]!
     tokens(addresses: [String!]): [Token!]!
     tokenAddresses: [String!]!
   }

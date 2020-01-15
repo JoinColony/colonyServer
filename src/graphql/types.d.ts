@@ -50,6 +50,7 @@ export type Colony = {
   isNativeTokenExternal: Scalars['Boolean'],
   nativeTokenAddress: Scalars['String'],
   subscribedUsers: Array<User>,
+  suggestions: Array<Suggestion>,
   tokens: Array<Token>,
   tokenAddresses: Array<Scalars['String']>,
 };
@@ -561,6 +562,25 @@ export type SubscribeToColonyInput = {
   colonyAddress: Scalars['String'],
 };
 
+export type Suggestion = {
+   __typename?: 'Suggestion',
+  id: Scalars['String'],
+  createdAt: Scalars['GraphQLDateTime'],
+  colonyAddress: Scalars['String'],
+  creatorAddress: Scalars['String'],
+  ethDomainId: Scalars['String'],
+  status: SuggestionStatus,
+  upvotes: Array<Scalars['String']>,
+  title: Scalars['String'],
+};
+
+export enum SuggestionStatus {
+  Open = 'Open',
+  NotPlanned = 'NotPlanned',
+  Accepted = 'Accepted',
+  Deleted = 'Deleted'
+}
+
 export type Task = {
    __typename?: 'Task',
   id: Scalars['String'],
@@ -784,6 +804,8 @@ export type ResolversTypes = {
   Token: ResolverTypeWrapper<Token>,
   TokenInfo: ResolverTypeWrapper<TokenInfo>,
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>,
+  Suggestion: ResolverTypeWrapper<Suggestion>,
+  SuggestionStatus: SuggestionStatus,
   Notification: ResolverTypeWrapper<Notification>,
   Mutation: ResolverTypeWrapper<{}>,
   CreateUserInput: CreateUserInput,
@@ -853,6 +875,8 @@ export type ResolversParentTypes = {
   Token: Token,
   TokenInfo: TokenInfo,
   Boolean: Scalars['Boolean'],
+  Suggestion: Suggestion,
+  SuggestionStatus: SuggestionStatus,
   Notification: Notification,
   Mutation: {},
   CreateUserInput: CreateUserInput,
@@ -915,6 +939,7 @@ export type ColonyResolvers<ContextType = any, ParentType extends ResolversParen
   isNativeTokenExternal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
   nativeTokenAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   subscribedUsers?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>,
+  suggestions?: Resolver<Array<ResolversTypes['Suggestion']>, ParentType, ContextType>,
   tokens?: Resolver<Array<ResolversTypes['Token']>, ParentType, ContextType, ColonyTokensArgs>,
   tokenAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
 };
@@ -1079,6 +1104,17 @@ export type SetTaskTitleEventResolvers<ContextType = any, ParentType extends Res
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
 };
 
+export type SuggestionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Suggestion'] = ResolversParentTypes['Suggestion']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
+  colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  ethDomainId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  status?: Resolver<ResolversTypes['SuggestionStatus'], ParentType, ContextType>,
+  upvotes?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+};
+
 export type TaskResolvers<ContextType = any, ParentType extends ResolversParentTypes['Task'] = ResolversParentTypes['Task']> = {
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
@@ -1191,6 +1227,7 @@ export type Resolvers<ContextType = any> = {
   SetTaskPayoutEvent?: SetTaskPayoutEventResolvers<ContextType>,
   SetTaskSkillEvent?: SetTaskSkillEventResolvers<ContextType>,
   SetTaskTitleEvent?: SetTaskTitleEventResolvers<ContextType>,
+  Suggestion?: SuggestionResolvers<ContextType>,
   Task?: TaskResolvers<ContextType>,
   TaskEvent?: TaskEventResolvers,
   TaskMessageEvent?: TaskMessageEventResolvers<ContextType>,

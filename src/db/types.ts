@@ -9,6 +9,7 @@ import {
 } from 'mongodb'
 
 import { EventType } from '../constants'
+import { SuggestionStatus } from '../graphql/types.d';
 
 // Stricter than RootQuerySelector (only allows fields from T),
 // but doesn't allow dot-notation fields.
@@ -77,16 +78,10 @@ export interface EventDoc<C extends object> extends MongoDoc {
   context: C
 }
 
-enum SuggestionStatus {
-  Open = 'Open',
-  NotPlanned = 'NotPlanned',
-  Accepted = 'Accepted',
-  Deleted = 'Deleted',
-}
-
 export interface SuggestionDoc extends MongoDoc {
   colonyAddress: string
   creatorAddress: string
+  ethDomainId: string
   status: SuggestionStatus
   upvotes: string[]
   title: string

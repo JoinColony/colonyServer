@@ -442,6 +442,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
             required: [
               'colonyAddress',
               'creatorAddress',
+              'ethDomainId',
               'status',
               'upvotes',
               'title',
@@ -457,6 +458,10 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 bsonType: 'string',
                 description: 'must be a string and is required',
                 maxLength: 42,
+              },
+              ethDomainId: {
+                bsonType: 'number',
+                minimum: 1,
               },
               status: {
                 sourceType: {
@@ -483,6 +488,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       },
       indexes: [
         ['colonyAddress', {}],
+        ['ethDomainId', {}],
         ['status', {}],
       ],
     },
