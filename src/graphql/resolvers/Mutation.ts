@@ -135,7 +135,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     { input: { id } },
     { userAddress, api, dataSources: { data } },
   ) {
-    await api.addUpvoteToSuggestion(id, userAddress)
+    await api.addUpvoteToSuggestion(userAddress, id)
     return data.getSuggestionById(id)
   },
   async removeUpvoteFromSuggestion(
@@ -143,7 +143,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     { input: { id } },
     { userAddress, api, dataSources: { data } },
   ) {
-    await api.removeUpvoteFromSuggestion(id, userAddress)
+    await api.removeUpvoteFromSuggestion(userAddress, id)
     return data.getSuggestionById(id)
   },
   // Tasks

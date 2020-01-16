@@ -890,7 +890,7 @@ export class ColonyMongoApi {
   async createSuggestion(
     initiator: string,
     colonyAddress: string,
-    ethDomainId,
+    ethDomainId: number,
     title: string,
   ) {
     await this.tryGetUser(initiator)
@@ -916,19 +916,19 @@ export class ColonyMongoApi {
     return this.suggestions.updateOne({ _id: new ObjectID(id) }, edit)
   }
 
-  async addUpvoteToSuggestion(id: string, userAddress: string) {
+  async addUpvoteToSuggestion(initiator: string, id: string) {
     await this.tryGetSuggestion(id);
     return this.suggestions.updateOne(
       { _id: new ObjectID(id) },
-      { $addToSet: { upvotes: userAddress } },
+      { $addToSet: { upvotes: initiator } },
     )
   }
 
-  async removeUpvoteFromSuggestion(id: string, userAddress: string) {
+  async removeUpvoteFromSuggestion(initiator: string, id: string) {
     await this.tryGetSuggestion(id);
     return this.suggestions.updateOne(
       { _id: new ObjectID(id) },
-      { $pull: { upvotes: userAddress } },
+      { $pull: { upvotes: initiator } },
     )
   }
 }
