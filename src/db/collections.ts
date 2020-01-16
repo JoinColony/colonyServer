@@ -464,10 +464,8 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 minimum: 1,
               },
               status: {
-                sourceType: {
-                  enum: ['Open', 'NotPlanned', 'Accepted', 'Deleted'],
-                  maxLength: 100,
-                },
+                enum: ['Open', 'NotPlanned', 'Accepted', 'Deleted'],
+                maxLength: 100,
               },
               upvotes: {
                 bsonType: 'array',
