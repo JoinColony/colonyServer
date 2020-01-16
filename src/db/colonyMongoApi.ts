@@ -917,6 +917,8 @@ export class ColonyMongoApi {
   }
 
   async addUpvoteToSuggestion(initiator: string, id: string) {
+    // This effectively limits upvotes to users with a registered ENS name
+    await this.tryGetUser(initiator)
     await this.tryGetSuggestion(id);
     return this.suggestions.updateOne(
       { _id: new ObjectID(id) },
@@ -925,6 +927,8 @@ export class ColonyMongoApi {
   }
 
   async removeUpvoteFromSuggestion(initiator: string, id: string) {
+    // This effectively limits upvotes to users with a registered ENS name
+    await this.tryGetUser(initiator)
     await this.tryGetSuggestion(id);
     return this.suggestions.updateOne(
       { _id: new ObjectID(id) },
