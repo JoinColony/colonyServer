@@ -245,11 +245,11 @@ export type Mutation = {
   setSuggestionStatus?: Maybe<Suggestion>,
   addUpvoteToSuggestion?: Maybe<Suggestion>,
   removeUpvoteFromSuggestion?: Maybe<Suggestion>,
-  createTaskFromSuggestion?: Maybe<Suggestion>,
   /** Tasks */
   assignWorker?: Maybe<Task>,
   cancelTask?: Maybe<Task>,
   createTask?: Maybe<Task>,
+  createTaskFromSuggestion?: Maybe<Task>,
   createWorkRequest?: Maybe<Task>,
   finalizeTask?: Maybe<Task>,
   removeTaskPayout?: Maybe<Task>,
@@ -328,11 +328,6 @@ export type MutationRemoveUpvoteFromSuggestionArgs = {
 };
 
 
-export type MutationCreateTaskFromSuggestionArgs = {
-  input: CreateTaskFromSuggestionInput
-};
-
-
 export type MutationAssignWorkerArgs = {
   input: AssignWorkerInput
 };
@@ -345,6 +340,11 @@ export type MutationCancelTaskArgs = {
 
 export type MutationCreateTaskArgs = {
   input: CreateTaskInput
+};
+
+
+export type MutationCreateTaskFromSuggestionArgs = {
+  input: CreateTaskFromSuggestionInput
 };
 
 
@@ -625,8 +625,9 @@ export type Suggestion = {
   creatorAddress: Scalars['String'],
   ethDomainId: Scalars['Int'],
   status: SuggestionStatus,
-  upvotes: Array<Scalars['String']>,
   title: Scalars['String'],
+  taskId?: Maybe<Scalars['String']>,
+  upvotes: Array<Scalars['String']>,
 };
 
 export enum SuggestionStatus {
@@ -874,10 +875,10 @@ export type ResolversTypes = {
   SetSuggestionStatusInput: SetSuggestionStatusInput,
   AddUpvoteToSuggestionInput: AddUpvoteToSuggestionInput,
   RemoveUpvoteFromSuggestionInput: RemoveUpvoteFromSuggestionInput,
-  CreateTaskFromSuggestionInput: CreateTaskFromSuggestionInput,
   AssignWorkerInput: AssignWorkerInput,
   TaskIdInput: TaskIdInput,
   CreateTaskInput: CreateTaskInput,
+  CreateTaskFromSuggestionInput: CreateTaskFromSuggestionInput,
   CreateWorkRequestInput: CreateWorkRequestInput,
   FinalizeTaskInput: FinalizeTaskInput,
   RemoveTaskPayoutInput: RemoveTaskPayoutInput,
@@ -950,10 +951,10 @@ export type ResolversParentTypes = {
   SetSuggestionStatusInput: SetSuggestionStatusInput,
   AddUpvoteToSuggestionInput: AddUpvoteToSuggestionInput,
   RemoveUpvoteFromSuggestionInput: RemoveUpvoteFromSuggestionInput,
-  CreateTaskFromSuggestionInput: CreateTaskFromSuggestionInput,
   AssignWorkerInput: AssignWorkerInput,
   TaskIdInput: TaskIdInput,
   CreateTaskInput: CreateTaskInput,
+  CreateTaskFromSuggestionInput: CreateTaskFromSuggestionInput,
   CreateWorkRequestInput: CreateWorkRequestInput,
   FinalizeTaskInput: FinalizeTaskInput,
   RemoveTaskPayoutInput: RemoveTaskPayoutInput,
@@ -1082,10 +1083,10 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   setSuggestionStatus?: Resolver<Maybe<ResolversTypes['Suggestion']>, ParentType, ContextType, RequireFields<MutationSetSuggestionStatusArgs, 'input'>>,
   addUpvoteToSuggestion?: Resolver<Maybe<ResolversTypes['Suggestion']>, ParentType, ContextType, RequireFields<MutationAddUpvoteToSuggestionArgs, 'input'>>,
   removeUpvoteFromSuggestion?: Resolver<Maybe<ResolversTypes['Suggestion']>, ParentType, ContextType, RequireFields<MutationRemoveUpvoteFromSuggestionArgs, 'input'>>,
-  createTaskFromSuggestion?: Resolver<Maybe<ResolversTypes['Suggestion']>, ParentType, ContextType, RequireFields<MutationCreateTaskFromSuggestionArgs, 'input'>>,
   assignWorker?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationAssignWorkerArgs, 'input'>>,
   cancelTask?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationCancelTaskArgs, 'input'>>,
   createTask?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationCreateTaskArgs, 'input'>>,
+  createTaskFromSuggestion?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationCreateTaskFromSuggestionArgs, 'input'>>,
   createWorkRequest?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationCreateWorkRequestArgs, 'input'>>,
   finalizeTask?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationFinalizeTaskArgs, 'input'>>,
   removeTaskPayout?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationRemoveTaskPayoutArgs, 'input'>>,
@@ -1182,8 +1183,9 @@ export type SuggestionResolvers<ContextType = any, ParentType extends ResolversP
   creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
   status?: Resolver<ResolversTypes['SuggestionStatus'], ParentType, ContextType>,
-  upvotes?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  taskId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  upvotes?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type TaskResolvers<ContextType = any, ParentType extends ResolversParentTypes['Task'] = ResolversParentTypes['Task']> = {

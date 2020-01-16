@@ -197,11 +197,11 @@ export default gql`
     setSuggestionStatus(input: SetSuggestionStatusInput!): Suggestion
     addUpvoteToSuggestion(input: AddUpvoteToSuggestionInput!): Suggestion
     removeUpvoteFromSuggestion(input: RemoveUpvoteFromSuggestionInput!): Suggestion
-    createTaskFromSuggestion(input: CreateTaskFromSuggestionInput!): Suggestion
     # Tasks
     assignWorker(input: AssignWorkerInput!): Task
     cancelTask(input: TaskIdInput!): Task
     createTask(input: CreateTaskInput!): Task
+    createTaskFromSuggestion(input: CreateTaskFromSuggestionInput!): Task
     createWorkRequest(input: CreateWorkRequestInput!): Task
     finalizeTask(input: FinalizeTaskInput!): Task
     removeTaskPayout(input: RemoveTaskPayoutInput!): Task

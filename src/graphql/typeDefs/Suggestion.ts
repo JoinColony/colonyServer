@@ -15,7 +15,8 @@ export default gql`
     creatorAddress: String!
     ethDomainId: Int!
     status: SuggestionStatus!
-    upvotes: [String!]!
     title: String!
+    taskId: String
+    upvotes: [String!]!
   }
 `
