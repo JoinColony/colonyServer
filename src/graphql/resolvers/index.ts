@@ -5,6 +5,7 @@ import { Event, ColonyEvent, TaskEvent, EventContext } from './Event'
 import { Query } from './Query'
 import { Domain } from './Domain'
 import { Colony } from './Colony'
+import { Suggestion } from './Suggestion'
 import { User } from './User'
 import { Task, TaskPayout } from './Task'
 import { Mutation } from './Mutation'
@@ -18,6 +19,7 @@ export const resolvers: Resolvers<ApolloContext> = {
   Query,
   Domain,
   Colony,
+  Suggestion,
   User,
   Task,
   TaskPayout,

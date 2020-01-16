@@ -13,6 +13,7 @@ export default gql`
     createdAt: GraphQLDateTime!
     colonyAddress: String!
     creatorAddress: String!
+    creator: User!
     ethDomainId: Int!
     status: SuggestionStatus!
     title: String!
