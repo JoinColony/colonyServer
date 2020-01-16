@@ -282,6 +282,18 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return docs.map(ColonyMongoDataSource.transformDomain)
   }
 
+  async getSuggestionById(id: string, ttl?: number) {
+    const doc = ttl
+      ? await this.collections.suggestions.findOneById(id, { ttl })
+      : await this.collections.suggestions.collection.findOne({
+          _id: new ObjectID(id),
+        })
+
+    if (!doc) throw new Error(`Suggestion with id '${id}' not found`)
+
+    return ColonyMongoDataSource.transformSuggestion(doc)
+  }
+
   async getColonySuggestions(colonyAddress: string, ttl?: number) {
     const query = { colonyAddress, status: { $ne: SuggestionStatus.Deleted } }
     const docs = ttl

@@ -7,6 +7,9 @@ import {
   UpdateOneOptions,
 } from 'mongodb'
 
+import { EventType, ROOT_DOMAIN } from '../constants'
+import { EventContextOfType } from '../graphql/eventContext'
+import { SuggestionStatus } from '../graphql/types.d'
 import {
   ColonyDoc,
   DomainDoc,
@@ -14,14 +17,13 @@ import {
   NotificationDoc,
   StrictRootQuerySelector,
   StrictUpdateQuery,
+  SuggestionDoc,
   TaskDoc,
   TokenDoc,
   UserDoc,
 } from './types'
 import { CollectionNames } from './collections'
 import { matchUsernames } from './matchers'
-import { EventType, ROOT_DOMAIN } from '../constants'
-import { EventContextOfType } from '../graphql/eventContext'
 
 export class ColonyMongoApi {
   private static profileModifier(profile: Record<string, any>) {
@@ -43,6 +45,7 @@ export class ColonyMongoApi {
   private readonly events: Collection<EventDoc<any>>
   private readonly domains: Collection<DomainDoc>
   private readonly notifications: Collection<NotificationDoc>
+  private readonly suggestions: Collection<SuggestionDoc>
   private readonly tasks: Collection<TaskDoc>
   private readonly tokens: Collection<TokenDoc>
   private readonly users: Collection<UserDoc>
@@ -54,6 +57,7 @@ export class ColonyMongoApi {
     this.notifications = db.collection<NotificationDoc>(
       CollectionNames.Notifications,
     )
+    this.suggestions = db.collection<SuggestionDoc>(CollectionNames.Suggestions)
     this.tasks = db.collection<TaskDoc>(CollectionNames.Tasks)
     this.tokens = db.collection<TokenDoc>(CollectionNames.Tokens)
     this.users = db.collection<UserDoc>(CollectionNames.Users)
@@ -140,6 +144,12 @@ export class ColonyMongoApi {
       modifier,
       options,
     )
+  }
+
+  private async tryGetSuggestion(id: string) {
+    const suggestion = await this.suggestions.findOne(new ObjectID(id));
+    assert.ok(!!suggestion, `Suggestion with ID '${id}' not found`)
+    return suggestion;
   }
 
   private async tryGetTask(taskId: string) {
@@ -439,16 +449,19 @@ export class ColonyMongoApi {
     initiator: string,
     colonyAddress: string,
     ethDomainId: number,
+    title?: string,
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetColony(colonyAddress)
     await this.tryGetDomain(colonyAddress, ethDomainId)
 
-    const { insertedId } = await this.tasks.insertOne({
-      colonyAddress,
-      creatorAddress: initiator,
-      ethDomainId,
-    } as TaskDoc)
+    const insertedDoc = { colonyAddress, creatorAddress: initiator, ethDomainId } as TaskDoc
+
+    if (title) {
+      insertedDoc.title = title;
+    }
+
+    const { insertedId } = await this.tasks.insertOne(insertedDoc);
     const taskId = insertedId.toString()
 
     await this.subscribeToTask(initiator, taskId)
@@ -718,11 +731,7 @@ export class ColonyMongoApi {
       taskId,
     })
     await this.createTaskNotification(initiator, eventId, taskId)
-    return this.updateTask(
-      taskId,
-      {},
-      { $set: { cancelledAt: new Date() } },
-    )
+    return this.updateTask(taskId, {}, { $set: { cancelledAt: new Date() } })
   }
 
   async markNotificationAsRead(initiator: string, id: string) {
@@ -876,5 +885,50 @@ export class ColonyMongoApi {
     // An upsert is used even if it's not strictly necessary because
     // it's not the job of a unique index to preserve data integrity.
     return this.tokens.updateOne(doc, { $setOnInsert: doc }, { upsert: true })
+  }
+
+  async createSuggestion(
+    initiator: string,
+    colonyAddress: string,
+    ethDomainId,
+    title: string,
+  ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetColony(colonyAddress)
+
+    const { insertedId } = await this.suggestions.insertOne({
+      colonyAddress,
+      creatorAddress: initiator,
+      ethDomainId,
+      status: SuggestionStatus.Open,
+      upvotes: [],
+      title,
+    })
+    return insertedId.toString()
+  }
+
+  async editSuggestion(
+    id: string,
+    update: { status?: SuggestionStatus; taskId?: string, title?: string },
+  ) {
+    await this.tryGetSuggestion(id);
+    const edit = { $set: update }
+    return this.suggestions.updateOne({ _id: new ObjectID(id) }, edit)
+  }
+
+  async addUpvoteToSuggestion(id: string, userAddress: string) {
+    await this.tryGetSuggestion(id);
+    return this.suggestions.updateOne(
+      { _id: new ObjectID(id) },
+      { $addToSet: { upvotes: userAddress } },
+    )
+  }
+
+  async removeUpvoteFromSuggestion(id: string, userAddress: string) {
+    await this.tryGetSuggestion(id);
+    return this.suggestions.updateOne(
+      { _id: new ObjectID(id) },
+      { $pull: { upvotes: userAddress } },
+    )
   }
 }
