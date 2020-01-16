@@ -156,13 +156,30 @@ export default gql`
     tokenAddresses: [String!]!
   }
 
+  input CreateSuggestionInput {
+    colonyAddress: String!
+    ethDomainId: String!
+    title: String!
+  }
+
+  input SetSuggestionStatusInput {
+    id: String!
+    status: SuggestionStatus!
+  }
+
+  input AddUpvoteToSuggestionInput {
+    id: String!
+  }
+
+  input RemoveUpvoteFromSuggestionInput {
+    id: String!
+  }
+
+  input CreateTaskFromSuggestionInput {
+    id: String!
+  }
+
   type Mutation {
-    # Users
-    createUser(input: CreateUserInput!): User # TODO find out why we can't use an exclamation mark here
-    editUser(input: EditUserInput!): User
-    subscribeToColony(input: SubscribeToColonyInput!): User
-    unsubscribeFromColony(input: UnsubscribeFromColonyInput!): User
-    setUserTokens(input: SetUserTokensInput!): User
     # Colonies
     createColony(input: CreateColonyInput!): Colony
     editColonyProfile(input: EditColonyProfileInput!): Colony
@@ -170,6 +187,17 @@ export default gql`
     # Domains
     createDomain(input: CreateDomainInput!): Domain
     editDomainName(input: EditDomainNameInput!): Domain
+    # Messages
+    sendTaskMessage(input: SendTaskMessageInput!): Boolean!
+    # Notifications
+    markAllNotificationsAsRead: Boolean!
+    markNotificationAsRead(input: MarkNotificationAsReadInput!): Boolean!
+    # Suggestions
+    createSuggestion(input: CreateSuggestionInput!): Suggestion
+    setSuggestionStatus(input: SetSuggestionStatusInput!): Suggestion
+    addUpvoteToSuggestion(input: AddUpvoteToSuggestionInput!): Suggestion
+    removeUpvoteFromSuggestion(input: RemoveUpvoteFromSuggestionInput!): Suggestion
+    createTaskFromSuggestion(input: CreateTaskFromSuggestionInput!): Suggestion
     # Tasks
     assignWorker(input: AssignWorkerInput!): Task
     cancelTask(input: TaskIdInput!): Task
@@ -188,10 +216,11 @@ export default gql`
     # Tokens
     createToken(input: CreateTokenInput!): Token
     setTokenIcon(input: SetTokenIconInput!): Token
-    # Notifications
-    markAllNotificationsAsRead: Boolean!
-    markNotificationAsRead(input: MarkNotificationAsReadInput!): Boolean!
-    # Messages
-    sendTaskMessage(input: SendTaskMessageInput!): Boolean!
+    # Users
+    createUser(input: CreateUserInput!): User # TODO find out why we can't use an exclamation mark here
+    editUser(input: EditUserInput!): User
+    subscribeToColony(input: SubscribeToColonyInput!): User
+    unsubscribeFromColony(input: UnsubscribeFromColonyInput!): User
+    setUserTokens(input: SetUserTokensInput!): User
   }
 `
