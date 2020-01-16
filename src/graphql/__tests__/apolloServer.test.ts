@@ -12,6 +12,7 @@ import Domain from '../typeDefs/Domain'
 import Event from '../typeDefs/Event'
 import Mutation from '../typeDefs/Mutation'
 import Query from '../typeDefs/Query'
+import Suggestion from '../typeDefs/Suggestion'
 import Task from '../typeDefs/Task'
 import Token from '../typeDefs/Token'
 import User from '../typeDefs/User'
@@ -38,6 +39,7 @@ const typeDefs = [
   Event,
   Mutation,
   Query,
+  Suggestion,
   Task,
   Token,
   User,
