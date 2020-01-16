@@ -158,7 +158,7 @@ export default gql`
 
   input CreateSuggestionInput {
     colonyAddress: String!
-    ethDomainId: String!
+    ethDomainId: Int!
     title: String!
   }
 

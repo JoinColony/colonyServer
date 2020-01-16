@@ -97,7 +97,7 @@ export type CreateDomainInput = {
 
 export type CreateSuggestionInput = {
   colonyAddress: Scalars['String'],
-  ethDomainId: Scalars['String'],
+  ethDomainId: Scalars['Int'],
   title: Scalars['String'],
 };
 
