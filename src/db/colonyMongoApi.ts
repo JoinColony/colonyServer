@@ -9,7 +9,7 @@ import {
 
 import { EventType, ROOT_DOMAIN } from '../constants'
 import { EventContextOfType } from '../graphql/eventContext'
-import { SuggestionStatus } from '../graphql/types.d'
+import { SuggestionStatus } from '../graphql/types'
 import {
   ColonyDoc,
   DomainDoc,

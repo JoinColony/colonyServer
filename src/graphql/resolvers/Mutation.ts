@@ -1,6 +1,5 @@
 import { ApolloContext } from '../apolloTypes'
-import { SuggestionStatus } from '../types.d'
-import { MutationResolvers } from '../types'
+import { MutationResolvers, SuggestionStatus } from '../types'
 import { tryAuth } from './auth'
 
 export const Mutation: MutationResolvers<ApolloContext> = {

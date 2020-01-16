@@ -9,7 +9,7 @@ import {
 } from 'mongodb'
 
 import { EventType } from '../constants'
-import { SuggestionStatus } from '../graphql/types.d';
+import { SuggestionStatus } from '../graphql/types';
 
 // Stricter than RootQuerySelector (only allows fields from T),
 // but doesn't allow dot-notation fields.

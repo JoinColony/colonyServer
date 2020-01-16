@@ -23,7 +23,7 @@ import {
   Task,
   Token,
   User,
-} from '../graphql/types.d'
+} from '../graphql/types'
 import { ETH_ADDRESS } from '../constants'
 
 // TODO re-enable cache
