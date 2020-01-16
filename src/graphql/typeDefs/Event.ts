@@ -131,6 +131,7 @@ export default gql`
     | UnassignWorkerEvent
 
   type Event {
+    id: String!
     type: EventType!
     createdAt: GraphQLDateTime!
     initiator: User

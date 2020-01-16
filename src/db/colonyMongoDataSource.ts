@@ -14,7 +14,16 @@ import {
   UserDoc,
 } from './types'
 import { CollectionNames } from './collections'
-import { SuggestionStatus } from '../graphql/types.d';
+import {
+  Colony,
+  Domain,
+  Event,
+  Suggestion,
+  SuggestionStatus,
+  Task,
+  Token,
+  User,
+} from '../graphql/types.d'
 import { ETH_ADDRESS } from '../constants'
 
 // TODO re-enable cache
@@ -62,7 +71,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     tokenAddresses = [],
     taskIds = [],
     ...doc
-  }: ColonyDoc) {
+  }: ColonyDoc): Colony {
     return {
       ...doc,
       createdAt: _id.getTimestamp(),
@@ -84,7 +93,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     taskIds = [],
     tokenAddresses = [],
     ...profile
-  }: UserDoc) {
+  }: UserDoc): User {
     return {
       id: profile.walletAddress,
       createdAt: _id.getTimestamp(),
@@ -104,7 +113,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     context,
     type,
     ...doc
-  }: EventDoc<C>) {
+  }: EventDoc<C>): Event {
     const id = _id.toHexString()
     return {
       ...doc,
@@ -125,7 +134,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     decimals,
     symbol,
     ...doc
-  }: TokenDoc) {
+  }: TokenDoc): Token {
     return {
       ...doc,
       id: doc.address,
@@ -134,7 +143,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
   }
 
-  private static transformDomain({ _id, ...doc }: DomainDoc) {
+  private static transformDomain({ _id, ...doc }: DomainDoc): Domain {
     return {
       ...doc,
       tasks: [],
@@ -143,7 +152,10 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
   }
 
-  private static transformSuggestion({ _id, ...doc }: SuggestionDoc) {
+  private static transformSuggestion({
+    _id,
+    ...doc
+  }: SuggestionDoc): Suggestion {
     return {
       ...doc,
       id: _id.toHexString(),
@@ -157,7 +169,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     payouts = [],
     _id,
     ...doc
-  }: TaskDoc) {
+  }: TaskDoc): Task {
     return {
       ...doc,
       id: _id.toHexString(),

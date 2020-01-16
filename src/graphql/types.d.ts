@@ -164,6 +164,7 @@ export type EditUserInput = {
 
 export type Event = {
    __typename?: 'Event',
+  id: Scalars['String'],
   type: EventType,
   createdAt: Scalars['GraphQLDateTime'],
   initiator?: Maybe<User>,
@@ -981,6 +982,7 @@ export type DomainResolvers<ContextType = any, ParentType extends ResolversParen
 };
 
 export type EventResolvers<ContextType = any, ParentType extends ResolversParentTypes['Event'] = ResolversParentTypes['Event']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
   initiator?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>,
