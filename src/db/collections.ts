@@ -419,7 +419,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
               context: {
                 bsonType: 'object',
               },
-            } as SchemaFields<EventDoc<any>>,
+            } as SchemaFields<EventDoc<object>>,
           },
         },
       },

@@ -81,7 +81,7 @@ export interface EventDoc<C extends object> extends MongoDoc {
 export interface SuggestionDoc extends MongoDoc {
   colonyAddress: string
   creatorAddress: string
-  ethDomainId: string
+  ethDomainId: number
   status: SuggestionStatus
   upvotes: string[]
   title: string
