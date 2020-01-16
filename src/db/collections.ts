@@ -476,6 +476,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   maxLength: 42,
                 },
               },
+              taskId: { bsonType: 'objectId' },
               title: {
                 bsonType: 'string',
                 maxLength: 200,
@@ -488,6 +489,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['colonyAddress', {}],
         ['ethDomainId', {}],
         ['status', {}],
+        ['taskId', { sparse: true }],
       ],
     },
   ],

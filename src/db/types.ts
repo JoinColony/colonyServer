@@ -84,6 +84,7 @@ export interface SuggestionDoc extends MongoDoc {
   ethDomainId: number
   status: SuggestionStatus
   upvotes: string[]
+  taskId?: string
   title: string
 }
 
