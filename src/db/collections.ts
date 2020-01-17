@@ -487,9 +487,10 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       },
       indexes: [
         ['colonyAddress', {}],
+        ['creatorAddress', {}],
         ['ethDomainId', {}],
         ['status', {}],
-        ['taskId', { sparse: true }],
+        ['context.taskId', { sparse: true }],
       ],
     },
   ],
