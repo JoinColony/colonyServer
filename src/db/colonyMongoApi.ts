@@ -336,25 +336,9 @@ export class ColonyMongoApi {
     colonyName: string,
     displayName: string,
     tokenAddress: string,
-    tokenName: string,
-    tokenSymbol: string,
-    tokenDecimals: number,
     tokenIsExternal: boolean,
-    tokenIconHash?: string,
   ) {
     await this.tryGetUser(initiator)
-
-    const tokenExists = !!(await this.tokens.findOne({ address: tokenAddress }))
-    if (!tokenExists) {
-      await this.createToken(
-        initiator,
-        tokenAddress,
-        tokenName,
-        tokenSymbol,
-        tokenDecimals,
-        tokenIconHash,
-      )
-    }
 
     const doc: Omit<ColonyDoc, '_id'> = {
       colonyAddress,
@@ -403,26 +387,6 @@ export class ColonyMongoApi {
       colonyAddress,
       {},
       ColonyMongoApi.profileModifier(profile),
-    )
-  }
-
-  async setTokenIcon(
-    initiator: string,
-    tokenAddress: string,
-    ipfsHash: string | null,
-  ) {
-    await this.tryGetUser(initiator)
-    const { creatorAddress } = await this.tryGetToken(tokenAddress)
-
-    if (creatorAddress !== initiator) {
-      throw new Error(
-        'Unable to set token icon: must be performed as token creator',
-      )
-    }
-
-    return this.tokens.updateOne(
-      { address: tokenAddress, creatorAddress: initiator },
-      ipfsHash ? { $set: { ipfsHash } } : { $unset: { ipfsHash: null } },
     )
   }
 
@@ -860,35 +824,6 @@ export class ColonyMongoApi {
       await this.users.find({ username: { $in: mentioned } }).toArray()
     ).map(({ walletAddress }) => walletAddress)
     await this.createNotification(eventId, users)
-  }
-
-  async createToken(
-    initiator: string,
-    address: string,
-    name: string,
-    symbol: string,
-    decimals: number,
-    iconHash?: string,
-  ) {
-    await this.tryGetUser(initiator)
-
-    const doc: Omit<TokenDoc, '_id'> = {
-      address,
-      creatorAddress: initiator,
-      decimals,
-      name,
-      symbol,
-      ...(iconHash ? { iconHash } : null),
-    }
-
-    const exists = !!(await this.tokens.findOne({ address }))
-    if (exists) {
-      throw new Error(`Token with address '${address}' already exists`)
-    }
-
-    // An upsert is used even if it's not strictly necessary because
-    // it's not the job of a unique index to preserve data integrity.
-    return this.tokens.updateOne(doc, { $setOnInsert: doc }, { upsert: true })
   }
 
   async createSuggestion(

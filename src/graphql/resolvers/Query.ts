@@ -26,14 +26,11 @@ export const Query: QueryResolvers<ApolloContext> = {
   async task(parent, { id }: { id: string }, { dataSources: { data } }) {
     return data.getTaskById(id)
   },
-  async token(
+  async tokenInfo(
     parent,
     { address }: { address: string },
     { dataSources: { data } },
   ) {
     return data.getTokenByAddress(address)
-  },
-  async allTokens(parent, input, { dataSources: { data } }) {
-    return data.getAllTokens()
   },
 }

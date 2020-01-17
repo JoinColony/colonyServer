@@ -21,7 +21,7 @@ import {
   Suggestion,
   SuggestionStatus,
   Task,
-  Token,
+  TokenInfo,
   User,
 } from '../graphql/types'
 import { ETH_ADDRESS } from '../constants'
@@ -78,9 +78,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       id: doc.colonyAddress,
       taskIds,
       tokenAddresses,
-      nativeToken: undefined,
       tasks: [],
-      tokens: [],
       domains: [],
       subscribedUsers: [],
       suggestions: [],
@@ -100,7 +98,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       colonies: [],
       notifications: [],
       tasks: [],
-      tokens: [],
       colonyAddresses,
       tokenAddresses,
       taskIds,
@@ -130,16 +127,12 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
 
   private static transformToken({
     _id,
-    name,
-    decimals,
-    symbol,
     ...doc
-  }: TokenDoc): Token {
+  }: TokenDoc): TokenInfo {
     return {
       ...doc,
       id: doc.address,
       createdAt: _id.getTimestamp(),
-      info: { name, decimals, symbol },
     }
   }
 

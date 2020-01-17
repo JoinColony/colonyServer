@@ -16,12 +16,10 @@ export default gql`
     tasks: [Task!]!
     domains: [Domain!]!
     founder: User
-    nativeToken: Token!
     isNativeTokenExternal: Boolean!
     nativeTokenAddress: String!
     subscribedUsers: [User!]!
     suggestions: [Suggestion!]!
-    tokens(addresses: [String!]): [Token!]!
     tokenAddresses: [String!]!
   }
 `

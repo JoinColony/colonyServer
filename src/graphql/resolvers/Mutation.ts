@@ -72,11 +72,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
       colonyName,
       displayName,
       tokenAddress,
-      tokenName,
-      tokenSymbol,
-      tokenDecimals,
       tokenIsExternal,
-      tokenIconHash,
     )
     return data.getColonyByAddress(colonyAddress)
   },
@@ -89,6 +85,15 @@ export const Mutation: MutationResolvers<ApolloContext> = {
       auth.assertCanEditColonyProfile({ colonyAddress, userAddress }),
     )
     await api.editColony(userAddress, colonyAddress, profile)
+    return data.getColonyByAddress(colonyAddress)
+  },
+  async setColonyTokens(
+    parent,
+    { input: { tokenAddresses, colonyAddress } },
+    { userAddress, api, dataSources: { data, auth } },
+  ) {
+    await tryAuth(auth.assertCanSetColonyTokens({ colonyAddress, userAddress }))
+    await api.setColonyTokens(userAddress, colonyAddress, tokenAddresses)
     return data.getColonyByAddress(colonyAddress)
   },
   // Suggestions
@@ -393,39 +398,6 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     )
     await api.cancelTask(userAddress, id)
     return data.getTaskById(id)
-  },
-  // Tokens
-  async createToken(
-    parent,
-    { input: { address, name, decimals, symbol, iconHash } },
-    { userAddress, api, dataSources: { data } },
-  ) {
-    await api.createToken(
-      userAddress,
-      address,
-      name,
-      symbol,
-      decimals,
-      iconHash,
-    )
-    return data.getTokenByAddress(address)
-  },
-  async setColonyTokens(
-    parent,
-    { input: { tokenAddresses, colonyAddress } },
-    { userAddress, api, dataSources: { data, auth } },
-  ) {
-    await tryAuth(auth.assertCanSetColonyTokens({ colonyAddress, userAddress }))
-    await api.setColonyTokens(userAddress, colonyAddress, tokenAddresses)
-    return data.getColonyByAddress(colonyAddress)
-  },
-  async setTokenIcon(
-    parent,
-    { input: { tokenAddress, iconHash } },
-    { userAddress, api, dataSources: { data } },
-  ) {
-    await api.setTokenIcon(userAddress, tokenAddress, iconHash)
-    return data.getTokenByAddress(tokenAddress)
   },
   // Notifications
   async markNotificationAsRead(

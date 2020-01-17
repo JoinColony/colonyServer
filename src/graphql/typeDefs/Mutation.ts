@@ -134,22 +134,9 @@ export default gql`
     name: String!
   }
 
-  input CreateTokenInput {
-    address: String!
-    decimals: Int!
-    name: String!
-    symbol: String!
-    iconHash: String
-  }
-
   input SetColonyTokensInput {
     tokenAddresses: [String]!
     colonyAddress: String!
-  }
-
-  input SetTokenIconInput {
-    tokenAddress: String!
-    iconHash: String
   }
 
   input SetUserTokensInput {
@@ -213,9 +200,6 @@ export default gql`
     setTaskSkill(input: SetTaskSkillInput!): Task
     setTaskTitle(input: SetTaskTitleInput!): Task
     unassignWorker(input: UnassignWorkerInput!): Task
-    # Tokens
-    createToken(input: CreateTokenInput!): Token
-    setTokenIcon(input: SetTokenIconInput!): Token
     # Users
     createUser(input: CreateUserInput!): User # TODO find out why we can't use an exclamation mark here
     editUser(input: EditUserInput!): User

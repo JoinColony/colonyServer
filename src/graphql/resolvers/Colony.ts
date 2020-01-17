@@ -8,9 +8,6 @@ export const Colony: ColonyResolvers<ApolloContext> = {
   async founder({ founderAddress }, input, { dataSources: { data } }) {
     return data.getUserByAddress(founderAddress)
   },
-  async nativeToken({ nativeTokenAddress }, input, { dataSources: { data } }) {
-    return data.getTokenByAddress(nativeTokenAddress)
-  },
   async subscribedUsers({ colonyAddress }, input, { dataSources: { data } }) {
     return data.getColonySubscribedUsers(colonyAddress)
   },
@@ -25,8 +22,5 @@ export const Colony: ColonyResolvers<ApolloContext> = {
     { dataSources: { data } },
   ) {
     return data.getTasksById(taskIds)
-  },
-  async tokens({ colonyAddress }, input, { dataSources: { data } }) {
-    return data.getColonyTokens(colonyAddress)
   },
 }

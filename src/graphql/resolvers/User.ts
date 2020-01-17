@@ -13,9 +13,6 @@ export const User: UserResolvers<ApolloContext> = {
   ) {
     return data.getTasksById(taskIds)
   },
-  async tokens({ tokenAddresses }, input, { dataSources: { data } }) {
-    return data.getTokensByAddress([ETH_ADDRESS, ...tokenAddresses])
-  },
   async notifications(
     { id },
     { read }: { read?: boolean },

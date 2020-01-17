@@ -19,7 +19,7 @@ import Mutation from './typeDefs/Mutation'
 import Query from './typeDefs/Query'
 import Suggestion from './typeDefs/Suggestion'
 import Task from './typeDefs/Task'
-import Token from './typeDefs/Token'
+import TokenInfo from './typeDefs/TokenInfo'
 import User from './typeDefs/User'
 import scalars from './typeDefs/scalars'
 
@@ -63,7 +63,7 @@ export const createApolloServer = (db: Db, provider: Provider) => {
       Query,
       Suggestion,
       Task,
-      Token,
+      TokenInfo,
       User,
       scalars,
     ],
