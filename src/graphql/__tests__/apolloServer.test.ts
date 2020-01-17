@@ -23,10 +23,12 @@ import { insertDocs } from '../../testUtils'
 import {
   ColonyDoc,
   DomainDoc,
+  SuggestionDoc,
   TaskDoc,
   TokenDoc,
   UserDoc,
 } from '../../db/types'
+import { SuggestionStatus } from '../types'
 import { EventType } from '../../constants'
 import { CollectionNames } from '../../db/collections'
 
@@ -84,6 +86,14 @@ const taskDoc: Omit<TaskDoc, '_id'> = {
   payouts: [],
   workInviteAddresses: [],
   workRequestAddresses: [],
+}
+const suggestionDoc: Omit<SuggestionDoc, '_id'> = {
+  colonyAddress: 'colony address',
+  ethDomainId: 1,
+  creatorAddress: user1Doc.walletAddress,
+  upvotes: [],
+  status: SuggestionStatus.Open,
+  title: 'Take this!',
 }
 const token1Doc = {
   address: 'token address 1',
@@ -531,6 +541,76 @@ describe('Apollo Server', () => {
         errors: undefined,
       })
     })
+
+    it('suggestions', async () => {
+      const {
+        suggestions: [id],
+      } = await insertDocs(db, {
+        suggestions: [suggestionDoc],
+      })
+
+      const colonyDoc = {
+        colonyAddress: 'colony address',
+        colonyName: 'colony name',
+        founderAddress: user1Doc.walletAddress,
+        taskIds: [],
+        nativeTokenAddress: token1Doc.address,
+        isNativeTokenExternal: false,
+        tokenAddresses: [],
+        suggestions: [id],
+      }
+
+      await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+      })
+
+      await expect(
+        query({
+          query: gql`
+            query colonyTokens($colonyAddress: String!) {
+              colony(address: $colonyAddress) {
+                suggestions {
+                  title
+                  colonyAddress
+                  ethDomainId
+                  creatorAddress
+                  upvotes
+                  status
+                  creator {
+                    profile {
+                      walletAddress
+                    }
+                  }
+                }
+              }
+            }
+          `,
+          variables: { colonyAddress: colonyDoc.colonyAddress },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          colony: {
+            suggestions: [
+              {
+                colonyAddress: suggestionDoc.colonyAddress,
+                ethDomainId: suggestionDoc.ethDomainId,
+                creatorAddress: suggestionDoc.creatorAddress,
+                upvotes: [],
+                title: suggestionDoc.title,
+                status: suggestionDoc.status,
+                creator: {
+                  profile: {
+                    walletAddress: user1Doc.walletAddress,
+                  },
+                },
+              },
+            ],
+          },
+        },
+        errors: undefined,
+      })
+    })
   })
 
   describe('Mutation', () => {
@@ -869,6 +949,48 @@ describe('Apollo Server', () => {
             id: expect.toBeString(),
             colonyAddress: colonyDoc.colonyAddress,
             ethDomainId: 1,
+          },
+        },
+        errors: undefined,
+      })
+
+      expect(tryAuth).toHaveBeenCalled()
+      expect(auth.assertCanCreateTask).toHaveBeenCalledWith({
+        colonyAddress: 'colony address',
+        userAddress: ctxUserAddress,
+        domainId: 1,
+      })
+    })
+
+    it('createTaskFromSuggestion', async () => {
+      const {
+        suggestions: [id],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        domains: [rootDomainDoc],
+        suggestions: [suggestionDoc],
+      })
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation createTaskFromSuggestion($input: CreateTaskFromSuggestionInput!) {
+              createTaskFromSuggestion(input: $input) {
+                id
+                title
+              }
+            }
+          `,
+          variables: {
+            input: { id },
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          createTaskFromSuggestion: {
+            id: expect.toBeString(),
+            title: suggestionDoc.title,
           },
         },
         errors: undefined,
@@ -1805,6 +1927,170 @@ describe('Apollo Server', () => {
         colonyAddress: 'colony address',
         userAddress: ctxUserAddress,
         domainId: 2,
+      })
+    })
+
+    it('createSuggestion', async () => {
+      await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+      })
+
+      const suggestionInput = {
+        colonyAddress: colonyDoc.colonyAddress,
+        ethDomainId: 1,
+        title: 'Suggest this!',
+      }
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation createSuggestion($input: CreateSuggestionInput!) {
+              createSuggestion(input: $input) {
+                title
+                ethDomainId
+                colonyAddress
+                status
+              }
+            }
+          `,
+          variables: { input: suggestionInput },
+        }),
+      ).resolves.toMatchObject({
+        data: { createSuggestion: { ...suggestionInput, status: 'Open' } },
+        errors: undefined,
+      })
+    })
+
+    it('setSuggestionStatus', async () => {
+      const {
+        suggestions: [id],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        suggestions: [suggestionDoc],
+      })
+
+      const suggestionInput = {
+        id,
+        status: 'NotPlanned',
+      }
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation setSuggestionStatus($input: SetSuggestionStatusInput!) {
+              setSuggestionStatus(input: $input) {
+                status
+              }
+            }
+          `,
+          variables: {
+            input: suggestionInput,
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: { setSuggestionStatus: { status: 'NotPlanned' } },
+        errors: undefined,
+      })
+
+      expect(tryAuth).toHaveBeenCalled()
+      expect(auth.assertCanModifySuggestionStatus).toHaveBeenCalledWith({
+        colonyAddress: 'colony address',
+        userAddress: ctxUserAddress,
+        domainId: 1,
+      })
+    })
+
+    it('setSuggestionStatus delete (no need for auth)', async () => {
+      const {
+        suggestions: [id],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        suggestions: [{ ...suggestionDoc, creatorAddress: ctxUserAddress }],
+      })
+
+      const suggestionInput = {
+        id,
+        status: 'Deleted',
+      }
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation setSuggestionStatus($input: SetSuggestionStatusInput!) {
+              setSuggestionStatus(input: $input) {
+                status
+              }
+            }
+          `,
+          variables: {
+            input: suggestionInput,
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: { setSuggestionStatus: { status: 'Deleted' } },
+        errors: undefined,
+      })
+
+      expect(tryAuth).not.toHaveBeenCalled()
+      expect(auth.assertCanModifySuggestionStatus).not.toHaveBeenCalled()
+    })
+
+    it('addUpvoteToSuggestion', async () => {
+      const {
+        suggestions: [id],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        suggestions: [suggestionDoc],
+      })
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation addUpvoteToSuggestion($input: AddUpvoteToSuggestionInput!) {
+              addUpvoteToSuggestion(input: $input) {
+                upvotes
+              }
+            }
+          `,
+          variables: {
+            input: { id },
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: { addUpvoteToSuggestion: { upvotes: [ctxUserAddress] } },
+        errors: undefined,
+      })
+    })
+
+    it('removeUpvoteFromSuggestion', async () => {
+      const {
+        suggestions: [id],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        suggestions: [{ ...suggestionDoc, upvotes: [ctxUserAddress] }],
+      })
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation removeUpvoteFromSuggestion($input: RemoveUpvoteFromSuggestionInput!) {
+              removeUpvoteFromSuggestion(input: $input) {
+                upvotes
+              }
+            }
+          `,
+          variables: {
+            input: { id },
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: { removeUpvoteFromSuggestion: { upvotes: [] } },
+        errors: undefined,
       })
     })
   })
