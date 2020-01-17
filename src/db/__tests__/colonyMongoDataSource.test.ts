@@ -28,6 +28,7 @@ describe('ColonyMongoDataSource', () => {
     await db.collection('domains').deleteMany({})
     await db.collection('events').deleteMany({})
     await db.collection('notifications').deleteMany({})
+    await db.collection('suggestions').deleteMany({})
     await db.collection('tasks').deleteMany({})
     await db.collection('tokens').deleteMany({})
     await db.collection('users').deleteMany({})

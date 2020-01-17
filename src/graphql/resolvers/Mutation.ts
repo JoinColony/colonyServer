@@ -1,5 +1,5 @@
 import { ApolloContext } from '../apolloTypes'
-import { MutationResolvers } from '../types'
+import { MutationResolvers, SuggestionStatus } from '../types'
 import { tryAuth } from './auth'
 
 export const Mutation: MutationResolvers<ApolloContext> = {
@@ -91,6 +91,61 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     await api.editColony(userAddress, colonyAddress, profile)
     return data.getColonyByAddress(colonyAddress)
   },
+  // Suggestions
+  async createSuggestion(
+    parent,
+    { input: { colonyAddress, ethDomainId, title } },
+    { userAddress, api, dataSources: { data } },
+  ) {
+    const id = await api.createSuggestion(
+      userAddress,
+      colonyAddress,
+      ethDomainId,
+      title,
+    )
+    return data.getSuggestionById(id)
+  },
+  async setSuggestionStatus(
+    parent,
+    { input: { id, status } },
+    { userAddress, api, dataSources: { data, auth } },
+  ) {
+    const {
+      colonyAddress,
+      creatorAddress,
+      ethDomainId,
+    } = await data.getSuggestionById(id)
+    // Only skip auth if user wants to delete and is the creator
+    if (
+      !(status === SuggestionStatus.Deleted && userAddress === creatorAddress)
+    ) {
+      await tryAuth(
+        auth.assertCanModifySuggestionStatus({
+          colonyAddress,
+          domainId: ethDomainId,
+          userAddress,
+        }),
+      )
+    }
+    await api.editSuggestion(id, { status })
+    return data.getSuggestionById(id)
+  },
+  async addUpvoteToSuggestion(
+    parent,
+    { input: { id } },
+    { userAddress, api, dataSources: { data } },
+  ) {
+    await api.addUpvoteToSuggestion(userAddress, id)
+    return data.getSuggestionById(id)
+  },
+  async removeUpvoteFromSuggestion(
+    parent,
+    { input: { id } },
+    { userAddress, api, dataSources: { data } },
+  ) {
+    await api.removeUpvoteFromSuggestion(userAddress, id)
+    return data.getSuggestionById(id)
+  },
   // Tasks
   async createTask(
     parent,
@@ -105,6 +160,30 @@ export const Mutation: MutationResolvers<ApolloContext> = {
       }),
     )
     const taskId = await api.createTask(userAddress, colonyAddress, ethDomainId)
+    return data.getTaskById(taskId)
+  },
+  async createTaskFromSuggestion(
+    parent,
+    { input: { id } },
+    { userAddress, api, dataSources: { data, auth } },
+  ) {
+    const { colonyAddress, ethDomainId, title } = await data.getSuggestionById(
+      id,
+    )
+    await tryAuth(
+      auth.assertCanCreateTask({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
+    )
+    const taskId = await api.createTask(
+      userAddress,
+      colonyAddress,
+      ethDomainId,
+      title,
+    )
+    await api.editSuggestion(id, { status: SuggestionStatus.Accepted, taskId })
     return data.getTaskById(taskId)
   },
   async setTaskDomain(
@@ -180,9 +259,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
   },
   async setTaskDueDate(
     parent,
-    {
-      input: { id, dueDate },
-    },
+    { input: { id, dueDate } },
     { userAddress, api, dataSources: { data, auth } },
   ) {
     const { colonyAddress, ethDomainId } = await data.getTaskById(id)

@@ -9,6 +9,7 @@ import {
 } from 'mongodb'
 
 import { EventType } from '../constants'
+import { SuggestionStatus } from '../graphql/types';
 
 // Stricter than RootQuerySelector (only allows fields from T),
 // but doesn't allow dot-notation fields.
@@ -75,6 +76,16 @@ export interface EventDoc<C extends object> extends MongoDoc {
   initiatorAddress: string
   sourceType: 'db' | 'contract'
   context: C
+}
+
+export interface SuggestionDoc extends MongoDoc {
+  colonyAddress: string
+  creatorAddress: string
+  ethDomainId: number
+  status: SuggestionStatus
+  upvotes: string[]
+  taskId?: string
+  title: string
 }
 
 export interface TaskDoc extends MongoDoc {

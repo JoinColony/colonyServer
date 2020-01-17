@@ -4,6 +4,7 @@ import {
   DomainDoc,
   EventDoc,
   NotificationDoc,
+  SuggestionDoc,
   TaskDoc,
   TokenDoc,
   UserDoc,
@@ -15,6 +16,7 @@ export enum CollectionNames {
   Domains = 'domains',
   Events = 'events',
   Notifications = 'notifications',
+  Suggestions = 'suggestions',
   Tasks = 'tasks',
   Tokens = 'tokens',
   Users = 'users',
@@ -417,7 +419,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
               context: {
                 bsonType: 'object',
               },
-            } as SchemaFields<EventDoc<any>>,
+            } as SchemaFields<EventDoc<object>>,
           },
         },
       },
@@ -425,6 +427,69 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['type', {}],
         ['initiatorAddress', {}],
         ['context.colonyAddress', { sparse: true }],
+        ['context.taskId', { sparse: true }],
+      ],
+    },
+  ],
+  [
+    CollectionNames.Suggestions,
+    {
+      create: {
+        validator: {
+          $jsonSchema: {
+            additionalProperties: false,
+            bsonType: 'object',
+            required: [
+              'colonyAddress',
+              'creatorAddress',
+              'ethDomainId',
+              'status',
+              'upvotes',
+              'title',
+            ],
+            properties: {
+              _id: { bsonType: 'objectId' },
+              colonyAddress: {
+                bsonType: 'string',
+                description: 'must be a string and is required',
+                maxLength: 42,
+              },
+              creatorAddress: {
+                bsonType: 'string',
+                description: 'must be a string and is required',
+                maxLength: 42,
+              },
+              ethDomainId: {
+                bsonType: 'number',
+                minimum: 1,
+              },
+              status: {
+                enum: ['Open', 'NotPlanned', 'Accepted', 'Deleted'],
+                maxLength: 100,
+              },
+              upvotes: {
+                bsonType: 'array',
+                uniqueItems: true,
+                additionalProperties: false,
+                items: {
+                  bsonType: 'string',
+                  maxLength: 42,
+                },
+              },
+              taskId: { bsonType: 'objectId' },
+              title: {
+                bsonType: 'string',
+                maxLength: 200,
+              },
+            } as SchemaFields<SuggestionDoc>,
+          },
+        },
+      },
+      indexes: [
+        ['colonyAddress', {}],
+        ['creatorAddress', {}],
+        ['ethDomainId', {}],
+        ['status', {}],
         ['context.taskId', { sparse: true }],
       ],
     },
