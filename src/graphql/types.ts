@@ -656,7 +656,6 @@ export type TaskPayout = {
 export type TokenInfo = {
    __typename?: 'TokenInfo',
   id: Scalars['String'],
-  createdAt: Scalars['GraphQLDateTime'],
   address: Scalars['String'],
   iconHash?: Maybe<Scalars['String']>,
   name: Scalars['String'],
@@ -1178,7 +1177,6 @@ export type TaskPayoutResolvers<ContextType = any, ParentType extends ResolversP
 
 export type TokenInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['TokenInfo'] = ResolversParentTypes['TokenInfo']> = {
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
   address?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   iconHash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>,

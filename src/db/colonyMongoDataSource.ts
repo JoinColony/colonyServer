@@ -132,7 +132,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return {
       ...doc,
       id: doc.address,
-      createdAt: _id.getTimestamp(),
     }
   }
 

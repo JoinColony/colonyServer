@@ -29,8 +29,28 @@ export const Query: QueryResolvers<ApolloContext> = {
   async tokenInfo(
     parent,
     { address }: { address: string },
-    { dataSources: { data } },
+    { dataSources: { data, ethplorer } },
   ) {
-    return data.getTokenByAddress(address)
+    let ethplorerTokenInfo
+    try {
+      ethplorerTokenInfo = await ethplorer.getTokenInfo(address)
+    } catch (e) {
+      // Do nothing, might be just a token that isn't on ethplorer
+    }
+    let databaseTokenInfo
+    try {
+      databaseTokenInfo = await data.getTokenByAddress(address)
+    } catch (e) {
+      // Also do nothing, might be just a token that isn't in the db
+    }
+    return {
+      id: address,
+      address,
+      decimals: ethplorerTokenInfo.decimals || databaseTokenInfo.decimals,
+      iconHash: databaseTokenInfo.iconHash,
+      name: ethplorerTokenInfo.name || databaseTokenInfo.name,
+      symbol: ethplorerTokenInfo.symbol || databaseTokenInfo.symbol,
+      verified: ethplorerTokenInfo.verified || false,
+    }
   },
 }

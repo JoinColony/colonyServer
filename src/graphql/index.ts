@@ -10,6 +10,7 @@ import { getAddressFromToken } from '../auth'
 import { ColonyMongoApi } from '../db/colonyMongoApi'
 import { ColonyMongoDataSource } from '../db/colonyMongoDataSource'
 import { ColonyAuthDataSource } from '../network/colonyAuthDataSource'
+import { EthplorerDataSource } from '../external/ethplorerDataSource'
 import { resolvers } from './resolvers'
 
 import Colony from './typeDefs/Colony'
@@ -53,6 +54,7 @@ export const createApolloServer = (db: Db, provider: Provider) => {
   const api = new ColonyMongoApi(db)
   const data = new ColonyMongoDataSource(db)
   const auth = new ColonyAuthDataSource(provider)
+  const ethplorer = new EthplorerDataSource();
 
   return new ApolloServer({
     typeDefs: [
@@ -77,7 +79,7 @@ export const createApolloServer = (db: Db, provider: Provider) => {
       // be manipulated in other ways, so long as it's returned.
       return err
     },
-    dataSources: () => ({ auth, data }),
+    dataSources: () => ({ auth, data, ethplorer }),
     context: ({ req }) => {
       const token = (req.headers['x-access-token'] ||
         req.headers['authorization']) as string
