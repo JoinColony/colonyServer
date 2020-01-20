@@ -8,6 +8,7 @@ import {
 } from 'mongodb'
 
 import { EventType, ROOT_DOMAIN } from '../constants'
+import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
 import { SuggestionStatus } from '../graphql/types'
 import {
@@ -47,7 +48,6 @@ export class ColonyMongoApi {
   private readonly notifications: Collection<NotificationDoc>
   private readonly suggestions: Collection<SuggestionDoc>
   private readonly tasks: Collection<TaskDoc>
-  private readonly tokens: Collection<TokenDoc>
   private readonly users: Collection<UserDoc>
 
   constructor(db: Db) {
@@ -59,7 +59,6 @@ export class ColonyMongoApi {
     )
     this.suggestions = db.collection<SuggestionDoc>(CollectionNames.Suggestions)
     this.tasks = db.collection<TaskDoc>(CollectionNames.Tasks)
-    this.tokens = db.collection<TokenDoc>(CollectionNames.Tokens)
     this.users = db.collection<UserDoc>(CollectionNames.Users)
   }
 
@@ -168,12 +167,6 @@ export class ColonyMongoApi {
     const colony = await this.colonies.findOne({ colonyAddress })
     assert.ok(!!colony, `Colony with address '${colonyAddress}' not found`)
     return colony
-  }
-
-  private async tryGetToken(address: string) {
-    const token = await this.tokens.findOne({ address })
-    assert.ok(!!token, `Token with address '${address}' not found`)
-    return token
   }
 
   private async tryGetDomain(colonyAddress: string, ethDomainId: number) {
@@ -392,10 +385,8 @@ export class ColonyMongoApi {
 
   async setUserTokens(initiator: string, tokenAddresses: string[]) {
     await this.tryGetUser(initiator)
-    await Promise.all(
-      tokenAddresses.map(tokenAddress => this.tryGetToken(tokenAddress)),
-    )
-    return this.updateUser(initiator, {}, { $set: { tokenAddresses } })
+    const tokens = tokenAddresses.filter(token => !isETH(token))
+    return this.updateUser(initiator, {}, { $set: { tokenAddresses: tokens } })
   }
 
   async setColonyTokens(
@@ -405,8 +396,8 @@ export class ColonyMongoApi {
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetColony(colonyAddress)
-    await Promise.all(tokenAddresses.map(address => this.tryGetToken(address)))
-    return this.updateColony(colonyAddress, {}, { $set: { tokenAddresses } })
+    const tokens = tokenAddresses.filter(token => !isETH(token))
+    return this.updateColony(colonyAddress, {}, { $set: { tokenAddresses: tokens } })
   }
 
   async createTask(
