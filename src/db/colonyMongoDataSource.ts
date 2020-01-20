@@ -132,6 +132,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return {
       ...doc,
       id: doc.address,
+      verified: undefined,
     }
   }
 

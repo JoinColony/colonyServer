@@ -8,5 +8,6 @@ export default gql`
     name: String!
     decimals: Int!
     symbol: String!
+    verified: Boolean!
   }
 `

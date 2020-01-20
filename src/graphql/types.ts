@@ -661,6 +661,7 @@ export type TokenInfo = {
   name: Scalars['String'],
   decimals: Scalars['Int'],
   symbol: Scalars['String'],
+  verified: Scalars['Boolean'],
 };
 
 export type UnassignWorkerEvent = TaskEvent & {
@@ -1182,6 +1183,7 @@ export type TokenInfoResolvers<ContextType = any, ParentType extends ResolversPa
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   decimals?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
   symbol?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  verified?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
 };
 
 export type UnassignWorkerEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['UnassignWorkerEvent'] = ResolversParentTypes['UnassignWorkerEvent']> = {
