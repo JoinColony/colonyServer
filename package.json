@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JoinColony/colonyServer.git"
+  },
   "scripts": {
     "build": "NODE_ENV=production ./scripts/build.sh",
     "start": "NODE_ENV=production node dist/index.js",
