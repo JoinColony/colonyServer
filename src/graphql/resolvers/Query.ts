@@ -1,6 +1,6 @@
 import { ApolloContext } from '../apolloTypes'
 import { QueryResolvers } from '../types'
-import { EthplorerTokenInfo } from '../../external/ethplorerDataSource'
+import { EthplorerDataSource, EthplorerTokenInfo } from '../../external/ethplorerDataSource'
 
 export const Query: QueryResolvers<ApolloContext> = {
   async user(parent, { address }, { dataSources: { data } }) {
@@ -34,7 +34,7 @@ export const Query: QueryResolvers<ApolloContext> = {
   ) {
     let ethplorerTokenInfo = {} as EthplorerTokenInfo
     // There might be a better way to check whether we're on mainnet (not on QA)
-    if (process.env.NODE_ENV === 'production') {
+    if (EthplorerDataSource.isActive) {
       try {
         ethplorerTokenInfo = await ethplorer.getTokenInfo(address)
       } catch (e) {

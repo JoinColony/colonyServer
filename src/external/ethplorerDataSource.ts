@@ -1,15 +1,19 @@
 import { RESTDataSource } from 'apollo-datasource-rest'
 
 export interface EthplorerTokenInfo {
-  id: string;
-  address: string;
-  name: string;
-  symbol: string;
-  decimals: number;
-  verified: boolean;
+  id: string
+  address: string
+  name: string
+  symbol: string
+  decimals: number
+  verified: boolean
 }
 
 export class EthplorerDataSource extends RESTDataSource {
+  static get isActive() {
+    return !!process.env.ETHPLORER_API_KEY
+  }
+
   constructor() {
     super()
     this.baseURL = 'https://api.ethplorer.io/'
