@@ -154,6 +154,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
 
   private static transformSuggestion({
     _id,
+    taskId,
     ...doc
   }: SuggestionDoc): Suggestion {
     return {
@@ -161,6 +162,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       id: _id.toHexString(),
       createdAt: _id.getTimestamp(),
       creator: undefined,
+      taskId: taskId ? taskId.toHexString() : undefined,
     }
   }
 

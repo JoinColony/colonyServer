@@ -147,9 +147,9 @@ export class ColonyMongoApi {
   }
 
   private async tryGetSuggestion(id: string) {
-    const suggestion = await this.suggestions.findOne(new ObjectID(id));
+    const suggestion = await this.suggestions.findOne(new ObjectID(id))
     assert.ok(!!suggestion, `Suggestion with ID '${id}' not found`)
-    return suggestion;
+    return suggestion
   }
 
   private async tryGetTask(taskId: string) {
@@ -455,13 +455,17 @@ export class ColonyMongoApi {
     await this.tryGetColony(colonyAddress)
     await this.tryGetDomain(colonyAddress, ethDomainId)
 
-    const insertedDoc = { colonyAddress, creatorAddress: initiator, ethDomainId } as TaskDoc
+    const insertedDoc = {
+      colonyAddress,
+      creatorAddress: initiator,
+      ethDomainId,
+    } as TaskDoc
 
     if (title) {
-      insertedDoc.title = title;
+      insertedDoc.title = title
     }
 
-    const { insertedId } = await this.tasks.insertOne(insertedDoc);
+    const { insertedId } = await this.tasks.insertOne(insertedDoc)
     const taskId = insertedId.toString()
 
     await this.subscribeToTask(initiator, taskId)
@@ -901,25 +905,43 @@ export class ColonyMongoApi {
       creatorAddress: initiator,
       ethDomainId,
       status: SuggestionStatus.Open,
-      upvotes: [],
+      upvotes: [initiator],
       title,
     })
+
     return insertedId.toString()
   }
 
   async editSuggestion(
     id: string,
-    update: { status?: SuggestionStatus; taskId?: string, title?: string },
+    {
+      status,
+      taskId,
+      title,
+    }: { status?: SuggestionStatus; taskId?: string; title?: string },
   ) {
-    await this.tryGetSuggestion(id);
-    const edit = { $set: update }
-    return this.suggestions.updateOne({ _id: new ObjectID(id) }, edit)
+    await this.tryGetSuggestion(id)
+    const edit = {} as {
+      status?: SuggestionStatus
+      taskId?: ObjectID
+      title?: string
+    }
+    if (status) {
+      edit.status = status
+    }
+    if (title) {
+      edit.title = title
+    }
+    if (taskId) {
+      edit.taskId = new ObjectID(taskId)
+    }
+    return this.suggestions.updateOne({ _id: new ObjectID(id) }, { $set: edit })
   }
 
   async addUpvoteToSuggestion(initiator: string, id: string) {
     // This effectively limits upvotes to users with a registered ENS name
     await this.tryGetUser(initiator)
-    await this.tryGetSuggestion(id);
+    await this.tryGetSuggestion(id)
     return this.suggestions.updateOne(
       { _id: new ObjectID(id) },
       { $addToSet: { upvotes: initiator } },
@@ -929,7 +951,7 @@ export class ColonyMongoApi {
   async removeUpvoteFromSuggestion(initiator: string, id: string) {
     // This effectively limits upvotes to users with a registered ENS name
     await this.tryGetUser(initiator)
-    await this.tryGetSuggestion(id);
+    await this.tryGetSuggestion(id)
     return this.suggestions.updateOne(
       { _id: new ObjectID(id) },
       { $pull: { upvotes: initiator } },
