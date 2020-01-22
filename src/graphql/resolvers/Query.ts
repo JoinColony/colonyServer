@@ -1,5 +1,5 @@
 import { ApolloContext } from '../apolloTypes'
-import { QueryResolvers } from '../types'
+import { TokenInfo, QueryResolvers } from '../types'
 import { EthplorerDataSource, EthplorerTokenInfo } from '../../external/ethplorerDataSource'
 
 export const Query: QueryResolvers<ApolloContext> = {
@@ -41,19 +41,20 @@ export const Query: QueryResolvers<ApolloContext> = {
         // Do nothing, might be just a token that isn't on ethplorer
       }
     }
-    let databaseTokenInfo
+    let databaseTokenInfo = {} as TokenInfo
     try {
       databaseTokenInfo = await data.getTokenByAddress(address)
     } catch (e) {
       // Also do nothing, might be just a token that isn't in the db
     }
+    // Always return a token, if needed just a fallback
     return {
       id: address,
       address,
-      decimals: ethplorerTokenInfo.decimals || databaseTokenInfo.decimals,
+      decimals: ethplorerTokenInfo.decimals || databaseTokenInfo.decimals || 18,
       iconHash: databaseTokenInfo.iconHash,
-      name: ethplorerTokenInfo.name || databaseTokenInfo.name,
-      symbol: ethplorerTokenInfo.symbol || databaseTokenInfo.symbol,
+      name: ethplorerTokenInfo.name || databaseTokenInfo.name || 'Unknown token',
+      symbol: ethplorerTokenInfo.symbol || databaseTokenInfo.symbol || '???',
       verified: ethplorerTokenInfo.verified || false,
     }
   },
