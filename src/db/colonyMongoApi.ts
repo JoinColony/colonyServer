@@ -905,9 +905,10 @@ export class ColonyMongoApi {
       creatorAddress: initiator,
       ethDomainId,
       status: SuggestionStatus.Open,
-      upvotes: [],
+      upvotes: [initiator],
       title,
     })
+
     return insertedId.toString()
   }
 
