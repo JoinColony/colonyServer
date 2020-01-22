@@ -1,5 +1,6 @@
 import { ApolloContext } from '../apolloTypes'
 import { QueryResolvers } from '../types'
+import { EthplorerDataSource, EthplorerTokenInfo } from '../../external/ethplorerDataSource'
 
 export const Query: QueryResolvers<ApolloContext> = {
   async user(parent, { address }, { dataSources: { data } }) {
@@ -26,14 +27,34 @@ export const Query: QueryResolvers<ApolloContext> = {
   async task(parent, { id }: { id: string }, { dataSources: { data } }) {
     return data.getTaskById(id)
   },
-  async token(
+  async tokenInfo(
     parent,
     { address }: { address: string },
-    { dataSources: { data } },
+    { dataSources: { data, ethplorer } },
   ) {
-    return data.getTokenByAddress(address)
-  },
-  async allTokens(parent, input, { dataSources: { data } }) {
-    return data.getAllTokens()
+    let ethplorerTokenInfo = {} as EthplorerTokenInfo
+    // There might be a better way to check whether we're on mainnet (not on QA)
+    if (EthplorerDataSource.isActive) {
+      try {
+        ethplorerTokenInfo = await ethplorer.getTokenInfo(address)
+      } catch (e) {
+        // Do nothing, might be just a token that isn't on ethplorer
+      }
+    }
+    let databaseTokenInfo
+    try {
+      databaseTokenInfo = await data.getTokenByAddress(address)
+    } catch (e) {
+      // Also do nothing, might be just a token that isn't in the db
+    }
+    return {
+      id: address,
+      address,
+      decimals: ethplorerTokenInfo.decimals || databaseTokenInfo.decimals,
+      iconHash: databaseTokenInfo.iconHash,
+      name: ethplorerTokenInfo.name || databaseTokenInfo.name,
+      symbol: ethplorerTokenInfo.symbol || databaseTokenInfo.symbol,
+      verified: ethplorerTokenInfo.verified || false,
+    }
   },
 }

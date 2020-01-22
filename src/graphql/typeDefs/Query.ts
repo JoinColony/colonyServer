@@ -6,7 +6,6 @@ export default gql`
     colony(address: String!): Colony!
     domain(colonyAddress: String!, ethDomainId: Int!): Domain!
     task(id: String!): Task!
-    token(address: String!): Token!
-    allTokens: [Token!]!
+    tokenInfo(address: String!): TokenInfo!
   }
 `

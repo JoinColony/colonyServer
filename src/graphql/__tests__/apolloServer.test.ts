@@ -14,7 +14,7 @@ import Mutation from '../typeDefs/Mutation'
 import Query from '../typeDefs/Query'
 import Suggestion from '../typeDefs/Suggestion'
 import Task from '../typeDefs/Task'
-import Token from '../typeDefs/Token'
+import TokenInfo from '../typeDefs/TokenInfo'
 import User from '../typeDefs/User'
 import scalars from '../typeDefs/scalars'
 import { resolvers } from '../resolvers'
@@ -43,7 +43,7 @@ const typeDefs = [
   Query,
   Suggestion,
   Task,
-  Token,
+  TokenInfo,
   User,
   scalars,
 ]
@@ -321,9 +321,7 @@ describe('Apollo Server', () => {
                 }
                 payouts {
                   amount
-                  token {
-                    address
-                  }
+                  tokenAddress
                 }
               }
             }
@@ -351,15 +349,11 @@ describe('Apollo Server', () => {
             payouts: [
               {
                 amount: taskDoc.payouts[0].amount,
-                token: {
-                  address: taskDoc.payouts[0].tokenAddress,
-                },
+                tokenAddress: taskDoc.payouts[0].tokenAddress,
               },
               {
                 amount: taskDoc.payouts[1].amount,
-                token: {
-                  address: taskDoc.payouts[1].tokenAddress,
-                },
+                tokenAddress: taskDoc.payouts[1].tokenAddress,
               },
             ],
           },
@@ -368,7 +362,7 @@ describe('Apollo Server', () => {
       })
     })
 
-    it('token', async () => {
+    it('tokenInfo', async () => {
       await insertDocs(db, {
         tokens: [token1Doc],
       })
@@ -376,14 +370,12 @@ describe('Apollo Server', () => {
       await expect(
         query({
           query: gql`
-            query token($address: String!) {
-              token(address: $address) {
+            query tokenInfo($address: String!) {
+              tokenInfo(address: $address) {
                 address
-                info {
-                  decimals
-                  name
-                  symbol
-                }
+                decimals
+                name
+                symbol
               }
             }
           `,
@@ -393,76 +385,12 @@ describe('Apollo Server', () => {
         }),
       ).resolves.toMatchObject({
         data: {
-          token: {
+          tokenInfo: {
             address: token1Doc.address,
-            info: {
-              decimals: token1Doc.decimals,
-              name: token1Doc.name,
-              symbol: token1Doc.symbol,
-            },
+            decimals: token1Doc.decimals,
+            name: token1Doc.name,
+            symbol: token1Doc.symbol,
           },
-        },
-        errors: undefined,
-      })
-    })
-
-    it('allTokens', async () => {
-      await insertDocs(db, {
-        tokens: [token1Doc, token2Doc, token3Doc],
-      })
-
-      await expect(
-        query({
-          query: gql`
-            query {
-              allTokens {
-                address
-                info {
-                  decimals
-                  name
-                  symbol
-                }
-              }
-            }
-          `,
-        }),
-      ).resolves.toMatchObject({
-        data: {
-          allTokens: [
-            // This document is from seeded data when the collection was created
-            {
-              address: '0x0000000000000000000000000000000000000000',
-              info: {
-                name: 'Ether',
-                decimals: 18,
-                symbol: 'ETH',
-              },
-            },
-            {
-              address: token1Doc.address,
-              info: {
-                name: token1Doc.name,
-                decimals: token1Doc.decimals,
-                symbol: token1Doc.symbol,
-              },
-            },
-            {
-              address: token2Doc.address,
-              info: {
-                name: token2Doc.name,
-                decimals: token2Doc.decimals,
-                symbol: token2Doc.symbol,
-              },
-            },
-            {
-              address: token3Doc.address,
-              info: {
-                name: token3Doc.name,
-                decimals: token3Doc.decimals,
-                symbol: token3Doc.symbol,
-              },
-            },
-          ],
         },
         errors: undefined,
       })
@@ -491,14 +419,7 @@ describe('Apollo Server', () => {
           query: gql`
             query colonyTokens($colonyAddress: String!) {
               colony(address: $colonyAddress) {
-                tokens {
-                  address
-                  info {
-                    decimals
-                    name
-                    symbol
-                  }
-                }
+                tokenAddresses
               }
             }
           `,
@@ -507,35 +428,9 @@ describe('Apollo Server', () => {
       ).resolves.toMatchObject({
         data: {
           colony: {
-            tokens: [
-              // This document is from seeded data when the collection was created
-              {
-                address: '0x0000000000000000000000000000000000000000',
-                info: {
-                  name: 'Ether',
-                  decimals: 18,
-                  symbol: 'ETH',
-                },
-              },
-              {
-                address: token1Doc.address,
-                info: {
-                  name: token1Doc.name,
-                  decimals: token1Doc.decimals,
-                  symbol: token1Doc.symbol,
-                },
-              },
-              {
-                address: token2Doc.address,
-                info: {
-                  name: token2Doc.name,
-                  decimals: token2Doc.decimals,
-                  symbol: token2Doc.symbol,
-                },
-              },
-              // token3 should not have been included because it is not
-              // in the tokenAddresses of this colony
-            ],
+            // token3 should not have been included because it is not
+            // in the tokenAddresses of this colony
+            tokenAddresses: [token1Doc.address, token2Doc.address],
           },
         },
         errors: undefined,
@@ -975,7 +870,9 @@ describe('Apollo Server', () => {
       await expect(
         mutate({
           mutation: gql`
-            mutation createTaskFromSuggestion($input: CreateTaskFromSuggestionInput!) {
+            mutation createTaskFromSuggestion(
+              $input: CreateTaskFromSuggestionInput!
+            ) {
               createTaskFromSuggestion(input: $input) {
                 id
                 title
@@ -1517,56 +1414,6 @@ describe('Apollo Server', () => {
       })
     })
 
-    it('createToken', async () => {
-      await insertDocs(db, {
-        users: [user1Doc],
-      })
-
-      const tokenInput = {
-        address: 'token address',
-        name: 'token name',
-        symbol: 'token symbol',
-        decimals: 18,
-        iconHash: 'icon hash',
-      }
-
-      await expect(
-        mutate({
-          mutation: gql`
-            mutation createToken($input: CreateTokenInput!) {
-              createToken(input: $input) {
-                address
-                iconHash
-                info {
-                  name
-                  symbol
-                  decimals
-                }
-              }
-            }
-          `,
-          variables: {
-            input: tokenInput,
-          },
-        }),
-      ).resolves.toMatchObject({
-        data: {
-          createToken: {
-            address: tokenInput.address,
-            iconHash: tokenInput.iconHash,
-            info: {
-              name: tokenInput.name,
-              symbol: tokenInput.symbol,
-              decimals: tokenInput.decimals,
-            },
-          },
-        },
-        errors: undefined,
-      })
-
-      expect(tryAuth).not.toHaveBeenCalled()
-    })
-
     it('markNotificationAsRead', async () => {
       const {
         events: [eventId],
@@ -2050,7 +1897,9 @@ describe('Apollo Server', () => {
       await expect(
         mutate({
           mutation: gql`
-            mutation addUpvoteToSuggestion($input: AddUpvoteToSuggestionInput!) {
+            mutation addUpvoteToSuggestion(
+              $input: AddUpvoteToSuggestionInput!
+            ) {
               addUpvoteToSuggestion(input: $input) {
                 upvotes
               }
@@ -2078,7 +1927,9 @@ describe('Apollo Server', () => {
       await expect(
         mutate({
           mutation: gql`
-            mutation removeUpvoteFromSuggestion($input: RemoveUpvoteFromSuggestionInput!) {
+            mutation removeUpvoteFromSuggestion(
+              $input: RemoveUpvoteFromSuggestionInput!
+            ) {
               removeUpvoteFromSuggestion(input: $input) {
                 upvotes
               }
