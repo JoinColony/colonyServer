@@ -4,7 +4,7 @@ export interface SystemInfo {
   version: string
 }
 
-export class SystemSource {
+export class SystemDataSource {
   private readonly version: string;
 
   constructor() {
