@@ -1,4 +1,5 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
+import { SystemInfo } from '../external/systemDataSource';
 export type Maybe<T> = T | null;
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type RequireFields<T, K extends keyof T> = { [X in Exclude<keyof T, K>]?: T[X] } & { [P in K]-?: NonNullable<T[P]> };
@@ -428,6 +429,7 @@ export type Query = {
   domain: Domain,
   task: Task,
   tokenInfo: TokenInfo,
+  systemInfo: SystemInfo,
 };
 
 
@@ -817,6 +819,7 @@ export type ResolversTypes = {
   SuggestionStatus: SuggestionStatus,
   Notification: ResolverTypeWrapper<Notification>,
   TokenInfo: ResolverTypeWrapper<TokenInfo>,
+  SystemInfo: ResolverTypeWrapper<SystemInfo>,
   Mutation: ResolverTypeWrapper<{}>,
   CreateColonyInput: CreateColonyInput,
   EditColonyProfileInput: EditColonyProfileInput,
@@ -1068,6 +1071,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   domain?: Resolver<ResolversTypes['Domain'], ParentType, ContextType, RequireFields<QueryDomainArgs, 'colonyAddress' | 'ethDomainId'>>,
   task?: Resolver<ResolversTypes['Task'], ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>,
   tokenInfo?: Resolver<ResolversTypes['TokenInfo'], ParentType, ContextType, RequireFields<QueryTokenInfoArgs, 'address'>>,
+  systemInfo?: Resolver<ResolversTypes['SystemInfo']>,
 };
 
 export type RemoveTaskPayoutEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['RemoveTaskPayoutEvent'] = ResolversParentTypes['RemoveTaskPayoutEvent']> = {
