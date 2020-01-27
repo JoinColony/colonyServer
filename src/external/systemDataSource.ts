@@ -1,19 +1,29 @@
-import { version } from '../../package.json';
+import fs from 'fs';
+import util from 'util';
+import path from 'path'
+
+const readFile = util.promisify(fs.readFile);
 
 export interface SystemInfo {
   version: string
 }
 
 export class SystemDataSource {
-  private readonly version: string;
+  private version: Promise<string>;
 
   constructor() {
-    this.version = version;
+    this.version = this.getAsyncVersion();
+  }
+
+  private async getAsyncVersion(): Promise<string> {
+    const packageJson = await readFile(path.resolve('package.json'));
+    const { version } = JSON.parse(packageJson.toString());
+    return version;
   }
 
   async getSystemInfo(): Promise<SystemInfo> {
     return {
-      version: this.version,
+      version: await this.version,
     };
   }
 }
