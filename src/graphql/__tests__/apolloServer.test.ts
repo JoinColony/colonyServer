@@ -3,7 +3,8 @@ import { createTestClient } from 'apollo-server-testing'
 import { DocumentNode } from 'graphql'
 import { mocked } from 'ts-jest/utils'
 import { MongoClient, ObjectID } from 'mongodb'
-import { version } from '../../../package.json';
+import fs from 'fs';
+import path from 'path';
 
 import { ColonyMongoApi } from '../../db/colonyMongoApi'
 import { ColonyMongoDataSource } from '../../db/colonyMongoDataSource'
@@ -120,7 +121,14 @@ const token3Doc = {
   decimals: 18,
 }
 const systemInfoResult = {
-  version,
+  version: JSON.parse(
+    /*
+     * @NOTE As opposed to the data source, we're reading this file syncronously
+     * We don't really care about halting the process here, so this way is easier
+     * (plus we can chain everything)
+     */
+    fs.readFileSync(path.resolve('package.json')).toString()
+  ).version,
 }
 
 describe('Apollo Server', () => {
