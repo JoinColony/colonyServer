@@ -105,6 +105,23 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
   }
 
+  // Get a minimal user profile for unregistered users
+  static getMinimalUser(address): User {
+    return {
+      id: address,
+      createdAt: new Date(0),
+      colonies: [],
+      notifications: [],
+      tasks: [],
+      colonyAddresses: [],
+      tokenAddresses: [],
+      taskIds: [],
+      profile: {
+        walletAddress: address,
+      }
+    }
+  }
+
   private static transformEvent<C extends object>({
     _id,
     context,

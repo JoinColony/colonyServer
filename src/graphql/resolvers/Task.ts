@@ -1,5 +1,6 @@
 import { ApolloContext } from '../apolloTypes'
 import { TaskResolvers, TaskPayoutResolvers } from '../types'
+import { ColonyMongoDataSource } from '../../db/colonyMongoDataSource'
 
 export const Task: TaskResolvers<ApolloContext> = {
   async colony({ colonyAddress }, input, { dataSources: { data } }) {
@@ -20,9 +21,14 @@ export const Task: TaskResolvers<ApolloContext> = {
     input,
     { dataSources: { data } },
   ) {
-    return assignedWorkerAddress
-      ? await data.getUserByAddress(assignedWorkerAddress)
-      : null
+    if (assignedWorkerAddress) {
+      try {
+        return await data.getUserByAddress(assignedWorkerAddress)
+      } catch (err) {
+        return ColonyMongoDataSource.getMinimalUser(assignedWorkerAddress)
+      }
+    }
+    return null
   },
   async workInvites({ workInviteAddresses }, input, { dataSources: { data } }) {
     return data.getUsersByAddress(workInviteAddresses)
