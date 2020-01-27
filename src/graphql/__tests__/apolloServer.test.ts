@@ -1559,9 +1559,9 @@ describe('Apollo Server', () => {
           user: {
             id: ctxUserAddress,
             notifications: [
-              { id: id1, event: { type: EventType.CreateDomain }, read: true },
-              { id: id2, event: { type: EventType.CreateTask }, read: true },
               { id: id4, event: { type: EventType.FinalizeTask }, read: true },
+              { id: id2, event: { type: EventType.CreateTask }, read: true },
+              { id: id1, event: { type: EventType.CreateDomain }, read: true },
             ],
           },
         },
@@ -1580,8 +1580,8 @@ describe('Apollo Server', () => {
           user: {
             id: user2Doc.walletAddress,
             notifications: [
-              { id: id3, event: { type: EventType.CancelTask }, read: false },
               { id: id4, event: { type: EventType.FinalizeTask }, read: false },
+              { id: id3, event: { type: EventType.CancelTask }, read: false },
             ],
           },
         },

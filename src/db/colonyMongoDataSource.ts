@@ -118,7 +118,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       taskIds: [],
       profile: {
         walletAddress: address,
-      }
+      },
     }
   }
 
@@ -142,10 +142,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
   }
 
-  private static transformToken({
-    _id,
-    ...doc
-  }: TokenDoc): TokenInfo {
+  private static transformToken({ _id, ...doc }: TokenDoc): TokenInfo {
     return {
       ...doc,
       id: doc.address,
@@ -346,6 +343,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     const docs = ((await this.collections.notifications.collection
       .aggregate([
         { $match: query },
+        { $sort: { _id: -1 } },
         { $unwind: '$users' },
         { $match: { 'users.address': address } },
         {
