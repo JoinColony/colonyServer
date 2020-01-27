@@ -1,6 +1,7 @@
 import { ApolloContext } from '../apolloTypes'
 import { TokenInfo, QueryResolvers } from '../types'
 import { EthplorerDataSource, EthplorerTokenInfo } from '../../external/ethplorerDataSource'
+import { SystemDataSource } from '../../external/systemDataSource';
 
 export const Query: QueryResolvers<ApolloContext> = {
   async user(parent, { address }, { dataSources: { data } }) {
@@ -57,5 +58,9 @@ export const Query: QueryResolvers<ApolloContext> = {
       symbol: ethplorerTokenInfo.symbol || databaseTokenInfo.symbol || '???',
       verified: ethplorerTokenInfo.verified || false,
     }
+  },
+  async systemInfo() {
+    const system = new SystemDataSource();
+    return system.getSystemInfo();
   },
 }

@@ -428,6 +428,7 @@ export type Query = {
   domain: Domain,
   task: Task,
   tokenInfo: TokenInfo,
+  systemInfo: SystemInfo,
 };
 
 
@@ -603,6 +604,11 @@ export enum SuggestionStatus {
   Accepted = 'Accepted',
   Deleted = 'Deleted'
 }
+
+export type SystemInfo = {
+   __typename?: 'SystemInfo',
+  version: Scalars['String'],
+};
 
 export type Task = {
    __typename?: 'Task',
@@ -817,6 +823,7 @@ export type ResolversTypes = {
   SuggestionStatus: SuggestionStatus,
   Notification: ResolverTypeWrapper<Notification>,
   TokenInfo: ResolverTypeWrapper<TokenInfo>,
+  SystemInfo: ResolverTypeWrapper<SystemInfo>,
   Mutation: ResolverTypeWrapper<{}>,
   CreateColonyInput: CreateColonyInput,
   EditColonyProfileInput: EditColonyProfileInput,
@@ -890,6 +897,7 @@ export type ResolversParentTypes = {
   SuggestionStatus: SuggestionStatus,
   Notification: Notification,
   TokenInfo: TokenInfo,
+  SystemInfo: SystemInfo,
   Mutation: {},
   CreateColonyInput: CreateColonyInput,
   EditColonyProfileInput: EditColonyProfileInput,
@@ -1068,6 +1076,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   domain?: Resolver<ResolversTypes['Domain'], ParentType, ContextType, RequireFields<QueryDomainArgs, 'colonyAddress' | 'ethDomainId'>>,
   task?: Resolver<ResolversTypes['Task'], ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>,
   tokenInfo?: Resolver<ResolversTypes['TokenInfo'], ParentType, ContextType, RequireFields<QueryTokenInfoArgs, 'address'>>,
+  systemInfo?: Resolver<ResolversTypes['SystemInfo'], ParentType, ContextType>,
 };
 
 export type RemoveTaskPayoutEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['RemoveTaskPayoutEvent'] = ResolversParentTypes['RemoveTaskPayoutEvent']> = {
@@ -1131,6 +1140,10 @@ export type SuggestionResolvers<ContextType = any, ParentType extends ResolversP
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   taskId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   upvotes?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
+};
+
+export type SystemInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['SystemInfo'] = ResolversParentTypes['SystemInfo']> = {
+  version?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
 };
 
 export type TaskResolvers<ContextType = any, ParentType extends ResolversParentTypes['Task'] = ResolversParentTypes['Task']> = {
@@ -1240,6 +1253,7 @@ export type Resolvers<ContextType = any> = {
   SetTaskSkillEvent?: SetTaskSkillEventResolvers<ContextType>,
   SetTaskTitleEvent?: SetTaskTitleEventResolvers<ContextType>,
   Suggestion?: SuggestionResolvers<ContextType>,
+  SystemInfo?: SystemInfoResolvers<ContextType>,
   Task?: TaskResolvers<ContextType>,
   TaskEvent?: TaskEventResolvers,
   TaskMessageEvent?: TaskMessageEventResolvers<ContextType>,

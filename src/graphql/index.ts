@@ -21,6 +21,7 @@ import Query from './typeDefs/Query'
 import Suggestion from './typeDefs/Suggestion'
 import Task from './typeDefs/Task'
 import TokenInfo from './typeDefs/TokenInfo'
+import SystemInfo from './typeDefs/SystemInfo';
 import User from './typeDefs/User'
 import scalars from './typeDefs/scalars'
 
@@ -66,6 +67,7 @@ export const createApolloServer = (db: Db, provider: Provider) => {
       Suggestion,
       Task,
       TokenInfo,
+      SystemInfo,
       User,
       scalars,
     ],

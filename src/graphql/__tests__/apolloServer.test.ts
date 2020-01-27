@@ -3,6 +3,7 @@ import { createTestClient } from 'apollo-server-testing'
 import { DocumentNode } from 'graphql'
 import { mocked } from 'ts-jest/utils'
 import { MongoClient, ObjectID } from 'mongodb'
+import { version } from '../../../package.json';
 
 import { ColonyMongoApi } from '../../db/colonyMongoApi'
 import { ColonyMongoDataSource } from '../../db/colonyMongoDataSource'
@@ -15,6 +16,7 @@ import Query from '../typeDefs/Query'
 import Suggestion from '../typeDefs/Suggestion'
 import Task from '../typeDefs/Task'
 import TokenInfo from '../typeDefs/TokenInfo'
+import SystemInfo from '../typeDefs/SystemInfo'
 import User from '../typeDefs/User'
 import scalars from '../typeDefs/scalars'
 import { resolvers } from '../resolvers'
@@ -44,6 +46,7 @@ const typeDefs = [
   Suggestion,
   Task,
   TokenInfo,
+  SystemInfo,
   User,
   scalars,
 ]
@@ -115,6 +118,9 @@ const token3Doc = {
   name: 'Token name 3',
   symbol: 'TKN3',
   decimals: 18,
+}
+const systemInfoResult = {
+  version,
 }
 
 describe('Apollo Server', () => {
@@ -391,6 +397,25 @@ describe('Apollo Server', () => {
             name: token1Doc.name,
             symbol: token1Doc.symbol,
           },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('systemInfo', async () => {
+      await expect(
+        query({
+          query: gql`
+            query SystemInfo {
+              systemInfo {
+                version
+              }
+            }
+          `,
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          systemInfo: systemInfoResult,
         },
         errors: undefined,
       })
