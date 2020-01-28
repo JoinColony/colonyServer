@@ -544,6 +544,18 @@ export class ColonyMongoApi {
     return this.updateTask(taskId, {}, { $set: { ethSkillId } })
   }
 
+  async removeTaskSkill(initiator: string, taskId: string, ethSkillId: number) {
+    await this.tryGetUser(initiator)
+    await this.tryGetTask(taskId)
+
+    await this.subscribeToTask(initiator, taskId)
+    await this.createEvent(initiator, EventType.RemoveTaskSkill, {
+      taskId,
+      ethSkillId,
+    })
+    return this.updateTask(taskId, {}, { $unset: { ethSkillId: '' } })
+  }
+
   async createWorkRequest(initiator: string, taskId: string) {
     await this.tryGetUser(initiator)
     const { workRequestAddresses = [], creatorAddress } = await this.tryGetTask(
