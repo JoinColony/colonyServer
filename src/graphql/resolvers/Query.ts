@@ -1,8 +1,9 @@
+import { toChecksumAddress } from 'web3-utils';
+
 import { ApolloContext } from '../apolloTypes'
 import { TokenInfo, QueryResolvers } from '../types'
 import { EthplorerDataSource, EthplorerTokenInfo } from '../../external/ethplorerDataSource'
 import { SystemDataSource } from '../../external/systemDataSource';
-import { toChecksumAddress } from 'web3-utils';
 
 export const Query: QueryResolvers<ApolloContext> = {
   async user(parent, { address }, { dataSources: { data } }) {
