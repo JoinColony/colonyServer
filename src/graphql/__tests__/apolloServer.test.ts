@@ -100,21 +100,21 @@ const suggestionDoc: Omit<SuggestionDoc, '_id'> = {
   title: 'Take this!',
 }
 const token1Doc = {
-  address: 'token address 1',
+  address: '0x06441dEaF11D60d77e5e42d4f644C64Ca05C2Fc1',
   creatorAddress: user1Doc.walletAddress,
   name: 'Token name 1',
   symbol: 'TKN1',
   decimals: 18,
 }
 const token2Doc = {
-  address: 'token address 2',
+  address: '0x06441dEaf11d60d77e5E42d4F644c64ca05C2fC2',
   creatorAddress: user1Doc.walletAddress,
   name: 'Token name 2',
   symbol: 'TKN2',
   decimals: 18,
 }
 const token3Doc = {
-  address: 'token address 3',
+  address: '0x06441dEaF11D60d77e5e42d4f644C64Ca05C2Fc3',
   creatorAddress: user1Doc.walletAddress,
   name: 'Token name 3',
   symbol: 'TKN3',
