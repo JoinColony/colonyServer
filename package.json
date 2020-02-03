@@ -43,7 +43,8 @@
     "graphql-iso-date": "^3.6.1",
     "jose": "^1.12.1",
     "linkify-it": "^2.2.0",
-    "mongodb": "^3.3.4"
+    "mongodb": "^3.3.4",
+    "web3-utils": "^1.2.5"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^1.9.1",

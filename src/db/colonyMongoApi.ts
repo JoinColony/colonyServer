@@ -6,6 +6,7 @@ import {
   QuerySelector,
   UpdateOneOptions,
 } from 'mongodb'
+import { toChecksumAddress } from 'web3-utils';
 
 import { EventType, ROOT_DOMAIN } from '../constants'
 import { isETH } from '../utils'
@@ -385,7 +386,13 @@ export class ColonyMongoApi {
 
   async setUserTokens(initiator: string, tokenAddresses: string[]) {
     await this.tryGetUser(initiator)
-    const tokens = tokenAddresses.filter(token => !isETH(token))
+    const tokens = tokenAddresses
+      .filter(token => !isETH(token))
+      /*
+       * @NOTE In all likelyhood the address that comes from the dApp is already checksummed
+       * But we'll checksum it again here as a precaution
+       */
+      .map(token => toChecksumAddress(token))
     return this.updateUser(initiator, {}, { $set: { tokenAddresses: tokens } })
   }
 
@@ -396,7 +403,13 @@ export class ColonyMongoApi {
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetColony(colonyAddress)
-    const tokens = tokenAddresses.filter(token => !isETH(token))
+    const tokens = tokenAddresses
+      .filter(token => !isETH(token))
+      /*
+       * @NOTE In all likelyhood the address that comes from the dApp is already checksummed
+       * But we'll checksum it again here as a precaution
+       */
+      .map(token => toChecksumAddress(token))
     return this.updateColony(colonyAddress, {}, { $set: { tokenAddresses: tokens } })
   }
 
