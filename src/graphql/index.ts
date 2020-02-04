@@ -6,6 +6,7 @@ import {
 } from 'apollo-server-express'
 import { Db } from 'mongodb'
 
+import { isDevelopment } from '../env'
 import { getAddressFromToken } from '../auth'
 import { ColonyMongoApi } from '../db/colonyMongoApi'
 import { ColonyMongoDataSource } from '../db/colonyMongoDataSource'
@@ -21,7 +22,7 @@ import Query from './typeDefs/Query'
 import Suggestion from './typeDefs/Suggestion'
 import Task from './typeDefs/Task'
 import TokenInfo from './typeDefs/TokenInfo'
-import SystemInfo from './typeDefs/SystemInfo';
+import SystemInfo from './typeDefs/SystemInfo'
 import User from './typeDefs/User'
 import scalars from './typeDefs/scalars'
 
@@ -29,7 +30,7 @@ const authenticate = (token: string) => {
   let user
 
   // In dev mode we enable a mode without a token for code generation
-  if (process.env.NODE_ENV === 'development' && token === 'codegen') {
+  if (isDevelopment && token === 'codegen') {
     user = null
   } else {
     /**
@@ -55,7 +56,7 @@ export const createApolloServer = (db: Db, provider: Provider) => {
   const api = new ColonyMongoApi(db)
   const data = new ColonyMongoDataSource(db)
   const auth = new ColonyAuthDataSource(provider)
-  const ethplorer = new EthplorerDataSource();
+  const ethplorer = new EthplorerDataSource()
 
   return new ApolloServer({
     typeDefs: [

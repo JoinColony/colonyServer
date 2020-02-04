@@ -6,9 +6,10 @@ import {
   QuerySelector,
   UpdateOneOptions,
 } from 'mongodb'
-import { toChecksumAddress } from 'web3-utils';
+import { toChecksumAddress } from 'web3-utils'
 
-import { EventType, ROOT_DOMAIN } from '../constants'
+import { EventType, ROOT_DOMAIN, AUTO_SUBSCRIBED_COLONIES } from '../constants'
+import { isMainnet } from '../env'
 import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
 import { SuggestionStatus } from '../graphql/types'
@@ -241,7 +242,11 @@ export class ColonyMongoApi {
   }
 
   async createUser(walletAddress: string, username: string) {
-    const doc = { walletAddress, username }
+    const doc = { walletAddress, username } as UserDoc
+
+    if (isMainnet) {
+      doc.colonyAddresses = AUTO_SUBSCRIBED_COLONIES
+    }
 
     const exists = !!(await this.users.findOne({
       $or: [{ walletAddress }, { username }],
@@ -410,7 +415,11 @@ export class ColonyMongoApi {
        * But we'll checksum it again here as a precaution
        */
       .map(token => toChecksumAddress(token))
-    return this.updateColony(colonyAddress, {}, { $set: { tokenAddresses: tokens } })
+    return this.updateColony(
+      colonyAddress,
+      {},
+      { $set: { tokenAddresses: tokens } },
+    )
   }
 
   async createTask(
