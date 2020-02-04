@@ -9,7 +9,6 @@ import {
 import { toChecksumAddress } from 'web3-utils'
 
 import { EventType, ROOT_DOMAIN, AUTO_SUBSCRIBED_COLONIES } from '../constants'
-import { isMainnet } from '../env'
 import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
 import { SuggestionStatus } from '../graphql/types'
@@ -241,11 +240,26 @@ export class ColonyMongoApi {
     return insertedId
   }
 
+  private async getAutoSubscribeColonies() {
+    const colonies = await Promise.all(
+      AUTO_SUBSCRIBED_COLONIES.map(async (colony: string) => {
+        try {
+          await this.tryGetColony(colony)
+        } catch (err) {
+          return null
+        }
+        return colony
+      }),
+    )
+    return colonies.filter(Boolean)
+  }
+
   async createUser(walletAddress: string, username: string) {
     const doc = { walletAddress, username } as UserDoc
 
-    if (isMainnet) {
-      doc.colonyAddresses = AUTO_SUBSCRIBED_COLONIES
+    const colonyAddresses = await this.getAutoSubscribeColonies()
+    if (colonyAddresses.length) {
+      doc.colonyAddresses = colonyAddresses
     }
 
     const exists = !!(await this.users.findOne({
