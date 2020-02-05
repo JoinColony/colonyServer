@@ -187,6 +187,7 @@ export type EditLevelInput = {
 };
 
 export type EditPersistentTaskInput = {
+  id: Scalars['String'],
   ethDomainId?: Maybe<Scalars['Int']>,
   ethSkillId?: Maybe<Scalars['Int']>,
   title?: Maybe<Scalars['String']>,
