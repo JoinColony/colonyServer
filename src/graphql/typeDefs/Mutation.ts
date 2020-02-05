@@ -171,7 +171,8 @@ export default gql`
     id: String!
   }
 
-  input CreateSubmissionInput {
+  input CreateLevelTaskSubmissionInput {
+    levelId: String!
     persistentTaskId: String!
     submission: String!
   }
@@ -279,10 +280,11 @@ export default gql`
     unsubscribeFromColony(input: UnsubscribeFromColonyInput!): User
     setUserTokens(input: SetUserTokensInput!): User
     # Submissions
-    createSubmission(input: CreateSubmissionInput!): Submission
+    createLevelTaskSubmission(input: CreateLevelTaskSubmissionInput!): Submission
     editSubmission(input: EditSubmissionInput!): Submission
     acceptSubmission(input: AcceptSubmissionInput!): Submission
     # PersistentTasks
+    createLevelTask(input: CreateLevelTaskInput!): PersistentTask
     editPersistentTask(input: EditPersistentTaskInput!): PersistentTask
     setPersistentTaskPayout(input: SetTaskPayoutInput!): PersistentTask # Re-use task input typedefs
     removePersistentTaskPayout(input: RemoveTaskPayoutInput!): PersistentTask # Re-use task input typedefs
@@ -291,7 +293,6 @@ export default gql`
     createLevel(input: CreateLevelInput!): Level
     editLevel(input: EditLevelInput!): Level
     removeLevel(input: RemoveLevelInput!): Level
-    createLevelTask(input: CreateLevelTaskInput!): PersistentTask
     # Programs
     createProgram(input: CreateProgramInput!): Program
     editProgram(input: EditProgramInput!): Program
