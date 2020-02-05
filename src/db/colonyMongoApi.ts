@@ -162,12 +162,9 @@ export class ColonyMongoApi {
   }
 
   private async tryGetPersistentTask(id: string) {
-    const task = await this.persistentTasks.findOne(new ObjectID(id))
+    const query = { _id: new ObjectID(id), status: { $ne: PersistentTaskStatus.Deleted } }
+    const task = await this.persistentTasks.findOne(query)
     assert.ok(!!task, `Persistent Task with ID '${id}' not found`)
-    assert.ok(
-      task.status !== PersistentTaskStatus.Deleted,
-      `Persistent Task with ID ${id} was deleted`,
-    )
     return task
   }
 
