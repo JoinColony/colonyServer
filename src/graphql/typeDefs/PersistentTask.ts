@@ -16,6 +16,7 @@ export default gql`
     title: String!
     description: String!
     payouts: [TaskPayout!]!
+    submissions: [Submission!]!
     status: PersistentTaskStatus!
   }
 `
