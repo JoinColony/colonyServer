@@ -5,6 +5,7 @@ import {
   EventDoc,
   NotificationDoc,
   PersistentTaskDoc,
+  SubmissionDoc,
   SuggestionDoc,
   TaskDoc,
   TokenDoc,
@@ -18,6 +19,7 @@ export enum CollectionNames {
   Events = 'events',
   Notifications = 'notifications',
   PersistentTasks = 'persistentTasks',
+  Submissions = 'submissions',
   Suggestions = 'suggestions',
   Tasks = 'tasks',
   Tokens = 'tokens',
@@ -561,6 +563,49 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['ethDomainId', {}],
         ['status', {}],
         ['context.taskId', { sparse: true }],
+      ],
+    },
+  ],
+  [
+    CollectionNames.Submissions,
+    {
+      create: {
+        validator: {
+          $jsonSchema: {
+            additionalProperties: false,
+            bsonType: 'object',
+            required: [
+              'creatorAddress',
+              'persistentTaskId',
+              'submission',
+              'status',
+            ],
+            properties: {
+              _id: { bsonType: 'objectId' },
+              creatorAddress: {
+                bsonType: 'string',
+                description: 'must be a string and is required',
+                maxLength: 42,
+              },
+              persistentTaskId: { bsonType: 'objectId' },
+              submission: {
+                bsonType: 'string',
+              },
+              status: {
+                enum: ['Open', 'Accepted', 'Rejected', 'Deleted'],
+                maxLength: 100,
+              },
+              statusChangedAt: {
+                bsonType: 'date',
+              },
+            } as SchemaFields<SubmissionDoc>,
+          },
+        },
+      },
+      indexes: [
+        ['creatorAddress', {}],
+        ['persistentTaskId', {}],
+        ['status', {}],
       ],
     },
   ],

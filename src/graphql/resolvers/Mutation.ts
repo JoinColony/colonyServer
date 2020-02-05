@@ -1,5 +1,10 @@
 import { ApolloContext } from '../apolloTypes'
-import { MutationResolvers, PersistentTaskStatus, SuggestionStatus } from '../types'
+import {
+  MutationResolvers,
+  PersistentTaskStatus,
+  SubmissionStatus,
+  SuggestionStatus,
+} from '../types'
 import { tryAuth } from './auth'
 
 export const Mutation: MutationResolvers<ApolloContext> = {
@@ -541,5 +546,52 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     )
     await api.removePersistentTask(userAddress, id)
     return data.getPersistentTaskById(id)
+  },
+  // Submissions
+  // TODO: Once we have levels, this can be uncommented and implemented
+  // async createLevelTaskSubmission(
+  //   parent,
+  //   { input: { levelId, persistentTaskId, submission } },
+  //   { userAddress, api, dataSources: { data } },
+  // ) {
+  //   const submissionId = await api.createSubmission(
+  //     userAddress,
+  //     persistentTaskId,
+  //     submission,
+  //   )
+  //   await api.addSubmissionToLevelTask(
+  //     userAddress,
+  //     persistentTaskId,
+  //     submissionId,
+  //   )
+  //   return data.getSubmissionById(submissionId)
+  // },
+  async editSubmission(
+    parent,
+    { input: { id, submission } },
+    { userAddress, api, dataSources: { data } },
+  ) {
+    const { creatorAddress } = await data.getSubmissionById(id)
+    if (creatorAddress !== userAddress) {
+      throw new Error('Submissions can only be edited by their creators')
+    }
+    await api.editSubmission(userAddress, id, { submission })
+    return data.getSubmissionById(id)
+  },
+  async acceptSubmission(
+    parent,
+    { input: { id } },
+    { userAddress, api, dataSources: { auth, data } },
+  ) {
+    const { persistentTaskId } = await data.getSubmissionById(id)
+    const { colonyAddress } = await data.getPersistentTaskById(persistentTaskId)
+    await tryAuth(
+      auth.assertCanAcceptSubmission({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.editSubmission(userAddress, id, { status: SubmissionStatus.Accepted })
+    return data.getSubmissionById(id)
   },
 }
