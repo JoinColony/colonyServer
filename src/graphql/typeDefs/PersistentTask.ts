@@ -14,8 +14,8 @@ export default gql`
     creatorAddress: String!
     ethDomainId: Int!
     ethSkillId: Int
-    title: String!
-    description: String!
+    title: String
+    description: String
     payouts: [TaskPayout!]!
     submissions: [Submission!]!
     status: PersistentTaskStatus!
