@@ -216,6 +216,24 @@ export default gql`
     id: String!
   }
 
+  input CreateProgramInput {
+    colonyAddress: String!
+  }
+
+  input EditProgramInput {
+    id: String!
+    title: String!
+    description: String
+  }
+
+  input PublishProgramInput {
+    id: String!
+  }
+
+  input RemoveProgramInput {
+    id: String!
+  }
+
   type Mutation {
     # Colonies
     createColony(input: CreateColonyInput!): Colony
@@ -264,14 +282,19 @@ export default gql`
     editSubmission(input: EditSubmissionInput!): Submission
     acceptSubmission(input: AcceptSubmissionInput!): Submission
     # PersistentTasks
-    createPersistentTask(input: CreatePersistentTaskInput): PersistentTask
+    createPersistentTask(input: CreatePersistentTaskInput!): PersistentTask
     editPersistentTask(input: EditPersistentTaskInput!): PersistentTask
     setPersistentTaskPayout(input: SetTaskPayoutInput!): PersistentTask # Re-use task input typedefs
     removePersistentTaskPayout(input: RemoveTaskPayoutInput!): PersistentTask # Re-use task input typedefs
     removePersistentTask(input: RemovePersistentTaskInput!): PersistentTask
     # Levels
-    createLevel(input: CreateLevelInput): Level
+    createLevel(input: CreateLevelInput!): Level
     editLevel(input: EditLevelInput!): Level
     removeLevel(input: RemoveLevelInput!): Level
+    # Programs
+    createProgram(input: CreateProgramInput!): Program
+    editProgram(input: EditProgramInput!): Program
+    publishProgram(input: PublishProgramInput!): Program
+    removeProgram(input: RemoveProgramInput!): Program
   }
 `
