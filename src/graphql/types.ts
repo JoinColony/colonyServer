@@ -597,6 +597,7 @@ export type PersistentTask = {
    __typename?: 'PersistentTask',
   id: Scalars['String'],
   createdAt: Scalars['GraphQLDateTime'],
+  colonyAddress: Scalars['String'],
   creatorAddress: Scalars['String'],
   ethDomainId: Scalars['Int'],
   ethSkillId?: Maybe<Scalars['Int']>,
@@ -1424,6 +1425,7 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
 export type PersistentTaskResolvers<ContextType = any, ParentType extends ResolversParentTypes['PersistentTask'] = ResolversParentTypes['PersistentTask']> = {
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
+  colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
   ethSkillId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
