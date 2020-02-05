@@ -17,5 +17,6 @@ export default gql`
     levelIds: [String!]!
     levels: [Level!]!
     status: ProgramStatus!
+    submissions: [Submission!]!
   }
 `
