@@ -185,7 +185,7 @@ export default gql`
     id: String!
   }
 
-  input CreatePersistentTaskInput {
+  input CreateLevelTaskInput {
     levelId: String!
   }
 
@@ -282,7 +282,6 @@ export default gql`
     editSubmission(input: EditSubmissionInput!): Submission
     acceptSubmission(input: AcceptSubmissionInput!): Submission
     # PersistentTasks
-    createPersistentTask(input: CreatePersistentTaskInput!): PersistentTask
     editPersistentTask(input: EditPersistentTaskInput!): PersistentTask
     setPersistentTaskPayout(input: SetTaskPayoutInput!): PersistentTask # Re-use task input typedefs
     removePersistentTaskPayout(input: RemoveTaskPayoutInput!): PersistentTask # Re-use task input typedefs
@@ -291,6 +290,7 @@ export default gql`
     createLevel(input: CreateLevelInput!): Level
     editLevel(input: EditLevelInput!): Level
     removeLevel(input: RemoveLevelInput!): Level
+    createLevelTask(input: CreateLevelTaskInput!): PersistentTask
     # Programs
     createProgram(input: CreateProgramInput!): Program
     editProgram(input: EditProgramInput!): Program

@@ -97,7 +97,7 @@ export type CreateLevelInput = {
   programId: Scalars['String'],
 };
 
-export type CreatePersistentTaskInput = {
+export type CreateLevelTaskInput = {
   levelId: Scalars['String'],
 };
 
@@ -326,7 +326,6 @@ export type Mutation = {
   editSubmission?: Maybe<Submission>,
   acceptSubmission?: Maybe<Submission>,
   /** PersistentTasks */
-  createPersistentTask?: Maybe<PersistentTask>,
   editPersistentTask?: Maybe<PersistentTask>,
   setPersistentTaskPayout?: Maybe<PersistentTask>,
   removePersistentTaskPayout?: Maybe<PersistentTask>,
@@ -335,6 +334,7 @@ export type Mutation = {
   createLevel?: Maybe<Level>,
   editLevel?: Maybe<Level>,
   removeLevel?: Maybe<Level>,
+  createLevelTask?: Maybe<PersistentTask>,
   /** Programs */
   createProgram?: Maybe<Program>,
   editProgram?: Maybe<Program>,
@@ -518,11 +518,6 @@ export type MutationAcceptSubmissionArgs = {
 };
 
 
-export type MutationCreatePersistentTaskArgs = {
-  input: CreatePersistentTaskInput
-};
-
-
 export type MutationEditPersistentTaskArgs = {
   input: EditPersistentTaskInput
 };
@@ -555,6 +550,11 @@ export type MutationEditLevelArgs = {
 
 export type MutationRemoveLevelArgs = {
   input: RemoveLevelInput
+};
+
+
+export type MutationCreateLevelTaskArgs = {
+  input: CreateLevelTaskInput
 };
 
 
@@ -597,8 +597,8 @@ export type PersistentTask = {
   creatorAddress: Scalars['String'],
   ethDomainId: Scalars['Int'],
   ethSkillId?: Maybe<Scalars['Int']>,
-  title: Scalars['String'],
-  description: Scalars['String'],
+  title?: Maybe<Scalars['String']>,
+  description?: Maybe<Scalars['String']>,
   payouts: Array<TaskPayout>,
   submissions: Array<Submission>,
   status: PersistentTaskStatus,
@@ -1127,12 +1127,12 @@ export type ResolversTypes = {
   CreateSubmissionInput: CreateSubmissionInput,
   EditSubmissionInput: EditSubmissionInput,
   AcceptSubmissionInput: AcceptSubmissionInput,
-  CreatePersistentTaskInput: CreatePersistentTaskInput,
   EditPersistentTaskInput: EditPersistentTaskInput,
   RemovePersistentTaskInput: RemovePersistentTaskInput,
   CreateLevelInput: CreateLevelInput,
   EditLevelInput: EditLevelInput,
   RemoveLevelInput: RemoveLevelInput,
+  CreateLevelTaskInput: CreateLevelTaskInput,
   CreateProgramInput: CreateProgramInput,
   EditProgramInput: EditProgramInput,
   PublishProgramInput: PublishProgramInput,
@@ -1224,12 +1224,12 @@ export type ResolversParentTypes = {
   CreateSubmissionInput: CreateSubmissionInput,
   EditSubmissionInput: EditSubmissionInput,
   AcceptSubmissionInput: AcceptSubmissionInput,
-  CreatePersistentTaskInput: CreatePersistentTaskInput,
   EditPersistentTaskInput: EditPersistentTaskInput,
   RemovePersistentTaskInput: RemovePersistentTaskInput,
   CreateLevelInput: CreateLevelInput,
   EditLevelInput: EditLevelInput,
   RemoveLevelInput: RemoveLevelInput,
+  CreateLevelTaskInput: CreateLevelTaskInput,
   CreateProgramInput: CreateProgramInput,
   EditProgramInput: EditProgramInput,
   PublishProgramInput: PublishProgramInput,
@@ -1389,7 +1389,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   createSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationCreateSubmissionArgs, 'input'>>,
   editSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationEditSubmissionArgs, 'input'>>,
   acceptSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationAcceptSubmissionArgs, 'input'>>,
-  createPersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationCreatePersistentTaskArgs, 'input'>>,
   editPersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationEditPersistentTaskArgs, 'input'>>,
   setPersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationSetPersistentTaskPayoutArgs, 'input'>>,
   removePersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemovePersistentTaskPayoutArgs, 'input'>>,
@@ -1397,6 +1396,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   createLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationCreateLevelArgs, 'input'>>,
   editLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationEditLevelArgs, 'input'>>,
   removeLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationRemoveLevelArgs, 'input'>>,
+  createLevelTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationCreateLevelTaskArgs, 'input'>>,
   createProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationCreateProgramArgs, 'input'>>,
   editProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationEditProgramArgs, 'input'>>,
   publishProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationPublishProgramArgs, 'input'>>,
@@ -1422,8 +1422,8 @@ export type PersistentTaskResolvers<ContextType = any, ParentType extends Resolv
   creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
   ethSkillId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   payouts?: Resolver<Array<ResolversTypes['TaskPayout']>, ParentType, ContextType>,
   submissions?: Resolver<Array<ResolversTypes['Submission']>, ParentType, ContextType>,
   status?: Resolver<ResolversTypes['PersistentTaskStatus'], ParentType, ContextType>,
