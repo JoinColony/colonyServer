@@ -14,6 +14,7 @@ export default gql`
     creatorAddress: String!
     creator: User! # resolved
     persistentTaskId: String!
+    programId: String!
     submission: String!
     status: SubmissionStatus!
     statusChangedAt: GraphQLDateTime

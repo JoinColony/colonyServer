@@ -80,6 +80,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       tokenAddresses,
       tasks: [],
       domains: [],
+      programs: [],
       subscribedUsers: [],
       suggestions: [],
     }
