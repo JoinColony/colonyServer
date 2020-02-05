@@ -25,14 +25,13 @@ type UserAddress = string
 type DomainId = number
 
 enum AuthChecks {
+  AdminProgram = 'AdminProgram',
   AssignWorker = 'AssignWorker',
   CancelTask = 'CancelTask',
   CreateDomain = 'CreateDomain',
-  CreatePersistentTask = 'CreatePersistentTask',
   CreateTask = 'CreateTask',
   EditColonyProfile = 'EditColonyProfile',
   EditDomainName = 'EditDomainName',
-  EditPersistentTask = 'EditPersistentTask',
   EditSuggestion = 'EditSuggestion',
   FinalizeTask = 'FinalizeTask',
   RemoveTaskPayout = 'RemoveTaskPayout',
@@ -100,14 +99,9 @@ const AUTH_DECLARATIONS: Record<AuthChecks, AuthDeclaration> = {
     roles: [ColonyRoles.Administration],
     type: AuthTypes.Domain,
   },
-  // Persistent Task
-  CreatePersistentTask: {
-    description: 'Create a persistent task',
-    roles: [ColonyRoles.Administration, ColonyRoles.Funding],
-    type: AuthTypes.Domain,
-  },
-  EditPersistentTask: {
-    description: 'Edit a persistent task',
+  // Administer Programs
+  AdminProgram: {
+    description: 'Administer a program',
     roles: [ColonyRoles.Administration, ColonyRoles.Funding],
     type: AuthTypes.Domain,
   },
@@ -298,6 +292,12 @@ export class ColonyAuthDataSource extends DataSource<any> {
     return this.assertForDomain(check, args)
   }
 
+  private async assertAdminProgram(check: AuthChecks, args: ColonyAuthArgs) {
+    // Programs require the FUNDING and ADMINISTRATION permissions in the ROOT domain. Always. So here's a shortcut
+    const domainAuthArgs: DomainAuthArgs = { ...args, domainId: ROOT_DOMAIN }
+    return this.assertForDomain(check, domainAuthArgs)
+  }
+
   async assertCanSetTaskDomain({
     colonyAddress,
     userAddress,
@@ -402,15 +402,17 @@ export class ColonyAuthDataSource extends DataSource<any> {
   }
 
   async assertCanCreatePersistentTask(args: ColonyAuthArgs) {
-    // For now we just check the root domain for persistent tasks (as they are only used in programs)
-    const domainAuthArgs: DomainAuthArgs = { ...args, domainId: ROOT_DOMAIN }
-    return this.assertForDomain(AuthChecks.CreatePersistentTask, domainAuthArgs)
+    // For now we just check the program auth for persistent tasks (as they are only used in programs)
+    return this.assertAdminProgram(AuthChecks.AdminProgram, args)
   }
 
   async assertCanEditPersistentTask(args: ColonyAuthArgs) {
-    // For now we just check the root domain for persistent tasks (as they are only used in programs)
-    const domainAuthArgs: DomainAuthArgs = { ...args, domainId: ROOT_DOMAIN }
-    return this.assertForDomain(AuthChecks.EditPersistentTask, domainAuthArgs)
+    // For now we just check the program auth for persistent tasks (as they are only used in programs)
+    return this.assertAdminProgram(AuthChecks.AdminProgram, args)
+  }
+
+  async assertCanAcceptSubmission(args: ColonyAuthArgs) {
+    return this.assertAdminProgram(AuthChecks.AdminProgram, args)
   }
 
   async assertColonyExists(colonyAddress: ColonyAddress): Promise<boolean> {

@@ -13,7 +13,9 @@ import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
 import {
   EditPersistentTaskInput,
+  EditSubmissionInput,
   PersistentTaskStatus,
+  SubmissionStatus,
   SuggestionStatus,
 } from '../graphql/types'
 import {
@@ -24,6 +26,7 @@ import {
   PersistentTaskDoc,
   StrictRootQuerySelector,
   StrictUpdateQuery,
+  SubmissionDoc,
   SuggestionDoc,
   TaskDoc,
   TokenDoc,
@@ -53,6 +56,7 @@ export class ColonyMongoApi {
   private readonly domains: Collection<DomainDoc>
   private readonly notifications: Collection<NotificationDoc>
   private readonly persistentTasks: Collection<PersistentTaskDoc>
+  private readonly submissions: Collection<SubmissionDoc>
   private readonly suggestions: Collection<SuggestionDoc>
   private readonly tasks: Collection<TaskDoc>
   private readonly users: Collection<UserDoc>
@@ -67,6 +71,7 @@ export class ColonyMongoApi {
     this.persistentTasks = db.collection<PersistentTaskDoc>(
       CollectionNames.PersistentTasks,
     )
+    this.submissions = db.collection<SubmissionDoc>(CollectionNames.Submissions)
     this.suggestions = db.collection<SuggestionDoc>(CollectionNames.Suggestions)
     this.tasks = db.collection<TaskDoc>(CollectionNames.Tasks)
     this.users = db.collection<UserDoc>(CollectionNames.Users)
@@ -166,6 +171,16 @@ export class ColonyMongoApi {
     const task = await this.persistentTasks.findOne(query)
     assert.ok(!!task, `Persistent Task with ID '${id}' not found`)
     return task
+  }
+
+  private async tryGetSubmission(id: string) {
+    const submission = await this.submissions.findOne(new ObjectID(id))
+    assert.ok(!!submission, `Submission with ID '${id}' not found`)
+    assert.ok(
+      submission.status !== SubmissionStatus.Deleted,
+      `Submission with ID ${id} was deleted`,
+    )
+    return submission
   }
 
   private async tryGetTask(taskId: string) {
@@ -1042,5 +1057,45 @@ export class ColonyMongoApi {
       { _id: new ObjectID(id) },
       { $set: { status: PersistentTaskStatus.Deleted } },
     )
+  }
+
+  async createSubmission(
+    initiator: string,
+    persistentTaskId: string,
+    submission: string,
+  ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetPersistentTask(persistentTaskId)
+
+    const { insertedId } = await this.submissions.insertOne({
+      creatorAddress: initiator,
+      persistentTaskId: new ObjectID(persistentTaskId),
+      submission: submission,
+      status: SubmissionStatus.Open,
+      statusChangedAt: new Date(),
+    })
+
+    return insertedId.toString()
+  }
+
+  async editSubmission(
+    initiator: string,
+    id: string,
+    { submission, status }: { submission?: string; status?: SubmissionStatus },
+  ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetSubmission(id)
+
+    const edit = {} as { submission?: string; status?: SubmissionStatus }
+
+    if (submission) {
+      edit.submission = submission
+    }
+
+    if (status) {
+      edit.status = status
+    }
+
+    return this.submissions.updateOne({ _id: new ObjectID(id) }, { $set: edit })
   }
 }

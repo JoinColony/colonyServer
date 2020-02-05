@@ -9,6 +9,7 @@ import {
   EventDoc,
   NotificationDoc,
   PersistentTaskDoc,
+  SubmissionDoc,
   SuggestionDoc,
   TaskDoc,
   TokenDoc,
@@ -21,6 +22,8 @@ import {
   Event,
   PersistentTask,
   PersistentTaskStatus,
+  Submission,
+  SubmissionStatus,
   Suggestion,
   SuggestionStatus,
   Task,
@@ -39,6 +42,7 @@ interface Collections {
   events: CachedCollection<EventDoc<any>>
   notifications: CachedCollection<NotificationDoc>
   persistentTasks: CachedCollection<PersistentTaskDoc>
+  submissions: CachedCollection<SubmissionDoc>
   suggestions: CachedCollection<SuggestionDoc>
   tasks: CachedCollection<TaskDoc>
   tokens: CachedCollection<TokenDoc>
@@ -56,6 +60,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       db.collection(CollectionNames.Events),
       db.collection(CollectionNames.Notifications),
       db.collection(CollectionNames.PersistentTasks),
+      db.collection(CollectionNames.Submissions),
       db.collection(CollectionNames.Suggestions),
       db.collection(CollectionNames.Tasks),
       db.collection(CollectionNames.Tokens),
@@ -162,6 +167,20 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       tasks: [],
       id: _id.toHexString(),
       createdAt: _id.getTimestamp(),
+    }
+  }
+
+  private static transformSubmission({
+    _id,
+    persistentTaskId,
+    ...doc
+  }: SubmissionDoc): Submission {
+    return {
+      ...doc,
+      id: _id.toHexString(),
+      createdAt: _id.getTimestamp(),
+      creator: undefined,
+      persistentTaskId: persistentTaskId.toHexString(),
     }
   }
 
@@ -325,6 +344,21 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     if (!doc) throw new Error(`Persistent Task with id '${id}' not found`)
 
     return ColonyMongoDataSource.transformPersistenTask(doc)
+  }
+
+  async getSubmissionById(id: string, ttl?: number) {
+    const query = { _id: new ObjectID(id), status: { $ne: SubmissionStatus.Deleted } }
+    let doc: SubmissionDoc
+    if (ttl) {
+      const docs = await this.collections.submissions.findManyByQuery(query, { ttl })
+      doc = docs[0]
+    } else {
+      doc = await this.collections.submissions.collection.findOne(query)
+    }
+
+    if (!doc) throw new Error(`Submission with id '${id}' not found`)
+
+    return ColonyMongoDataSource.transformSubmission(doc)
   }
 
   async getSuggestionById(id: string, ttl?: number) {
