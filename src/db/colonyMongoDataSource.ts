@@ -20,6 +20,7 @@ import {
   Domain,
   Event,
   PersistentTask,
+  PersistentTaskStatus,
   Suggestion,
   SuggestionStatus,
   Task,
@@ -312,12 +313,15 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   async getPersistentTaskById(id: string, ttl?: number) {
-    const doc = ttl
-      ? await this.collections.persistentTasks.findOneById(id, { ttl })
-      : await this.collections.persistentTasks.collection.findOne({
-          _id: new ObjectID(id),
-        })
-
+    const query = { _id: new ObjectID(id), status: { $ne: PersistentTaskStatus.Deleted } }
+    let doc: PersistentTaskDoc
+    if (ttl) {
+      const docs = await this.collections.persistentTasks.findManyByQuery(query, { ttl })
+      doc = docs[0]
+    } else {
+      doc = await this.collections.persistentTasks.collection.findOne(query)
+    }
+    
     if (!doc) throw new Error(`Persistent Task with id '${id}' not found`)
 
     return ColonyMongoDataSource.transformPersistenTask(doc)
