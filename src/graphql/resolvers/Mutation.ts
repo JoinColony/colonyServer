@@ -1,5 +1,5 @@
 import { ApolloContext } from '../apolloTypes'
-import { MutationResolvers, SuggestionStatus } from '../types'
+import { MutationResolvers, PersistentTaskStatus, SuggestionStatus } from '../types'
 import { tryAuth } from './auth'
 
 export const Mutation: MutationResolvers<ApolloContext> = {
@@ -132,7 +132,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
         }),
       )
     }
-    await api.editSuggestion(id, { status })
+    await api.editSuggestion(userAddress, id, { status })
     return data.getSuggestionById(id)
   },
   async addUpvoteToSuggestion(
@@ -188,7 +188,10 @@ export const Mutation: MutationResolvers<ApolloContext> = {
       ethDomainId,
       title,
     )
-    await api.editSuggestion(id, { status: SuggestionStatus.Accepted, taskId })
+    await api.editSuggestion(userAddress, id, {
+      status: SuggestionStatus.Accepted,
+      taskId,
+    })
     return data.getTaskById(taskId)
   },
   async setTaskDomain(
@@ -477,5 +480,66 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     )
     await api.editDomainName(userAddress, colonyAddress, ethDomainId, name)
     return data.getDomainByEthId(colonyAddress, ethDomainId)
+  },
+  // Persistent Tasks
+  async editPersistentTask(
+    parent,
+    { input: { id, ...update } },
+    { userAddress, api, dataSources: { auth, data } },
+  ) {
+    const { colonyAddress } = await data.getPersistentTaskById(id)
+    await tryAuth(
+      auth.assertCanEditPersistentTask({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.editPersistentTask(userAddress, id, update)
+    return data.getPersistentTaskById(id)
+  },
+  async setPersistentTaskPayout(
+    parent,
+    { input: { id, amount, tokenAddress } },
+    { userAddress, api, dataSources: { data, auth } },
+  ) {
+    const { colonyAddress } = await data.getPersistentTaskById(id)
+    await tryAuth(
+      auth.assertCanEditPersistentTask({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.setPersistentTaskPayout(userAddress, id, amount, tokenAddress)
+    return data.getPersistentTaskById(id)
+  },
+  async removePersistentTaskPayout(
+    parent,
+    { input: { id, amount, tokenAddress } },
+    { userAddress, api, dataSources: { data, auth } },
+  ) {
+    const { colonyAddress } = await data.getPersistentTaskById(id)
+    await tryAuth(
+      auth.assertCanEditPersistentTask({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.removePersistentTaskPayout(userAddress, id, amount, tokenAddress)
+    return data.getPersistentTaskById(id)
+  },
+  async removePersistentTask(
+    parent,
+    { input: { id } },
+    { userAddress, api, dataSources: { auth, data } },
+  ) {
+    const { colonyAddress } = await data.getPersistentTaskById(id)
+    await tryAuth(
+      auth.assertCanEditPersistentTask({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.removePersistentTask(userAddress, id)
+    return data.getPersistentTaskById(id)
   },
 }
