@@ -11,12 +11,17 @@ import { toChecksumAddress } from 'web3-utils'
 import { EventType, ROOT_DOMAIN, AUTO_SUBSCRIBED_COLONIES } from '../constants'
 import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
-import { SuggestionStatus } from '../graphql/types'
+import {
+  EditPersistentTaskInput,
+  PersistentTaskStatus,
+  SuggestionStatus,
+} from '../graphql/types'
 import {
   ColonyDoc,
   DomainDoc,
   EventDoc,
   NotificationDoc,
+  PersistentTaskDoc,
   StrictRootQuerySelector,
   StrictUpdateQuery,
   SuggestionDoc,
@@ -47,6 +52,7 @@ export class ColonyMongoApi {
   private readonly events: Collection<EventDoc<any>>
   private readonly domains: Collection<DomainDoc>
   private readonly notifications: Collection<NotificationDoc>
+  private readonly persistentTasks: Collection<PersistentTaskDoc>
   private readonly suggestions: Collection<SuggestionDoc>
   private readonly tasks: Collection<TaskDoc>
   private readonly users: Collection<UserDoc>
@@ -57,6 +63,9 @@ export class ColonyMongoApi {
     this.domains = db.collection<DomainDoc>(CollectionNames.Domains)
     this.notifications = db.collection<NotificationDoc>(
       CollectionNames.Notifications,
+    )
+    this.persistentTasks = db.collection<PersistentTaskDoc>(
+      CollectionNames.PersistentTasks,
     )
     this.suggestions = db.collection<SuggestionDoc>(CollectionNames.Suggestions)
     this.tasks = db.collection<TaskDoc>(CollectionNames.Tasks)
@@ -150,6 +159,16 @@ export class ColonyMongoApi {
     const suggestion = await this.suggestions.findOne(new ObjectID(id))
     assert.ok(!!suggestion, `Suggestion with ID '${id}' not found`)
     return suggestion
+  }
+
+  private async tryGetPersistentTask(id: string) {
+    const task = await this.persistentTasks.findOne(new ObjectID(id))
+    assert.ok(!!task, `Persistent Task with ID '${id}' not found`)
+    assert.ok(
+      task.status !== PersistentTaskStatus.Deleted,
+      `Persistent Task with ID ${id} was deleted`,
+    )
+    return task
   }
 
   private async tryGetTask(taskId: string) {
@@ -450,6 +469,7 @@ export class ColonyMongoApi {
       colonyAddress,
       creatorAddress: initiator,
       ethDomainId,
+      payouts: [],
     } as TaskDoc
 
     if (title) {
@@ -887,6 +907,7 @@ export class ColonyMongoApi {
   }
 
   async editSuggestion(
+    initiator: string,
     id: string,
     {
       status,
@@ -894,6 +915,7 @@ export class ColonyMongoApi {
       title,
     }: { status?: SuggestionStatus; taskId?: string; title?: string },
   ) {
+    await this.tryGetUser(initiator)
     await this.tryGetSuggestion(id)
     const edit = {} as {
       status?: SuggestionStatus
@@ -929,6 +951,99 @@ export class ColonyMongoApi {
     return this.suggestions.updateOne(
       { _id: new ObjectID(id) },
       { $pull: { upvotes: initiator } },
+    )
+  }
+
+  async createPersistentTask(
+    initiator: string,
+    colonyAddress: string,
+    ethDomainId: number,
+  ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetColony(colonyAddress)
+
+    const { insertedId } = await this.persistentTasks.insertOne({
+      colonyAddress,
+      creatorAddress: initiator,
+      ethDomainId,
+      payouts: [],
+      status: PersistentTaskStatus.Active,
+    })
+
+    return insertedId.toString()
+  }
+
+  async editPersistentTask(
+    initiator: string,
+    id: string,
+    {
+      ethDomainId,
+      ethSkillId,
+      title,
+      description,
+    }: Omit<EditPersistentTaskInput, 'id'>,
+  ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetPersistentTask(id)
+
+    const edit = {} as Omit<EditPersistentTaskInput, 'id'>
+    if (ethDomainId) {
+      edit.ethDomainId = ethDomainId
+    }
+    if (ethSkillId) {
+      edit.ethSkillId = ethSkillId
+    }
+    if (title) {
+      edit.title = title
+    }
+    if (description) {
+      edit.description = description
+    }
+    return this.persistentTasks.updateOne(
+      { _id: new ObjectID(id) },
+      { $set: edit },
+    )
+  }
+
+  async setPersistentTaskPayout(
+    initiator: string,
+    persistentTaskId: string,
+    amount: string,
+    tokenAddress: string,
+  ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetPersistentTask(persistentTaskId)
+
+    const payout = { amount, tokenAddress }
+    return this.persistentTasks.updateOne(
+      { _id: new ObjectID(persistentTaskId) },
+      { $push: { payouts: payout } },
+    )
+  }
+
+  async removePersistentTaskPayout(
+    initiator: string,
+    persistentTaskId: string,
+    amount: string,
+    tokenAddress: string,
+  ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetPersistentTask(persistentTaskId)
+
+    const payout = { amount, tokenAddress }
+    return this.persistentTasks.updateOne(
+      { _id: new ObjectID(persistentTaskId) },
+      { $pull: { payouts: payout } },
+    )
+  }
+
+  async removePersistentTask(initiator: string, id: string) {
+    await this.tryGetUser(initiator)
+    await this.tryGetPersistentTask(id)
+
+    return this.persistentTasks.updateOne(
+      { _id: new ObjectID(id) },
+      { $set: { status: PersistentTaskStatus.Deleted } },
     )
   }
 }
