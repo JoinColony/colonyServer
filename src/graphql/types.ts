@@ -101,13 +101,14 @@ export type CreateLevelTaskInput = {
   levelId: Scalars['String'],
 };
 
-export type CreateProgramInput = {
-  colonyAddress: Scalars['String'],
-};
-
-export type CreateSubmissionInput = {
+export type CreateLevelTaskSubmissionInput = {
+  levelId: Scalars['String'],
   persistentTaskId: Scalars['String'],
   submission: Scalars['String'],
+};
+
+export type CreateProgramInput = {
+  colonyAddress: Scalars['String'],
 };
 
 export type CreateSuggestionInput = {
@@ -321,10 +322,11 @@ export type Mutation = {
   unsubscribeFromColony?: Maybe<User>,
   setUserTokens?: Maybe<User>,
   /** Submissions */
-  createSubmission?: Maybe<Submission>,
+  createLevelTaskSubmission?: Maybe<Submission>,
   editSubmission?: Maybe<Submission>,
   acceptSubmission?: Maybe<Submission>,
   /** PersistentTasks */
+  createLevelTask?: Maybe<PersistentTask>,
   editPersistentTask?: Maybe<PersistentTask>,
   setPersistentTaskPayout?: Maybe<PersistentTask>,
   removePersistentTaskPayout?: Maybe<PersistentTask>,
@@ -333,7 +335,6 @@ export type Mutation = {
   createLevel?: Maybe<Level>,
   editLevel?: Maybe<Level>,
   removeLevel?: Maybe<Level>,
-  createLevelTask?: Maybe<PersistentTask>,
   /** Programs */
   createProgram?: Maybe<Program>,
   editProgram?: Maybe<Program>,
@@ -497,8 +498,8 @@ export type MutationSetUserTokensArgs = {
 };
 
 
-export type MutationCreateSubmissionArgs = {
-  input: CreateSubmissionInput
+export type MutationCreateLevelTaskSubmissionArgs = {
+  input: CreateLevelTaskSubmissionInput
 };
 
 
@@ -509,6 +510,11 @@ export type MutationEditSubmissionArgs = {
 
 export type MutationAcceptSubmissionArgs = {
   input: AcceptSubmissionInput
+};
+
+
+export type MutationCreateLevelTaskArgs = {
+  input: CreateLevelTaskInput
 };
 
 
@@ -544,11 +550,6 @@ export type MutationEditLevelArgs = {
 
 export type MutationRemoveLevelArgs = {
   input: RemoveLevelInput
-};
-
-
-export type MutationCreateLevelTaskArgs = {
-  input: CreateLevelTaskInput
 };
 
 
@@ -1102,15 +1103,15 @@ export type ResolversTypes = {
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
   SetUserTokensInput: SetUserTokensInput,
-  CreateSubmissionInput: CreateSubmissionInput,
+  CreateLevelTaskSubmissionInput: CreateLevelTaskSubmissionInput,
   EditSubmissionInput: EditSubmissionInput,
   AcceptSubmissionInput: AcceptSubmissionInput,
+  CreateLevelTaskInput: CreateLevelTaskInput,
   EditPersistentTaskInput: EditPersistentTaskInput,
   RemovePersistentTaskInput: RemovePersistentTaskInput,
   CreateLevelInput: CreateLevelInput,
   EditLevelInput: EditLevelInput,
   RemoveLevelInput: RemoveLevelInput,
-  CreateLevelTaskInput: CreateLevelTaskInput,
   CreateProgramInput: CreateProgramInput,
   EditProgramInput: EditProgramInput,
   PublishProgramInput: PublishProgramInput,
@@ -1197,15 +1198,15 @@ export type ResolversParentTypes = {
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
   SetUserTokensInput: SetUserTokensInput,
-  CreateSubmissionInput: CreateSubmissionInput,
+  CreateLevelTaskSubmissionInput: CreateLevelTaskSubmissionInput,
   EditSubmissionInput: EditSubmissionInput,
   AcceptSubmissionInput: AcceptSubmissionInput,
+  CreateLevelTaskInput: CreateLevelTaskInput,
   EditPersistentTaskInput: EditPersistentTaskInput,
   RemovePersistentTaskInput: RemovePersistentTaskInput,
   CreateLevelInput: CreateLevelInput,
   EditLevelInput: EditLevelInput,
   RemoveLevelInput: RemoveLevelInput,
-  CreateLevelTaskInput: CreateLevelTaskInput,
   CreateProgramInput: CreateProgramInput,
   EditProgramInput: EditProgramInput,
   PublishProgramInput: PublishProgramInput,
@@ -1352,9 +1353,10 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   subscribeToColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSubscribeToColonyArgs, 'input'>>,
   unsubscribeFromColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUnsubscribeFromColonyArgs, 'input'>>,
   setUserTokens?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSetUserTokensArgs, 'input'>>,
-  createSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationCreateSubmissionArgs, 'input'>>,
+  createLevelTaskSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationCreateLevelTaskSubmissionArgs, 'input'>>,
   editSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationEditSubmissionArgs, 'input'>>,
   acceptSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationAcceptSubmissionArgs, 'input'>>,
+  createLevelTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationCreateLevelTaskArgs, 'input'>>,
   editPersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationEditPersistentTaskArgs, 'input'>>,
   setPersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationSetPersistentTaskPayoutArgs, 'input'>>,
   removePersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemovePersistentTaskPayoutArgs, 'input'>>,
@@ -1362,7 +1364,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   createLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationCreateLevelArgs, 'input'>>,
   editLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationEditLevelArgs, 'input'>>,
   removeLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationRemoveLevelArgs, 'input'>>,
-  createLevelTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationCreateLevelTaskArgs, 'input'>>,
   createProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationCreateProgramArgs, 'input'>>,
   editProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationEditProgramArgs, 'input'>>,
   publishProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationPublishProgramArgs, 'input'>>,
