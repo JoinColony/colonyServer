@@ -166,6 +166,20 @@ export default gql`
     id: String!
   }
 
+  input CreateSubmissionInput {
+    persistentTaskId: String!
+    submission: String!
+  }
+
+  input EditSubmissionInput {
+    id: String!
+    submission: String!
+  }
+
+  input AcceptSubmissionInput {
+    id: String!
+  }
+
   type Mutation {
     # Colonies
     createColony(input: CreateColonyInput!): Colony
@@ -183,7 +197,9 @@ export default gql`
     createSuggestion(input: CreateSuggestionInput!): Suggestion
     setSuggestionStatus(input: SetSuggestionStatusInput!): Suggestion
     addUpvoteToSuggestion(input: AddUpvoteToSuggestionInput!): Suggestion
-    removeUpvoteFromSuggestion(input: RemoveUpvoteFromSuggestionInput!): Suggestion
+    removeUpvoteFromSuggestion(
+      input: RemoveUpvoteFromSuggestionInput!
+    ): Suggestion
     # Tasks
     assignWorker(input: AssignWorkerInput!): Task
     cancelTask(input: TaskIdInput!): Task
@@ -206,5 +222,9 @@ export default gql`
     subscribeToColony(input: SubscribeToColonyInput!): User
     unsubscribeFromColony(input: UnsubscribeFromColonyInput!): User
     setUserTokens(input: SetUserTokensInput!): User
+    # Submissions
+    createSubmission(input: CreateSubmissionInput!): Submission
+    editSubmission(input: EditSubmissionInput!): Submission
+    acceptSubmission(input: AcceptSubmissionInput!): Submission
   }
 `
