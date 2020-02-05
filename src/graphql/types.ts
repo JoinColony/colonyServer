@@ -100,6 +100,10 @@ export type CreatePersistentTaskInput = {
   levelId: Scalars['String'],
 };
 
+export type CreateProgramInput = {
+  colonyAddress: Scalars['String'],
+};
+
 export type CreateSubmissionInput = {
   persistentTaskId: Scalars['String'],
   submission: Scalars['String'],
@@ -182,6 +186,12 @@ export type EditPersistentTaskInput = {
   ethDomainId?: Maybe<Scalars['Int']>,
   ethSkillId?: Maybe<Scalars['Int']>,
   title?: Maybe<Scalars['String']>,
+  description?: Maybe<Scalars['String']>,
+};
+
+export type EditProgramInput = {
+  id: Scalars['String'],
+  title: Scalars['String'],
   description?: Maybe<Scalars['String']>,
 };
 
@@ -324,6 +334,11 @@ export type Mutation = {
   createLevel?: Maybe<Level>,
   editLevel?: Maybe<Level>,
   removeLevel?: Maybe<Level>,
+  /** Programs */
+  createProgram?: Maybe<Program>,
+  editProgram?: Maybe<Program>,
+  publishProgram?: Maybe<Program>,
+  removeProgram?: Maybe<Program>,
 };
 
 
@@ -503,7 +518,7 @@ export type MutationAcceptSubmissionArgs = {
 
 
 export type MutationCreatePersistentTaskArgs = {
-  input?: Maybe<CreatePersistentTaskInput>
+  input: CreatePersistentTaskInput
 };
 
 
@@ -528,7 +543,7 @@ export type MutationRemovePersistentTaskArgs = {
 
 
 export type MutationCreateLevelArgs = {
-  input?: Maybe<CreateLevelInput>
+  input: CreateLevelInput
 };
 
 
@@ -539,6 +554,26 @@ export type MutationEditLevelArgs = {
 
 export type MutationRemoveLevelArgs = {
   input: RemoveLevelInput
+};
+
+
+export type MutationCreateProgramArgs = {
+  input: CreateProgramInput
+};
+
+
+export type MutationEditProgramArgs = {
+  input: EditProgramInput
+};
+
+
+export type MutationPublishProgramArgs = {
+  input: PublishProgramInput
+};
+
+
+export type MutationRemoveProgramArgs = {
+  input: RemoveProgramInput
 };
 
 export type NewUserEvent = {
@@ -571,6 +606,29 @@ export enum PersistentTaskStatus {
   Closed = 'Closed',
   Deleted = 'Deleted'
 }
+
+export type Program = {
+   __typename?: 'Program',
+  id: Scalars['String'],
+  createdAt: Scalars['GraphQLDateTime'],
+  creatorAddress: Scalars['String'],
+  colonyAddress: Scalars['String'],
+  title: Scalars['String'],
+  description?: Maybe<Scalars['String']>,
+  levelIds: Array<Scalars['String']>,
+  levels: Array<Level>,
+  status: ProgramStatus,
+};
+
+export enum ProgramStatus {
+  Draft = 'Draft',
+  Active = 'Active',
+  Deleted = 'Deleted'
+}
+
+export type PublishProgramInput = {
+  id: Scalars['String'],
+};
 
 export type Query = {
    __typename?: 'Query',
@@ -613,6 +671,10 @@ export type RemoveLevelInput = {
 };
 
 export type RemovePersistentTaskInput = {
+  id: Scalars['String'],
+};
+
+export type RemoveProgramInput = {
   id: Scalars['String'],
 };
 
@@ -1065,6 +1127,12 @@ export type ResolversTypes = {
   LevelStatus: LevelStatus,
   EditLevelInput: EditLevelInput,
   RemoveLevelInput: RemoveLevelInput,
+  CreateProgramInput: CreateProgramInput,
+  Program: ResolverTypeWrapper<Program>,
+  ProgramStatus: ProgramStatus,
+  EditProgramInput: EditProgramInput,
+  PublishProgramInput: PublishProgramInput,
+  RemoveProgramInput: RemoveProgramInput,
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -1156,6 +1224,12 @@ export type ResolversParentTypes = {
   LevelStatus: LevelStatus,
   EditLevelInput: EditLevelInput,
   RemoveLevelInput: RemoveLevelInput,
+  CreateProgramInput: CreateProgramInput,
+  Program: Program,
+  ProgramStatus: ProgramStatus,
+  EditProgramInput: EditProgramInput,
+  PublishProgramInput: PublishProgramInput,
+  RemoveProgramInput: RemoveProgramInput,
 };
 
 export type AssignWorkerEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignWorkerEvent'] = ResolversParentTypes['AssignWorkerEvent']> = {
@@ -1310,14 +1384,18 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   createSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationCreateSubmissionArgs, 'input'>>,
   editSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationEditSubmissionArgs, 'input'>>,
   acceptSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationAcceptSubmissionArgs, 'input'>>,
-  createPersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, MutationCreatePersistentTaskArgs>,
+  createPersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationCreatePersistentTaskArgs, 'input'>>,
   editPersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationEditPersistentTaskArgs, 'input'>>,
   setPersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationSetPersistentTaskPayoutArgs, 'input'>>,
   removePersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemovePersistentTaskPayoutArgs, 'input'>>,
   removePersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemovePersistentTaskArgs, 'input'>>,
-  createLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, MutationCreateLevelArgs>,
+  createLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationCreateLevelArgs, 'input'>>,
   editLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationEditLevelArgs, 'input'>>,
   removeLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationRemoveLevelArgs, 'input'>>,
+  createProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationCreateProgramArgs, 'input'>>,
+  editProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationEditProgramArgs, 'input'>>,
+  publishProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationPublishProgramArgs, 'input'>>,
+  removeProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationRemoveProgramArgs, 'input'>>,
 };
 
 export type NewUserEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['NewUserEvent'] = ResolversParentTypes['NewUserEvent']> = {
@@ -1342,6 +1420,18 @@ export type PersistentTaskResolvers<ContextType = any, ParentType extends Resolv
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   payouts?: Resolver<Array<ResolversTypes['TaskPayout']>, ParentType, ContextType>,
   status?: Resolver<ResolversTypes['PersistentTaskStatus'], ParentType, ContextType>,
+};
+
+export type ProgramResolvers<ContextType = any, ParentType extends ResolversParentTypes['Program'] = ResolversParentTypes['Program']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
+  creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  levelIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
+  levels?: Resolver<Array<ResolversTypes['Level']>, ParentType, ContextType>,
+  status?: Resolver<ResolversTypes['ProgramStatus'], ParentType, ContextType>,
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
@@ -1554,6 +1644,7 @@ export type Resolvers<ContextType = any> = {
   NewUserEvent?: NewUserEventResolvers<ContextType>,
   Notification?: NotificationResolvers<ContextType>,
   PersistentTask?: PersistentTaskResolvers<ContextType>,
+  Program?: ProgramResolvers<ContextType>,
   Query?: QueryResolvers<ContextType>,
   RemoveTaskPayoutEvent?: RemoveTaskPayoutEventResolvers<ContextType>,
   RemoveTaskSkillEvent?: RemoveTaskSkillEventResolvers<ContextType>,
