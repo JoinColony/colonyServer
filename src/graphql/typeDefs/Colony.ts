@@ -18,6 +18,7 @@ export default gql`
     founder: User
     isNativeTokenExternal: Boolean!
     nativeTokenAddress: String!
+    programs: [Program!]!
     subscribedUsers: [User!]!
     suggestions: [Suggestion!]!
     tokenAddresses: [String!]!
