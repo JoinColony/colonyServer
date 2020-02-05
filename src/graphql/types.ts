@@ -613,6 +613,7 @@ export type Program = {
   levelIds: Array<Scalars['String']>,
   levels: Array<Level>,
   status: ProgramStatus,
+  submissions: Array<Submission>,
 };
 
 export enum ProgramStatus {
@@ -803,7 +804,6 @@ export type Submission = {
   creatorAddress: Scalars['String'],
   creator: User,
   persistentTaskId: Scalars['String'],
-  programId: Scalars['String'],
   submission: Scalars['String'],
   status: SubmissionStatus,
   statusChangedAt?: Maybe<Scalars['GraphQLDateTime']>,
@@ -1400,6 +1400,7 @@ export type ProgramResolvers<ContextType = any, ParentType extends ResolversPare
   levelIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   levels?: Resolver<Array<ResolversTypes['Level']>, ParentType, ContextType>,
   status?: Resolver<ResolversTypes['ProgramStatus'], ParentType, ContextType>,
+  submissions?: Resolver<Array<ResolversTypes['Submission']>, ParentType, ContextType>,
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
@@ -1467,7 +1468,6 @@ export type SubmissionResolvers<ContextType = any, ParentType extends ResolversP
   creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>,
   persistentTaskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  programId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   submission?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   status?: Resolver<ResolversTypes['SubmissionStatus'], ParentType, ContextType>,
   statusChangedAt?: Resolver<Maybe<ResolversTypes['GraphQLDateTime']>, ParentType, ContextType>,
