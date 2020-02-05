@@ -11,6 +11,7 @@ import {
 import { EventType } from '../constants'
 import {
   PersistentTaskStatus,
+  SubmissionStatus,
   SuggestionStatus,
   TaskPayout,
 } from '../graphql/types'
@@ -91,6 +92,14 @@ export interface PersistentTaskDoc extends MongoDoc {
   description?: string
   payouts: TaskPayout[]
   status: PersistentTaskStatus
+}
+
+export interface SubmissionDoc extends MongoDoc {
+  creatorAddress: string
+  persistentTaskId: ObjectID
+  submission: string
+  status: SubmissionStatus
+  statusChangedAt: Date
 }
 
 export interface SuggestionDoc extends MongoDoc {
