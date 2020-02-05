@@ -185,6 +185,21 @@ export default gql`
     id: String!
   }
 
+  input CreatePersistentTaskInput {
+    levelId: String!
+  }
+
+  input EditPersistentTaskInput {
+    ethDomainId: Int
+    ethSkillId: Int
+    title: String
+    description: String
+  }
+
+  input RemovePersistentTaskInput {
+    id: String!
+  }
+
   type Mutation {
     # Colonies
     createColony(input: CreateColonyInput!): Colony
@@ -232,5 +247,11 @@ export default gql`
     createSubmission(input: CreateSubmissionInput!): Submission
     editSubmission(input: EditSubmissionInput!): Submission
     acceptSubmission(input: AcceptSubmissionInput!): Submission
+    # PersistentTasks
+    createPersistentTask(input: CreatePersistentTaskInput): PersistentTask
+    editPersistentTask(input: EditPersistentTaskInput!): PersistentTask
+    setPersistentTaskPayout(input: SetTaskPayoutInput!): PersistentTask # Re-use task input typedefs
+    removePersistentTaskPayout(input: RemoveTaskPayoutInput!): PersistentTask # Re-use task input typedefs
+    removePersistentTask(input: RemovePersistentTaskInput!): PersistentTask
   }
 `
