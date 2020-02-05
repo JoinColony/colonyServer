@@ -12,6 +12,10 @@ export type Scalars = {
   GraphQLDateTime: any,
 };
 
+export type AcceptSubmissionInput = {
+  id: Scalars['String'],
+};
+
 export type AddUpvoteToSuggestionInput = {
   id: Scalars['String'],
 };
@@ -90,6 +94,11 @@ export type CreateDomainInput = {
   name: Scalars['String'],
 };
 
+export type CreateSubmissionInput = {
+  persistentTaskId: Scalars['String'],
+  submission: Scalars['String'],
+};
+
 export type CreateSuggestionInput = {
   colonyAddress: Scalars['String'],
   ethDomainId: Scalars['Int'],
@@ -154,6 +163,11 @@ export type EditDomainNameInput = {
   colonyAddress: Scalars['String'],
   ethDomainId: Scalars['Int'],
   name: Scalars['String'],
+};
+
+export type EditSubmissionInput = {
+  id: Scalars['String'],
+  submission: Scalars['String'],
 };
 
 export type EditUserInput = {
@@ -258,6 +272,10 @@ export type Mutation = {
   subscribeToColony?: Maybe<User>,
   unsubscribeFromColony?: Maybe<User>,
   setUserTokens?: Maybe<User>,
+  /** Submissions */
+  createSubmission?: Maybe<Submission>,
+  editSubmission?: Maybe<Submission>,
+  acceptSubmission?: Maybe<Submission>,
 };
 
 
@@ -418,6 +436,21 @@ export type MutationUnsubscribeFromColonyArgs = {
 
 export type MutationSetUserTokensArgs = {
   input: SetUserTokensInput
+};
+
+
+export type MutationCreateSubmissionArgs = {
+  input: CreateSubmissionInput
+};
+
+
+export type MutationEditSubmissionArgs = {
+  input: EditSubmissionInput
+};
+
+
+export type MutationAcceptSubmissionArgs = {
+  input: AcceptSubmissionInput
 };
 
 export type NewUserEvent = {
@@ -611,6 +644,25 @@ export type SetTaskTitleInput = {
 export type SetUserTokensInput = {
   tokenAddresses: Array<Scalars['String']>,
 };
+
+export type Submission = {
+   __typename?: 'Submission',
+  id: Scalars['String'],
+  createdAt: Scalars['GraphQLDateTime'],
+  creatorAddress: Scalars['String'],
+  creator: User,
+  persistentTaskId: Scalars['String'],
+  submission: Scalars['String'],
+  status: SubmissionStatus,
+  statusChangedAt?: Maybe<Scalars['GraphQLDateTime']>,
+};
+
+export enum SubmissionStatus {
+  Open = 'Open',
+  Accepted = 'Accepted',
+  Rejected = 'Rejected',
+  Deleted = 'Deleted'
+}
 
 export type SubscribeToColonyInput = {
   colonyAddress: Scalars['String'],
@@ -893,6 +945,11 @@ export type ResolversTypes = {
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
   SetUserTokensInput: SetUserTokensInput,
+  CreateSubmissionInput: CreateSubmissionInput,
+  Submission: ResolverTypeWrapper<Submission>,
+  SubmissionStatus: SubmissionStatus,
+  EditSubmissionInput: EditSubmissionInput,
+  AcceptSubmissionInput: AcceptSubmissionInput,
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -969,6 +1026,11 @@ export type ResolversParentTypes = {
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
   SetUserTokensInput: SetUserTokensInput,
+  CreateSubmissionInput: CreateSubmissionInput,
+  Submission: Submission,
+  SubmissionStatus: SubmissionStatus,
+  EditSubmissionInput: EditSubmissionInput,
+  AcceptSubmissionInput: AcceptSubmissionInput,
 };
 
 export type AssignWorkerEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignWorkerEvent'] = ResolversParentTypes['AssignWorkerEvent']> = {
@@ -1102,6 +1164,9 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   subscribeToColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSubscribeToColonyArgs, 'input'>>,
   unsubscribeFromColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUnsubscribeFromColonyArgs, 'input'>>,
   setUserTokens?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSetUserTokensArgs, 'input'>>,
+  createSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationCreateSubmissionArgs, 'input'>>,
+  editSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationEditSubmissionArgs, 'input'>>,
+  acceptSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationAcceptSubmissionArgs, 'input'>>,
 };
 
 export type NewUserEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['NewUserEvent'] = ResolversParentTypes['NewUserEvent']> = {
@@ -1186,6 +1251,17 @@ export type SetTaskTitleEventResolvers<ContextType = any, ParentType extends Res
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+};
+
+export type SubmissionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Submission'] = ResolversParentTypes['Submission']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
+  creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>,
+  persistentTaskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  submission?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  status?: Resolver<ResolversTypes['SubmissionStatus'], ParentType, ContextType>,
+  statusChangedAt?: Resolver<Maybe<ResolversTypes['GraphQLDateTime']>, ParentType, ContextType>,
 };
 
 export type SuggestionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Suggestion'] = ResolversParentTypes['Suggestion']> = {
@@ -1315,6 +1391,7 @@ export type Resolvers<ContextType = any> = {
   SetTaskPayoutEvent?: SetTaskPayoutEventResolvers<ContextType>,
   SetTaskSkillEvent?: SetTaskSkillEventResolvers<ContextType>,
   SetTaskTitleEvent?: SetTaskTitleEventResolvers<ContextType>,
+  Submission?: SubmissionResolvers<ContextType>,
   Suggestion?: SuggestionResolvers<ContextType>,
   SystemInfo?: SystemInfoResolvers<ContextType>,
   Task?: TaskResolvers<ContextType>,
