@@ -3,8 +3,8 @@ import { createTestClient } from 'apollo-server-testing'
 import { DocumentNode } from 'graphql'
 import { mocked } from 'ts-jest/utils'
 import { MongoClient, ObjectID } from 'mongodb'
-import fs from 'fs';
-import path from 'path';
+import fs from 'fs'
+import path from 'path'
 
 import { ColonyMongoApi } from '../../db/colonyMongoApi'
 import { ColonyMongoDataSource } from '../../db/colonyMongoDataSource'
@@ -127,7 +127,7 @@ const systemInfoResult = {
      * We don't really care about halting the process here, so this way is easier
      * (plus we can chain everything)
      */
-    fs.readFileSync(path.resolve('package.json')).toString()
+    fs.readFileSync(path.resolve('package.json')).toString(),
   ).version,
 }
 

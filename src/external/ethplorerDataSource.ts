@@ -1,5 +1,7 @@
 import { RESTDataSource } from 'apollo-datasource-rest'
 
+import { isMainnet, ethplorerKey } from '../env'
+
 export interface EthplorerTokenInfo {
   id: string
   address: string
@@ -11,7 +13,7 @@ export interface EthplorerTokenInfo {
 
 export class EthplorerDataSource extends RESTDataSource {
   static get isActive() {
-    return !!process.env.ETHPLORER_API_KEY
+    return isMainnet
   }
 
   constructor() {
@@ -20,7 +22,7 @@ export class EthplorerDataSource extends RESTDataSource {
   }
 
   willSendRequest(request) {
-    request.params.set('apiKey', process.env.ETHPLORER_API_KEY || 'freekey')
+    request.params.set('apiKey', ethplorerKey)
   }
 
   async getTokenInfo(address: string): Promise<EthplorerTokenInfo> {
