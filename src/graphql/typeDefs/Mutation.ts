@@ -200,6 +200,22 @@ export default gql`
     id: String!
   }
 
+  input CreateLevelInput {
+    programId: String!
+  }
+
+  input EditLevelInput {
+    id: String!
+    title: String
+    description: String
+    achievement: String
+    numRequiredSteps: Int
+  }
+
+  input RemoveLevelInput {
+    id: String!
+  }
+
   type Mutation {
     # Colonies
     createColony(input: CreateColonyInput!): Colony
@@ -253,5 +269,9 @@ export default gql`
     setPersistentTaskPayout(input: SetTaskPayoutInput!): PersistentTask # Re-use task input typedefs
     removePersistentTaskPayout(input: RemoveTaskPayoutInput!): PersistentTask # Re-use task input typedefs
     removePersistentTask(input: RemovePersistentTaskInput!): PersistentTask
+    # Levels
+    createLevel(input: CreateLevelInput): Level
+    editLevel(input: EditLevelInput!): Level
+    removeLevel(input: RemoveLevelInput!): Level
   }
 `
