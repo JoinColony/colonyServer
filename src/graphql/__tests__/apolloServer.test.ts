@@ -12,8 +12,12 @@ import { ColonyAuthDataSource } from '../../network/colonyAuthDataSource'
 import Colony from '../typeDefs/Colony'
 import Domain from '../typeDefs/Domain'
 import Event from '../typeDefs/Event'
+import Level from '../typeDefs/Level'
 import Mutation from '../typeDefs/Mutation'
+import PersistentTask from '../typeDefs/PersistentTask'
+import Program from '../typeDefs/Program'
 import Query from '../typeDefs/Query'
+import Submission from '../typeDefs/Submission'
 import Suggestion from '../typeDefs/Suggestion'
 import Task from '../typeDefs/Task'
 import TokenInfo from '../typeDefs/TokenInfo'
@@ -42,8 +46,12 @@ const typeDefs = [
   Colony,
   Domain,
   Event,
+  Level,
   Mutation,
+  PersistentTask,
+  Program,
   Query,
+  Submission,
   Suggestion,
   Task,
   TokenInfo,
