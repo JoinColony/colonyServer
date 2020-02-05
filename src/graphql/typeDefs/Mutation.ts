@@ -190,6 +190,7 @@ export default gql`
   }
 
   input EditPersistentTaskInput {
+    id: String!
     ethDomainId: Int
     ethSkillId: Int
     title: String
