@@ -10,6 +10,7 @@ export default gql`
   type PersistentTask {
     id: String! # mongodb ObjectId
     createdAt: GraphQLDateTime!
+    colonyAddress: String!
     creatorAddress: String!
     ethDomainId: Int!
     ethSkillId: Int
