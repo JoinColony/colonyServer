@@ -28,9 +28,11 @@ enum AuthChecks {
   AssignWorker = 'AssignWorker',
   CancelTask = 'CancelTask',
   CreateDomain = 'CreateDomain',
+  CreatePersistentTask = 'CreatePersistentTask',
   CreateTask = 'CreateTask',
   EditColonyProfile = 'EditColonyProfile',
   EditDomainName = 'EditDomainName',
+  EditPersistentTask = 'EditPersistentTask',
   EditSuggestion = 'EditSuggestion',
   FinalizeTask = 'FinalizeTask',
   RemoveTaskPayout = 'RemoveTaskPayout',
@@ -95,6 +97,17 @@ const AUTH_DECLARATIONS: Record<AuthChecks, AuthDeclaration> = {
   CreateTask: {
     description: 'Create a task',
     roles: [ColonyRoles.Administration],
+    type: AuthTypes.Domain,
+  },
+  // Persistent Task
+  CreatePersistentTask: {
+    description: 'Create a persistent task',
+    roles: [ColonyRoles.Administration, ColonyRoles.Funding],
+    type: AuthTypes.Domain,
+  },
+  EditPersistentTask: {
+    description: 'Edit a persistent task',
+    roles: [ColonyRoles.Administration, ColonyRoles.Funding],
     type: AuthTypes.Domain,
   },
   // Suggestion
@@ -376,6 +389,18 @@ export class ColonyAuthDataSource extends DataSource<any> {
 
   async assertCanSetColonyTokens(args: ColonyAuthArgs) {
     return this.assertForColony(AuthChecks.SetColonyTokens, args)
+  }
+
+  async assertCanCreatePersistentTask(args: ColonyAuthArgs) {
+    // For now we just check the root domain for persistent tasks (as they are only used in programs)
+    const domainAuthArgs: DomainAuthArgs = { ...args, domainId: ROOT_DOMAIN }
+    return this.assertForDomain(AuthChecks.CreatePersistentTask, domainAuthArgs)
+  }
+
+  async assertCanEditPersistentTask(args: ColonyAuthArgs) {
+    // For now we just check the root domain for persistent tasks (as they are only used in programs)
+    const domainAuthArgs: DomainAuthArgs = { ...args, domainId: ROOT_DOMAIN }
+    return this.assertForDomain(AuthChecks.EditPersistentTask, domainAuthArgs)
   }
 
   async assertColonyExists(colonyAddress: ColonyAddress): Promise<boolean> {
