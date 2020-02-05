@@ -4,6 +4,7 @@ import {
   DomainDoc,
   EventDoc,
   NotificationDoc,
+  PersistentTaskDoc,
   SuggestionDoc,
   TaskDoc,
   TokenDoc,
@@ -16,6 +17,7 @@ export enum CollectionNames {
   Domains = 'domains',
   Events = 'events',
   Notifications = 'notifications',
+  PersistentTasks = 'persistentTasks',
   Suggestions = 'suggestions',
   Tasks = 'tasks',
   Tokens = 'tokens',
@@ -299,6 +301,73 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['creatorAddress', {}],
         ['ethDomainId', {}],
         ['ethPotId', { sparse: true }],
+      ],
+    },
+  ],
+  [
+    CollectionNames.PersistentTasks,
+    {
+      create: {
+        validator: {
+          $jsonSchema: {
+            additionalProperties: false,
+            bsonType: 'object',
+            required: ['creatorAddress', 'colonyAddress', 'ethDomainId', 'status'],
+            properties: {
+              _id: { bsonType: 'objectId' },
+              colonyAddress: {
+                bsonType: 'string',
+                description: 'must be a string and is required',
+                maxLength: 42,
+              },
+              creatorAddress: {
+                bsonType: 'string',
+                description: 'must be a string and is required',
+                maxLength: 42,
+              },
+              ethDomainId: {
+                bsonType: 'number',
+                minimum: 1,
+              },
+              ethSkillId: {
+                bsonType: 'number',
+                minimum: 1,
+              },
+              title: {
+                bsonType: 'string',
+                maxLength: 200,
+              },
+              description: {
+                bsonType: 'string',
+                maxLength: 4000,
+              },
+              payouts: {
+                bsonType: 'array',
+                additionalProperties: false,
+                items: {
+                  bsonType: 'object',
+                  required: ['tokenAddress', 'amount'],
+                  properties: {
+                    tokenAddress: {
+                      bsonType: 'string',
+                    },
+                    amount: {
+                      bsonType: 'string',
+                    },
+                  },
+                },
+              },
+              status: {
+                enum: ['Active', 'Closed', 'Deleted'],
+                maxLength: 100,
+              },
+            } as SchemaFields<PersistentTaskDoc>,
+          },
+        },
+      },
+      indexes: [
+        ['colonyAddress', {}],
+        ['ethDomainId', {}],
       ],
     },
   ],
