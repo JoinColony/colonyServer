@@ -92,6 +92,10 @@ export type CreateDomainInput = {
   name: Scalars['String'],
 };
 
+export type CreatePersistentTaskInput = {
+  levelId: Scalars['String'],
+};
+
 export type CreateSubmissionInput = {
   persistentTaskId: Scalars['String'],
   submission: Scalars['String'],
@@ -160,6 +164,13 @@ export type EditDomainNameInput = {
   colonyAddress: Scalars['String'],
   ethDomainId: Scalars['Int'],
   name: Scalars['String'],
+};
+
+export type EditPersistentTaskInput = {
+  ethDomainId?: Maybe<Scalars['Int']>,
+  ethSkillId?: Maybe<Scalars['Int']>,
+  title?: Maybe<Scalars['String']>,
+  description?: Maybe<Scalars['String']>,
 };
 
 export type EditSubmissionInput = {
@@ -270,6 +281,12 @@ export type Mutation = {
   createSubmission?: Maybe<Submission>,
   editSubmission?: Maybe<Submission>,
   acceptSubmission?: Maybe<Submission>,
+  /** PersistentTasks */
+  createPersistentTask?: Maybe<PersistentTask>,
+  editPersistentTask?: Maybe<PersistentTask>,
+  setPersistentTaskPayout?: Maybe<PersistentTask>,
+  removePersistentTaskPayout?: Maybe<PersistentTask>,
+  removePersistentTask?: Maybe<PersistentTask>,
 };
 
 
@@ -442,6 +459,31 @@ export type MutationAcceptSubmissionArgs = {
   input: AcceptSubmissionInput
 };
 
+
+export type MutationCreatePersistentTaskArgs = {
+  input?: Maybe<CreatePersistentTaskInput>
+};
+
+
+export type MutationEditPersistentTaskArgs = {
+  input: EditPersistentTaskInput
+};
+
+
+export type MutationSetPersistentTaskPayoutArgs = {
+  input: SetTaskPayoutInput
+};
+
+
+export type MutationRemovePersistentTaskPayoutArgs = {
+  input: RemoveTaskPayoutInput
+};
+
+
+export type MutationRemovePersistentTaskArgs = {
+  input: RemovePersistentTaskInput
+};
+
 export type NewUserEvent = {
    __typename?: 'NewUserEvent',
   type: EventType,
@@ -453,6 +495,25 @@ export type Notification = {
   event: Event,
   read: Scalars['Boolean'],
 };
+
+export type PersistentTask = {
+   __typename?: 'PersistentTask',
+  id: Scalars['String'],
+  createdAt: Scalars['GraphQLDateTime'],
+  creatorAddress: Scalars['String'],
+  ethDomainId: Scalars['Int'],
+  ethSkillId?: Maybe<Scalars['Int']>,
+  title: Scalars['String'],
+  description: Scalars['String'],
+  payouts: Array<TaskPayout>,
+  status: PersistentTaskStatus,
+};
+
+export enum PersistentTaskStatus {
+  Active = 'Active',
+  Closed = 'Closed',
+  Deleted = 'Deleted'
+}
 
 export type Query = {
    __typename?: 'Query',
@@ -488,6 +549,10 @@ export type QueryTaskArgs = {
 
 export type QueryTokenInfoArgs = {
   address: Scalars['String']
+};
+
+export type RemovePersistentTaskInput = {
+  id: Scalars['String'],
 };
 
 export type RemoveTaskPayoutEvent = TaskEvent & {
@@ -913,6 +978,11 @@ export type ResolversTypes = {
   SubmissionStatus: SubmissionStatus,
   EditSubmissionInput: EditSubmissionInput,
   AcceptSubmissionInput: AcceptSubmissionInput,
+  CreatePersistentTaskInput: CreatePersistentTaskInput,
+  PersistentTask: ResolverTypeWrapper<PersistentTask>,
+  PersistentTaskStatus: PersistentTaskStatus,
+  EditPersistentTaskInput: EditPersistentTaskInput,
+  RemovePersistentTaskInput: RemovePersistentTaskInput,
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -992,6 +1062,11 @@ export type ResolversParentTypes = {
   SubmissionStatus: SubmissionStatus,
   EditSubmissionInput: EditSubmissionInput,
   AcceptSubmissionInput: AcceptSubmissionInput,
+  CreatePersistentTaskInput: CreatePersistentTaskInput,
+  PersistentTask: PersistentTask,
+  PersistentTaskStatus: PersistentTaskStatus,
+  EditPersistentTaskInput: EditPersistentTaskInput,
+  RemovePersistentTaskInput: RemovePersistentTaskInput,
 };
 
 export type AssignWorkerEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignWorkerEvent'] = ResolversParentTypes['AssignWorkerEvent']> = {
@@ -1123,6 +1198,11 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   createSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationCreateSubmissionArgs, 'input'>>,
   editSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationEditSubmissionArgs, 'input'>>,
   acceptSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationAcceptSubmissionArgs, 'input'>>,
+  createPersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, MutationCreatePersistentTaskArgs>,
+  editPersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationEditPersistentTaskArgs, 'input'>>,
+  setPersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationSetPersistentTaskPayoutArgs, 'input'>>,
+  removePersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemovePersistentTaskPayoutArgs, 'input'>>,
+  removePersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemovePersistentTaskArgs, 'input'>>,
 };
 
 export type NewUserEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['NewUserEvent'] = ResolversParentTypes['NewUserEvent']> = {
@@ -1133,6 +1213,18 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>,
   read?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
+};
+
+export type PersistentTaskResolvers<ContextType = any, ParentType extends ResolversParentTypes['PersistentTask'] = ResolversParentTypes['PersistentTask']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
+  creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
+  ethSkillId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  payouts?: Resolver<Array<ResolversTypes['TaskPayout']>, ParentType, ContextType>,
+  status?: Resolver<ResolversTypes['PersistentTaskStatus'], ParentType, ContextType>,
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
@@ -1319,6 +1411,7 @@ export type Resolvers<ContextType = any> = {
   Mutation?: MutationResolvers<ContextType>,
   NewUserEvent?: NewUserEventResolvers<ContextType>,
   Notification?: NotificationResolvers<ContextType>,
+  PersistentTask?: PersistentTaskResolvers<ContextType>,
   Query?: QueryResolvers<ContextType>,
   RemoveTaskPayoutEvent?: RemoveTaskPayoutEventResolvers<ContextType>,
   SendWorkInviteEvent?: SendWorkInviteEventResolvers<ContextType>,
