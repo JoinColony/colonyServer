@@ -92,6 +92,10 @@ export type CreateDomainInput = {
   name: Scalars['String'],
 };
 
+export type CreateLevelInput = {
+  programId: Scalars['String'],
+};
+
 export type CreatePersistentTaskInput = {
   levelId: Scalars['String'],
 };
@@ -166,6 +170,14 @@ export type EditDomainNameInput = {
   name: Scalars['String'],
 };
 
+export type EditLevelInput = {
+  id: Scalars['String'],
+  title?: Maybe<Scalars['String']>,
+  description?: Maybe<Scalars['String']>,
+  achievement?: Maybe<Scalars['String']>,
+  numRequiredSteps?: Maybe<Scalars['Int']>,
+};
+
 export type EditPersistentTaskInput = {
   ethDomainId?: Maybe<Scalars['Int']>,
   ethSkillId?: Maybe<Scalars['Int']>,
@@ -232,6 +244,25 @@ export type FinalizeTaskInput = {
 };
 
 
+export type Level = {
+   __typename?: 'Level',
+  id: Scalars['String'],
+  createdAt: Scalars['GraphQLDateTime'],
+  creatorAddress: Scalars['String'],
+  title: Scalars['String'],
+  description?: Maybe<Scalars['String']>,
+  achievement?: Maybe<Scalars['String']>,
+  numRequiredSteps: Scalars['Int'],
+  stepIds: Array<Scalars['String']>,
+  steps: Array<PersistentTask>,
+  status: LevelStatus,
+};
+
+export enum LevelStatus {
+  Active = 'Active',
+  Deleted = 'Deleted'
+}
+
 export type MarkNotificationAsReadInput = {
   id: Scalars['String'],
 };
@@ -287,6 +318,10 @@ export type Mutation = {
   setPersistentTaskPayout?: Maybe<PersistentTask>,
   removePersistentTaskPayout?: Maybe<PersistentTask>,
   removePersistentTask?: Maybe<PersistentTask>,
+  /** Levels */
+  createLevel?: Maybe<Level>,
+  editLevel?: Maybe<Level>,
+  removeLevel?: Maybe<Level>,
 };
 
 
@@ -484,6 +519,21 @@ export type MutationRemovePersistentTaskArgs = {
   input: RemovePersistentTaskInput
 };
 
+
+export type MutationCreateLevelArgs = {
+  input?: Maybe<CreateLevelInput>
+};
+
+
+export type MutationEditLevelArgs = {
+  input: EditLevelInput
+};
+
+
+export type MutationRemoveLevelArgs = {
+  input: RemoveLevelInput
+};
+
 export type NewUserEvent = {
    __typename?: 'NewUserEvent',
   type: EventType,
@@ -549,6 +599,10 @@ export type QueryTaskArgs = {
 
 export type QueryTokenInfoArgs = {
   address: Scalars['String']
+};
+
+export type RemoveLevelInput = {
+  id: Scalars['String'],
 };
 
 export type RemovePersistentTaskInput = {
@@ -983,6 +1037,11 @@ export type ResolversTypes = {
   PersistentTaskStatus: PersistentTaskStatus,
   EditPersistentTaskInput: EditPersistentTaskInput,
   RemovePersistentTaskInput: RemovePersistentTaskInput,
+  CreateLevelInput: CreateLevelInput,
+  Level: ResolverTypeWrapper<Level>,
+  LevelStatus: LevelStatus,
+  EditLevelInput: EditLevelInput,
+  RemoveLevelInput: RemoveLevelInput,
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -1067,6 +1126,11 @@ export type ResolversParentTypes = {
   PersistentTaskStatus: PersistentTaskStatus,
   EditPersistentTaskInput: EditPersistentTaskInput,
   RemovePersistentTaskInput: RemovePersistentTaskInput,
+  CreateLevelInput: CreateLevelInput,
+  Level: Level,
+  LevelStatus: LevelStatus,
+  EditLevelInput: EditLevelInput,
+  RemoveLevelInput: RemoveLevelInput,
 };
 
 export type AssignWorkerEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignWorkerEvent'] = ResolversParentTypes['AssignWorkerEvent']> = {
@@ -1162,6 +1226,19 @@ export interface GraphQlDateTimeScalarConfig extends GraphQLScalarTypeConfig<Res
   name: 'GraphQLDateTime'
 }
 
+export type LevelResolvers<ContextType = any, ParentType extends ResolversParentTypes['Level'] = ResolversParentTypes['Level']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
+  creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  achievement?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  numRequiredSteps?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
+  stepIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
+  steps?: Resolver<Array<ResolversTypes['PersistentTask']>, ParentType, ContextType>,
+  status?: Resolver<ResolversTypes['LevelStatus'], ParentType, ContextType>,
+};
+
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   createColony?: Resolver<Maybe<ResolversTypes['Colony']>, ParentType, ContextType, RequireFields<MutationCreateColonyArgs, 'input'>>,
   editColonyProfile?: Resolver<Maybe<ResolversTypes['Colony']>, ParentType, ContextType, RequireFields<MutationEditColonyProfileArgs, 'input'>>,
@@ -1203,6 +1280,9 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   setPersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationSetPersistentTaskPayoutArgs, 'input'>>,
   removePersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemovePersistentTaskPayoutArgs, 'input'>>,
   removePersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemovePersistentTaskArgs, 'input'>>,
+  createLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, MutationCreateLevelArgs>,
+  editLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationEditLevelArgs, 'input'>>,
+  removeLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationRemoveLevelArgs, 'input'>>,
 };
 
 export type NewUserEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['NewUserEvent'] = ResolversParentTypes['NewUserEvent']> = {
@@ -1408,6 +1488,7 @@ export type Resolvers<ContextType = any> = {
   EventContext?: EventContextResolvers,
   FinalizeTaskEvent?: FinalizeTaskEventResolvers<ContextType>,
   GraphQLDateTime?: GraphQLScalarType,
+  Level?: LevelResolvers<ContextType>,
   Mutation?: MutationResolvers<ContextType>,
   NewUserEvent?: NewUserEventResolvers<ContextType>,
   Notification?: NotificationResolvers<ContextType>,
