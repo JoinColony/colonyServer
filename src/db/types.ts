@@ -10,6 +10,7 @@ import {
 
 import { EventType } from '../constants'
 import {
+  LevelStatus,
   PersistentTaskStatus,
   ProgramStatus,
   SubmissionStatus,
@@ -91,6 +92,17 @@ export interface ProgramDoc extends MongoDoc {
   description?: string
   levelIds: string[]
   status: ProgramStatus
+}
+
+export interface LevelDoc extends MongoDoc {
+  creatorAddress: string
+  programId: ObjectID
+  title: string
+  description?: string
+  achievement?: string
+  numRequiredSteps: number
+  stepIds: string[]
+  status: LevelStatus
 }
 
 export interface PersistentTaskDoc extends MongoDoc {
