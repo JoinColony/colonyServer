@@ -663,7 +663,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
         userAddress,
       }),
     )
-    await api.editProgram(userAddress, id, { status: ProgramStatus.Deleted })
+    await api.removeProgram(userAddress, id)
     return data.getProgramById(id)
   },
   // Levels

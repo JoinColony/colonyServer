@@ -1200,6 +1200,23 @@ export class ColonyMongoApi {
     )
   }
 
+  async removeProgram(initiator: string, id: string) {
+    await this.tryGetUser(initiator)
+    const { levelIds } = await this.tryGetProgram(id)
+
+    // In the future we could use batch processing here?
+    await Promise.all(
+      levelIds.map((levelId: string) => this.removeLevel(initiator, levelId)),
+    )
+
+    return this.programs.updateOne(
+      {
+        _id: new ObjectID(id),
+      },
+      { status: ProgramStatus.Deleted },
+    )
+  }
+
   async reorderProgramLevels(
     initiator: string,
     id: string,
@@ -1317,8 +1334,15 @@ export class ColonyMongoApi {
 
   async removeLevel(initiator: string, levelId: string) {
     await this.tryGetUser(initiator)
-    const { programId } = await this.tryGetLevel(levelId)
+    const { programId, stepIds } = await this.tryGetLevel(levelId)
     await this.tryGetProgram(programId.toHexString())
+
+    const stepObjectIDs = stepIds.map(stepId => new ObjectID(stepId))
+
+    await this.persistentTasks.updateMany(
+      { _id: { $in: stepObjectIDs } },
+      { $set: { status: PersistentTaskStatus.Deleted } },
+    )
 
     await this.programs.updateOne(
       { _id: new ObjectID(programId) },
@@ -1329,6 +1353,5 @@ export class ColonyMongoApi {
       { _id: new ObjectID(levelId) },
       { status: LevelStatus.Deleted },
     )
-
   }
 }
