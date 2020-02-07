@@ -10,10 +10,11 @@ export default gql`
     id: String! # mongodb ObjectId
     createdAt: GraphQLDateTime!
     creatorAddress: String!
-    title: String!
+    programId: String!
+    title: String
     description: String
     achievement: String
-    numRequiredSteps: Int!
+    numRequiredSteps: Int
     stepIds: [String!]! # list of stepIds in the correct order
     steps: [PersistentTask!]! # resolved
     status: LevelStatus!

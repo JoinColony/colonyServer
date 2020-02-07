@@ -7,6 +7,7 @@ import {
   ColonyDoc,
   DomainDoc,
   EventDoc,
+  LevelDoc,
   NotificationDoc,
   PersistentTaskDoc,
   ProgramDoc,
@@ -21,6 +22,8 @@ import {
   Colony,
   Domain,
   Event,
+  Level,
+  LevelStatus,
   PersistentTask,
   PersistentTaskStatus,
   Program,
@@ -43,6 +46,7 @@ interface Collections {
   colonies: CachedCollection<ColonyDoc>
   domains: CachedCollection<DomainDoc>
   events: CachedCollection<EventDoc<any>>
+  levels: CachedCollection<LevelDoc>
   notifications: CachedCollection<NotificationDoc>
   persistentTasks: CachedCollection<PersistentTaskDoc>
   programs: CachedCollection<ProgramDoc>
@@ -62,6 +66,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       db.collection(CollectionNames.Colonies),
       db.collection(CollectionNames.Domains),
       db.collection(CollectionNames.Events),
+      db.collection(CollectionNames.Levels),
       db.collection(CollectionNames.Notifications),
       db.collection(CollectionNames.PersistentTasks),
       db.collection(CollectionNames.Programs),
@@ -196,6 +201,16 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       createdAt: _id.getTimestamp(),
       levels: undefined,
       submissions: undefined,
+    }
+  }
+
+  private static transformLevel({ _id, programId, ...doc }: LevelDoc): Level {
+    return {
+      ...doc,
+      id: _id.toHexString(),
+      createdAt: _id.getTimestamp(),
+      programId: programId.toHexString(),
+      steps: undefined,
     }
   }
 
@@ -401,6 +416,27 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     if (!doc) throw new Error(`Program with id '${id}' not found`)
 
     return ColonyMongoDataSource.transformProgram(doc)
+  }
+
+  async getLevelById(id: string, ttl?: number) {
+    const query = {
+      _id: new ObjectID(id),
+      status: { $ne: LevelStatus.Deleted },
+    }
+    let doc: LevelDoc
+    if (ttl) {
+      const docs = await this.collections.levels.findManyByQuery(
+        query,
+        { ttl },
+      )
+      doc = docs[0]
+    } else {
+      doc = await this.collections.levels.collection.findOne(query)
+    }
+
+    if (!doc) throw new Error(`Level with id '${id}' not found`)
+
+    return ColonyMongoDataSource.transformLevel(doc)
   }
 
   async getSuggestionById(id: string, ttl?: number) {
