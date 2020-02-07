@@ -328,6 +328,7 @@ export type Mutation = {
   acceptSubmission?: Maybe<Submission>,
   /** PersistentTasks */
   createLevelTask?: Maybe<PersistentTask>,
+  removeLevelTask?: Maybe<PersistentTask>,
   editPersistentTask?: Maybe<PersistentTask>,
   setPersistentTaskPayout?: Maybe<PersistentTask>,
   removePersistentTaskPayout?: Maybe<PersistentTask>,
@@ -521,6 +522,11 @@ export type MutationCreateLevelTaskArgs = {
 };
 
 
+export type MutationRemoveLevelTaskArgs = {
+  input: RemoveLevelTaskInput
+};
+
+
 export type MutationEditPersistentTaskArgs = {
   input: EditPersistentTaskInput
 };
@@ -603,7 +609,7 @@ export type PersistentTask = {
   createdAt: Scalars['GraphQLDateTime'],
   colonyAddress: Scalars['String'],
   creatorAddress: Scalars['String'],
-  ethDomainId: Scalars['Int'],
+  ethDomainId?: Maybe<Scalars['Int']>,
   ethSkillId?: Maybe<Scalars['Int']>,
   title?: Maybe<Scalars['String']>,
   description?: Maybe<Scalars['String']>,
@@ -680,6 +686,11 @@ export type QueryTokenInfoArgs = {
 
 export type RemoveLevelInput = {
   id: Scalars['String'],
+};
+
+export type RemoveLevelTaskInput = {
+  id: Scalars['String'],
+  levelId: Scalars['String'],
 };
 
 export type RemovePersistentTaskInput = {
@@ -1130,6 +1141,7 @@ export type ResolversTypes = {
   EditSubmissionInput: EditSubmissionInput,
   AcceptSubmissionInput: AcceptSubmissionInput,
   CreateLevelTaskInput: CreateLevelTaskInput,
+  RemoveLevelTaskInput: RemoveLevelTaskInput,
   EditPersistentTaskInput: EditPersistentTaskInput,
   RemovePersistentTaskInput: RemovePersistentTaskInput,
   CreateLevelInput: CreateLevelInput,
@@ -1227,6 +1239,7 @@ export type ResolversParentTypes = {
   EditSubmissionInput: EditSubmissionInput,
   AcceptSubmissionInput: AcceptSubmissionInput,
   CreateLevelTaskInput: CreateLevelTaskInput,
+  RemoveLevelTaskInput: RemoveLevelTaskInput,
   EditPersistentTaskInput: EditPersistentTaskInput,
   RemovePersistentTaskInput: RemovePersistentTaskInput,
   CreateLevelInput: CreateLevelInput,
@@ -1385,6 +1398,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   editSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationEditSubmissionArgs, 'input'>>,
   acceptSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationAcceptSubmissionArgs, 'input'>>,
   createLevelTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationCreateLevelTaskArgs, 'input'>>,
+  removeLevelTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemoveLevelTaskArgs, 'input'>>,
   editPersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationEditPersistentTaskArgs, 'input'>>,
   setPersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationSetPersistentTaskPayoutArgs, 'input'>>,
   removePersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemovePersistentTaskPayoutArgs, 'input'>>,
@@ -1415,7 +1429,7 @@ export type PersistentTaskResolvers<ContextType = any, ParentType extends Resolv
   createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
   colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
+  ethDomainId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
   ethSkillId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
