@@ -1,5 +1,6 @@
 import { ApolloContext } from '../apolloTypes'
 import {
+  LevelStatus,
   MutationResolvers,
   PersistentTaskStatus,
   ProgramStatus,
@@ -549,24 +550,19 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     return data.getPersistentTaskById(id)
   },
   // Submissions
-  // TODO: Once we have levels, this can be uncommented and implemented
-  // async createLevelTaskSubmission(
-  //   parent,
-  //   { input: { levelId, persistentTaskId, submission } },
-  //   { userAddress, api, dataSources: { data } },
-  // ) {
-  //   const submissionId = await api.createSubmission(
-  //     userAddress,
-  //     persistentTaskId,
-  //     submission,
-  //   )
-  //   await api.addSubmissionToLevelTask(
-  //     userAddress,
-  //     persistentTaskId,
-  //     submissionId,
-  //   )
-  //   return data.getSubmissionById(submissionId)
-  // },
+  async createLevelTaskSubmission(
+    parent,
+    { input: { levelId, persistentTaskId, submission } },
+    { userAddress, api, dataSources: { data } },
+  ) {
+    const submissionId = await api.createLevelTaskSubmission(
+      userAddress,
+      persistentTaskId,
+      levelId,
+      submission,
+    )
+    return data.getSubmissionById(submissionId)
+  },
   async editSubmission(
     parent,
     { input: { id, submission } },
@@ -669,5 +665,69 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     )
     await api.editProgram(userAddress, id, { status: ProgramStatus.Deleted })
     return data.getProgramById(id)
+  },
+  // Levels
+  async createLevel(
+    parent,
+    { input: { programId } },
+    { userAddress, api, dataSources: { auth, data } },
+  ) {
+    const { colonyAddress } = await data.getProgramById(programId)
+    await tryAuth(
+      auth.assertCanCreateLevel({
+        colonyAddress,
+        userAddress
+      })
+    )
+    const levelId = await api.createLevel(userAddress, programId)
+    return data.getLevelById(levelId) 
+  },
+  async editLevel(
+    parent,
+    { input: { id, ...update } },
+    { userAddress, api, dataSources: { auth, data } },
+  ) {
+    const { programId } = await data.getLevelById(id)
+    const { colonyAddress } = await data.getProgramById(programId)
+    await tryAuth(
+      auth.assertCanEditLevel({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.editLevel(userAddress, id, update)
+    return data.getLevelById(id)
+  },
+  async reorderLevelSteps(
+    parent,
+    { input: { id, stepIds } },
+    { userAddress, api, dataSources: { auth, data } },
+  ) {
+    const { programId } = await data.getLevelById(id)
+    const { colonyAddress } = await data.getProgramById(programId)
+    await tryAuth(
+      auth.assertCanEditLevel({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.reorderLevelSteps(userAddress, id, stepIds)
+    return data.getLevelById(id)
+  },
+  async removeLevel(
+    parent,
+    { input: { id } },
+    { userAddress, api, dataSources: { auth, data } },
+  ) {
+    const { programId } = await data.getLevelById(id)
+    const { colonyAddress } = await data.getProgramById(programId)
+    await tryAuth(
+      auth.assertCanEditLevel({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.removeLevel(userAddress, id)
+    return data.getLevelById(id)
   },
 }

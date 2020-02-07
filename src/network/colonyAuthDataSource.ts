@@ -423,6 +423,14 @@ export class ColonyAuthDataSource extends DataSource<any> {
     return this.assertAdminProgram(AuthChecks.AdminProgram, args)
   }
 
+  async assertCanCreateLevel(args: ColonyAuthArgs) {
+    return this.assertAdminProgram(AuthChecks.AdminProgram, args)
+  }
+
+  async assertCanEditLevel(args: ColonyAuthArgs) {
+    return this.assertAdminProgram(AuthChecks.AdminProgram, args)
+  }
+
   async assertColonyExists(colonyAddress: ColonyAddress): Promise<boolean> {
     if (disableAuthCheck) {
       return true

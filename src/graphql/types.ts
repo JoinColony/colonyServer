@@ -263,10 +263,11 @@ export type Level = {
   id: Scalars['String'],
   createdAt: Scalars['GraphQLDateTime'],
   creatorAddress: Scalars['String'],
-  title: Scalars['String'],
+  programId: Scalars['String'],
+  title?: Maybe<Scalars['String']>,
   description?: Maybe<Scalars['String']>,
   achievement?: Maybe<Scalars['String']>,
-  numRequiredSteps: Scalars['Int'],
+  numRequiredSteps?: Maybe<Scalars['Int']>,
   stepIds: Array<Scalars['String']>,
   steps: Array<PersistentTask>,
   status: LevelStatus,
@@ -336,6 +337,7 @@ export type Mutation = {
   /** Levels */
   createLevel?: Maybe<Level>,
   editLevel?: Maybe<Level>,
+  reorderLevelSteps?: Maybe<Level>,
   removeLevel?: Maybe<Level>,
   /** Programs */
   createProgram?: Maybe<Program>,
@@ -556,6 +558,11 @@ export type MutationEditLevelArgs = {
 };
 
 
+export type MutationReorderLevelStepsArgs = {
+  input: ReorderLevelStepsInput
+};
+
+
 export type MutationRemoveLevelArgs = {
   input: RemoveLevelInput
 };
@@ -718,6 +725,11 @@ export type RemoveTaskSkillInput = {
 
 export type RemoveUpvoteFromSuggestionInput = {
   id: Scalars['String'],
+};
+
+export type ReorderLevelStepsInput = {
+  id: Scalars['String'],
+  stepIds: Array<Scalars['String']>,
 };
 
 export type ReorderProgramLevelsInput = {
@@ -1145,6 +1157,7 @@ export type ResolversTypes = {
   RemovePersistentTaskInput: RemovePersistentTaskInput,
   CreateLevelInput: CreateLevelInput,
   EditLevelInput: EditLevelInput,
+  ReorderLevelStepsInput: ReorderLevelStepsInput,
   RemoveLevelInput: RemoveLevelInput,
   CreateProgramInput: CreateProgramInput,
   EditProgramInput: EditProgramInput,
@@ -1243,6 +1256,7 @@ export type ResolversParentTypes = {
   RemovePersistentTaskInput: RemovePersistentTaskInput,
   CreateLevelInput: CreateLevelInput,
   EditLevelInput: EditLevelInput,
+  ReorderLevelStepsInput: ReorderLevelStepsInput,
   RemoveLevelInput: RemoveLevelInput,
   CreateProgramInput: CreateProgramInput,
   EditProgramInput: EditProgramInput,
@@ -1358,10 +1372,11 @@ export type LevelResolvers<ContextType = any, ParentType extends ResolversParent
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
   creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  programId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   achievement?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
-  numRequiredSteps?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
+  numRequiredSteps?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
   stepIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   steps?: Resolver<Array<ResolversTypes['PersistentTask']>, ParentType, ContextType>,
   status?: Resolver<ResolversTypes['LevelStatus'], ParentType, ContextType>,
@@ -1411,6 +1426,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   removePersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemovePersistentTaskArgs, 'input'>>,
   createLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationCreateLevelArgs, 'input'>>,
   editLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationEditLevelArgs, 'input'>>,
+  reorderLevelSteps?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationReorderLevelStepsArgs, 'input'>>,
   removeLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationRemoveLevelArgs, 'input'>>,
   createProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationCreateProgramArgs, 'input'>>,
   editProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationEditProgramArgs, 'input'>>,

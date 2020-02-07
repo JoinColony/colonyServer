@@ -97,10 +97,10 @@ export interface ProgramDoc extends MongoDoc {
 export interface LevelDoc extends MongoDoc {
   creatorAddress: string
   programId: ObjectID
-  title: string
+  title?: string
   description?: string
   achievement?: string
-  numRequiredSteps: number
+  numRequiredSteps?: number
   stepIds: string[]
   status: LevelStatus
 }

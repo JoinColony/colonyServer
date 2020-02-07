@@ -214,6 +214,11 @@ export default gql`
     numRequiredSteps: Int
   }
 
+  input ReorderLevelStepsInput {
+    id: String!
+    stepIds: [String!]!
+  }
+
   input RemoveLevelInput {
     id: String!
   }
@@ -299,6 +304,7 @@ export default gql`
     # Levels
     createLevel(input: CreateLevelInput!): Level
     editLevel(input: EditLevelInput!): Level
+    reorderLevelSteps(input: ReorderLevelStepsInput!): Level
     removeLevel(input: RemoveLevelInput!): Level
     # Programs
     createProgram(input: CreateProgramInput!): Program

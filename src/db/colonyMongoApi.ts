@@ -14,6 +14,7 @@ import { EventContextOfType } from '../graphql/eventContext'
 import {
   EditPersistentTaskInput,
   EditSubmissionInput,
+  LevelStatus,
   PersistentTaskStatus,
   ProgramStatus,
   SubmissionStatus,
@@ -23,6 +24,7 @@ import {
   ColonyDoc,
   DomainDoc,
   EventDoc,
+  LevelDoc,
   NotificationDoc,
   PersistentTaskDoc,
   ProgramDoc,
@@ -56,6 +58,7 @@ export class ColonyMongoApi {
   private readonly colonies: Collection<ColonyDoc>
   private readonly events: Collection<EventDoc<any>>
   private readonly domains: Collection<DomainDoc>
+  private readonly levels: Collection<LevelDoc>
   private readonly notifications: Collection<NotificationDoc>
   private readonly persistentTasks: Collection<PersistentTaskDoc>
   private readonly programs: Collection<ProgramDoc>
@@ -68,6 +71,7 @@ export class ColonyMongoApi {
     this.colonies = db.collection<ColonyDoc>(CollectionNames.Colonies)
     this.events = db.collection<EventDoc<any>>(CollectionNames.Events)
     this.domains = db.collection<DomainDoc>(CollectionNames.Domains)
+    this.levels = db.collection<LevelDoc>(CollectionNames.Levels)
     this.notifications = db.collection<NotificationDoc>(
       CollectionNames.Notifications,
     )
@@ -198,6 +202,16 @@ export class ColonyMongoApi {
     const program = await this.programs.findOne(query)
     assert.ok(!!program, `Program with ID '${id}' not found`)
     return program
+  }
+
+  private async tryGetLevel(id: string) {
+    const query = {
+      _id: new ObjectID(id),
+      status: { $ne: LevelStatus.Deleted },
+    }
+    const level = await this.levels.findOne(query)
+    assert.ok(!!level, `Level with ID '${id}' not found`)
+    return level
   }
 
   private async tryGetTask(taskId: string) {
@@ -1095,6 +1109,26 @@ export class ColonyMongoApi {
     return insertedId.toString()
   }
 
+  async createLevelTaskSubmission(
+    initiator: string,
+    persistentTaskId: string,
+    levelId: string,
+    submission: string,
+  ) {
+    const taskId = await this.createSubmission(
+      initiator,
+      persistentTaskId,
+      submission,
+    )
+
+    await this.levels.updateOne(
+      { _id: new ObjectID(levelId) },
+      { $push: { stepIds: taskId } },
+    )
+
+    return taskId
+  }
+
   async editSubmission(
     initiator: string,
     id: string,
@@ -1186,5 +1220,115 @@ export class ColonyMongoApi {
       },
       { levelIds },
     )
+  }
+
+  async createLevel(initiator: string, programId: string) {
+    await this.tryGetUser(initiator)
+    await this.tryGetProgram(programId)
+
+    const { insertedId } = await this.levels.insertOne({
+      creatorAddress: initiator,
+      programId: new ObjectID(programId),
+      stepIds: [],
+      status: LevelStatus.Active,
+    })
+
+    await this.programs.updateOne(
+      { _id: new ObjectID(programId) },
+      { $push: { levelIds: insertedId.toHexString() } },
+    )
+
+    return insertedId.toString()
+  }
+
+  async editLevel(
+    initiator: string,
+    id: string,
+    {
+      title,
+      description,
+      achievement,
+      numRequiredSteps,
+      status,
+    }: {
+      title?: string
+      description?: string
+      achievement?: string
+      numRequiredSteps?: number
+      status?: LevelStatus
+    },
+  ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetLevel(id)
+
+    const update = {} as {
+      title?: string
+      description?: string
+      achievement?: string
+      numRequiredSteps?: number
+      status?: LevelStatus
+    }
+
+    if (title) {
+      update.title = title
+    }
+    if (description) {
+      update.description = description
+    }
+    if (achievement) {
+      update.achievement = achievement
+    }
+    if (numRequiredSteps) {
+      update.numRequiredSteps = numRequiredSteps
+    }
+    if (status) {
+      update.status = status
+    }
+
+    return this.levels.updateOne(
+      {
+        _id: new ObjectID(id),
+      },
+      update,
+    )
+  }
+
+  async reorderLevelSteps(
+    initiator: string,
+    id: string,
+    orderedStepIds: string[],
+  ) {
+    await this.tryGetUser(initiator)
+    const { stepIds } = await this.tryGetLevel(id)
+
+    assert.ok(
+      orderedStepIds.length === stepIds.length &&
+        orderedStepIds.every((levelId: string) => stepIds.includes(levelId)),
+      'Provided stepIds do not match existing stepIds. This only allows for re-sorting',
+    )
+
+    return this.levels.updateOne(
+      {
+        _id: new ObjectID(id),
+      },
+      { stepIds },
+    )
+  }
+
+  async removeLevel(initiator: string, levelId: string) {
+    await this.tryGetUser(initiator)
+    const { programId } = await this.tryGetLevel(levelId)
+    await this.tryGetProgram(programId.toHexString())
+
+    await this.programs.updateOne(
+      { _id: new ObjectID(programId) },
+      { $pull: { levelIds: levelId } },
+    )
+
+    return this.levels.updateOne(
+      { _id: new ObjectID(levelId) },
+      { status: LevelStatus.Deleted },
+    )
+
   }
 }
