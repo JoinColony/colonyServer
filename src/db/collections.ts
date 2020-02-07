@@ -3,6 +3,7 @@ import {
   ColonyDoc,
   DomainDoc,
   EventDoc,
+  LevelDoc,
   NotificationDoc,
   PersistentTaskDoc,
   ProgramDoc,
@@ -18,6 +19,7 @@ export enum CollectionNames {
   Colonies = 'colonies',
   Domains = 'domains',
   Events = 'events',
+  Levels = 'levels',
   Notifications = 'notifications',
   PersistentTasks = 'persistentTasks',
   Programs = 'programs',
@@ -614,6 +616,63 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['persistentTaskId', {}],
         ['status', {}],
       ],
+    },
+  ],
+  [
+    CollectionNames.Levels,
+    {
+      create: {
+        validator: {
+          $jsonSchema: {
+            additionalProperties: false,
+            bsonType: 'object',
+            required: [
+              'creatorAddress',
+              'programId',
+              'title',
+              'numRequiredSteps',
+              'stepIds',
+              'status',
+            ],
+            properties: {
+              _id: { bsonType: 'objectId' },
+              creatorAddress: {
+                bsonType: 'string',
+                maxLength: 42,
+              },
+              programId: { bsonType: 'objectId' },
+              title: {
+                bsonType: 'string',
+                maxLength: 200,
+              },
+              description: {
+                bsonType: 'string',
+                maxLength: 4000,
+              },
+              achievement: {
+                bsonType: 'string',
+                maxLength: 200,
+              },
+              numRequiredSteps: {
+                bsonType: 'int',
+              },
+              stepIds: {
+                bsonType: 'array',
+                description: 'must be an array of persistent task IDs',
+                uniqueItems: true,
+                items: {
+                  bsonType: 'string',
+                },
+              },
+              status: {
+                enum: ['Active', 'Deleted'],
+                maxLength: 10,
+              },
+            } as SchemaFields<LevelDoc>,
+          },
+        },
+      },
+      indexes: [['status', {}]],
     },
   ],
   [
