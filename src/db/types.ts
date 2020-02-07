@@ -9,7 +9,11 @@ import {
 } from 'mongodb'
 
 import { EventType } from '../constants'
-import { SuggestionStatus } from '../graphql/types';
+import {
+  PersistentTaskStatus,
+  SuggestionStatus,
+  TaskPayout,
+} from '../graphql/types'
 
 // Stricter than RootQuerySelector (only allows fields from T),
 // but doesn't allow dot-notation fields.
@@ -78,6 +82,17 @@ export interface EventDoc<C extends object> extends MongoDoc {
   context: C
 }
 
+export interface PersistentTaskDoc extends MongoDoc {
+  colonyAddress: string
+  creatorAddress: string
+  ethDomainId: number
+  ethSkillId?: number
+  title?: string
+  description?: string
+  payouts: TaskPayout[]
+  status: PersistentTaskStatus
+}
+
 export interface SuggestionDoc extends MongoDoc {
   colonyAddress: string
   creatorAddress: string
@@ -99,7 +114,7 @@ export interface TaskDoc extends MongoDoc {
   dueDate?: Date
   ethSkillId?: number
   finalizedAt?: Date
-  payouts: { tokenAddress: string; amount: string }[]
+  payouts: TaskPayout[]
   title?: string
   workInviteAddresses: string[]
   workRequestAddresses: string[]

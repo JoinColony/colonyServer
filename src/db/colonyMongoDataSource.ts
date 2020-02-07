@@ -8,6 +8,7 @@ import {
   DomainDoc,
   EventDoc,
   NotificationDoc,
+  PersistentTaskDoc,
   SuggestionDoc,
   TaskDoc,
   TokenDoc,
@@ -18,6 +19,8 @@ import {
   Colony,
   Domain,
   Event,
+  PersistentTask,
+  PersistentTaskStatus,
   Suggestion,
   SuggestionStatus,
   Task,
@@ -35,6 +38,7 @@ interface Collections {
   domains: CachedCollection<DomainDoc>
   events: CachedCollection<EventDoc<any>>
   notifications: CachedCollection<NotificationDoc>
+  persistentTasks: CachedCollection<PersistentTaskDoc>
   suggestions: CachedCollection<SuggestionDoc>
   tasks: CachedCollection<TaskDoc>
   tokens: CachedCollection<TokenDoc>
@@ -51,6 +55,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       db.collection(CollectionNames.Domains),
       db.collection(CollectionNames.Events),
       db.collection(CollectionNames.Notifications),
+      db.collection(CollectionNames.PersistentTasks),
       db.collection(CollectionNames.Suggestions),
       db.collection(CollectionNames.Tasks),
       db.collection(CollectionNames.Tokens),
@@ -197,6 +202,20 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
   }
 
+  private static transformPersistenTask({
+    payouts = [],
+      _id,
+    ...doc
+  }: PersistentTaskDoc): PersistentTask {
+    return {
+      ...doc,
+      id: _id.toHexString(),
+      createdAt: _id.getTimestamp(),
+      payouts: payouts.map(payout => ({ ...payout, token: undefined })),
+      submissions: [],
+    }
+  }
+
   async getColonyByAddress(colonyAddress: string, ttl?: number) {
     const query = { colonyAddress }
     const [doc] = ttl
@@ -291,6 +310,21 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       ? await this.collections.domains.findManyByQuery(query, { ttl })
       : await this.collections.domains.collection.find(query).toArray()
     return docs.map(ColonyMongoDataSource.transformDomain)
+  }
+
+  async getPersistentTaskById(id: string, ttl?: number) {
+    const query = { _id: new ObjectID(id), status: { $ne: PersistentTaskStatus.Deleted } }
+    let doc: PersistentTaskDoc
+    if (ttl) {
+      const docs = await this.collections.persistentTasks.findManyByQuery(query, { ttl })
+      doc = docs[0]
+    } else {
+      doc = await this.collections.persistentTasks.collection.findOne(query)
+    }
+    
+    if (!doc) throw new Error(`Persistent Task with id '${id}' not found`)
+
+    return ColonyMongoDataSource.transformPersistenTask(doc)
   }
 
   async getSuggestionById(id: string, ttl?: number) {
