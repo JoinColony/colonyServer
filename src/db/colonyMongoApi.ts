@@ -1000,7 +1000,6 @@ export class ColonyMongoApi {
   async createPersistentTask(
     initiator: string,
     colonyAddress: string,
-    ethDomainId: number,
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetColony(colonyAddress)
@@ -1008,12 +1007,47 @@ export class ColonyMongoApi {
     const { insertedId } = await this.persistentTasks.insertOne({
       colonyAddress,
       creatorAddress: initiator,
-      ethDomainId,
       payouts: [],
       status: PersistentTaskStatus.Active,
     })
 
     return insertedId.toString()
+  }
+
+  async createLevelTask(
+    initiator: string,
+    levelId: string,
+  ) {
+    const { programId } = await this.tryGetLevel(levelId)
+    const { colonyAddress } = await this.tryGetProgram(programId.toHexString())
+
+    const taskId = await this.createPersistentTask(initiator, colonyAddress)
+
+    await this.levels.updateOne(
+      { _id: new ObjectID(levelId) },
+      { $addToSet: { stepIds: taskId } },
+    )
+
+    return taskId
+  }
+
+  async removeLevelTask(
+    initiator: string,
+    taskId: string,
+    levelId: string,
+  ) {
+    await this.tryGetPersistentTask(taskId)
+    await this.tryGetLevel(levelId)
+
+    await this.levels.updateOne(
+      { _id: new ObjectID(levelId) },
+      { $pull: { stepIds: taskId } },
+    )
+
+    return this.persistentTasks.updateOne(
+      { _id: new ObjectID(taskId) },
+      { $set: { status: PersistentTaskStatus.Deleted } },
+    )
   }
 
   async editPersistentTask(

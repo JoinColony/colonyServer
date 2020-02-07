@@ -108,7 +108,7 @@ export interface LevelDoc extends MongoDoc {
 export interface PersistentTaskDoc extends MongoDoc {
   colonyAddress: string
   creatorAddress: string
-  ethDomainId: number
+  ethDomainId?: number
   ethSkillId?: number
   title?: string
   description?: string
