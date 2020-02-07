@@ -625,6 +625,21 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     await api.editProgram(userAddress, id, update)
     return data.getProgramById(id)
   },
+  async reorderProgramLevels(
+    parent,
+    { input: { id, levelIds } },
+    { userAddress, api, dataSources: { auth, data } },
+  ) {
+    const { colonyAddress } = await data.getProgramById(id)
+    await tryAuth(
+      auth.assertCanEditProgram({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.reorderProgramLevels(userAddress, id, levelIds)
+    return data.getProgramById(id)
+  },
   async publishProgram(
     parent,
     { input: { id } },
