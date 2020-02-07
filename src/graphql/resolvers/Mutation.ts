@@ -2,6 +2,7 @@ import { ApolloContext } from '../apolloTypes'
 import {
   MutationResolvers,
   PersistentTaskStatus,
+  ProgramStatus,
   SubmissionStatus,
   SuggestionStatus,
 } from '../types'
@@ -593,5 +594,65 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     )
     await api.editSubmission(userAddress, id, { status: SubmissionStatus.Accepted })
     return data.getSubmissionById(id)
+  },
+  // Programs
+  async createProgram(
+    parent,
+    { input: { colonyAddress } },
+    { userAddress, api, dataSources: { auth, data } },
+  ) {
+    await tryAuth(
+      auth.assertCanCreateProgram({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    const id = await api.createProgram(userAddress, colonyAddress)
+    return data.getProgramById(id)
+  },
+  async editProgram(
+    parent,
+    { input: { id, ...update } },
+    { userAddress, api, dataSources: { auth, data } },
+  ) {
+    const { colonyAddress } = await data.getProgramById(id)
+    await tryAuth(
+      auth.assertCanEditProgram({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.editProgram(userAddress, id, update)
+    return data.getProgramById(id)
+  },
+  async publishProgram(
+    parent,
+    { input: { id } },
+    { userAddress, api, dataSources: { auth, data } },
+  ) {
+    const { colonyAddress } = await data.getProgramById(id)
+    await tryAuth(
+      auth.assertCanEditProgram({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.editProgram(userAddress, id, { status: ProgramStatus.Active })
+    return data.getProgramById(id)
+  },
+  async removeProgram(
+    parent,
+    { input: { id } },
+    { userAddress, api, dataSources: { auth, data } },
+  ) {
+    const { colonyAddress } = await data.getProgramById(id)
+    await tryAuth(
+      auth.assertCanEditProgram({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.editProgram(userAddress, id, { status: ProgramStatus.Deleted })
+    return data.getProgramById(id)
   },
 }

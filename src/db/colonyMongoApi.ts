@@ -15,6 +15,7 @@ import {
   EditPersistentTaskInput,
   EditSubmissionInput,
   PersistentTaskStatus,
+  ProgramStatus,
   SubmissionStatus,
   SuggestionStatus,
 } from '../graphql/types'
@@ -24,6 +25,7 @@ import {
   EventDoc,
   NotificationDoc,
   PersistentTaskDoc,
+  ProgramDoc,
   StrictRootQuerySelector,
   StrictUpdateQuery,
   SubmissionDoc,
@@ -56,6 +58,7 @@ export class ColonyMongoApi {
   private readonly domains: Collection<DomainDoc>
   private readonly notifications: Collection<NotificationDoc>
   private readonly persistentTasks: Collection<PersistentTaskDoc>
+  private readonly programs: Collection<ProgramDoc>
   private readonly submissions: Collection<SubmissionDoc>
   private readonly suggestions: Collection<SuggestionDoc>
   private readonly tasks: Collection<TaskDoc>
@@ -71,6 +74,7 @@ export class ColonyMongoApi {
     this.persistentTasks = db.collection<PersistentTaskDoc>(
       CollectionNames.PersistentTasks,
     )
+    this.programs = db.collection<ProgramDoc>(CollectionNames.Programs)
     this.submissions = db.collection<SubmissionDoc>(CollectionNames.Submissions)
     this.suggestions = db.collection<SuggestionDoc>(CollectionNames.Suggestions)
     this.tasks = db.collection<TaskDoc>(CollectionNames.Tasks)
@@ -167,7 +171,10 @@ export class ColonyMongoApi {
   }
 
   private async tryGetPersistentTask(id: string) {
-    const query = { _id: new ObjectID(id), status: { $ne: PersistentTaskStatus.Deleted } }
+    const query = {
+      _id: new ObjectID(id),
+      status: { $ne: PersistentTaskStatus.Deleted },
+    }
     const task = await this.persistentTasks.findOne(query)
     assert.ok(!!task, `Persistent Task with ID '${id}' not found`)
     return task
@@ -181,6 +188,16 @@ export class ColonyMongoApi {
       `Submission with ID ${id} was deleted`,
     )
     return submission
+  }
+
+  private async tryGetProgram(id: string) {
+    const query = {
+      _id: new ObjectID(id),
+      status: { $ne: ProgramStatus.Deleted },
+    }
+    const program = await this.programs.findOne(query)
+    assert.ok(!!program, `Program with ID '${id}' not found`)
+    return program
   }
 
   private async tryGetTask(taskId: string) {
@@ -1097,5 +1114,55 @@ export class ColonyMongoApi {
     }
 
     return this.submissions.updateOne({ _id: new ObjectID(id) }, { $set: edit })
+  }
+
+  async createProgram(initiator: string, colonyAddress: string) {
+    await this.tryGetUser(initiator)
+    await this.tryGetColony(colonyAddress)
+
+    const { insertedId } = await this.programs.insertOne({
+      colonyAddress,
+      creatorAddress: initiator,
+      levelIds: [],
+      status: ProgramStatus.Draft,
+    })
+
+    return insertedId.toString()
+  }
+
+  async editProgram(
+    initiator: string,
+    id: string,
+    {
+      title,
+      description,
+      status,
+    }: { title?: string; description?: string; status?: ProgramStatus },
+  ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetProgram(id)
+
+    const update = {} as {
+      title?: string
+      description?: string
+      status?: ProgramStatus
+    }
+
+    if (title) {
+      update.title = title
+    }
+    if (description) {
+      update.description = description
+    }
+    if (status) {
+      update.status = status
+    }
+
+    return this.programs.updateOne(
+      {
+        _id: new ObjectID(id),
+      },
+      update,
+    )
   }
 }

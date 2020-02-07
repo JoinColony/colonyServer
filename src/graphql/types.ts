@@ -194,7 +194,7 @@ export type EditPersistentTaskInput = {
 
 export type EditProgramInput = {
   id: Scalars['String'],
-  title: Scalars['String'],
+  title?: Maybe<Scalars['String']>,
   description?: Maybe<Scalars['String']>,
 };
 
@@ -618,7 +618,7 @@ export type Program = {
   createdAt: Scalars['GraphQLDateTime'],
   creatorAddress: Scalars['String'],
   colonyAddress: Scalars['String'],
-  title: Scalars['String'],
+  title?: Maybe<Scalars['String']>,
   description?: Maybe<Scalars['String']>,
   levelIds: Array<Scalars['String']>,
   levels: Array<Level>,
@@ -1436,7 +1436,7 @@ export type ProgramResolvers<ContextType = any, ParentType extends ResolversPare
   createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
   creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   levelIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   levels?: Resolver<Array<ResolversTypes['Level']>, ParentType, ContextType>,
