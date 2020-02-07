@@ -5,6 +5,7 @@ import {
   EventDoc,
   NotificationDoc,
   PersistentTaskDoc,
+  ProgramDoc,
   SubmissionDoc,
   SuggestionDoc,
   TaskDoc,
@@ -19,6 +20,7 @@ export enum CollectionNames {
   Events = 'events',
   Notifications = 'notifications',
   PersistentTasks = 'persistentTasks',
+  Programs = 'programs',
   Submissions = 'submissions',
   Suggestions = 'suggestions',
   Tasks = 'tasks',
@@ -314,7 +316,12 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
           $jsonSchema: {
             additionalProperties: false,
             bsonType: 'object',
-            required: ['creatorAddress', 'colonyAddress', 'ethDomainId', 'status'],
+            required: [
+              'creatorAddress',
+              'colonyAddress',
+              'ethDomainId',
+              'status',
+            ],
             properties: {
               _id: { bsonType: 'objectId' },
               colonyAddress: {
@@ -657,6 +664,62 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
           decimals: 18,
         },
       ] as TokenDoc[],
+    },
+  ],
+  [
+    CollectionNames.Programs,
+    {
+      create: {
+        validator: {
+          $jsonSchema: {
+            additionalProperties: false,
+            bsonType: 'object',
+            required: [
+              'colonyAddress',
+              'creatorAddress',
+              'title',
+              'levelIds',
+              'status',
+            ],
+            properties: {
+              _id: { bsonType: 'objectId' },
+              colonyAddress: {
+                bsonType: 'string',
+                maxLength: 42,
+              },
+              creatorAddress: {
+                bsonType: 'string',
+                maxLength: 42,
+              },
+              title: {
+                bsonType: 'string',
+                maxLength: 100,
+              },
+              description: {
+                bsonType: 'string',
+                maxLength: 4000,
+              },
+              levelIds: {
+                bsonType: 'array',
+                description: 'must be an array of token addresses',
+                uniqueItems: true,
+                additionalProperties: false,
+                items: {
+                  bsonType: 'string',
+                },
+              },
+              status: {
+                enum: ['Draft', 'Active', 'Deleted'],
+                maxLength: 100,
+              },
+            } as SchemaFields<ProgramDoc>,
+          },
+        },
+      },
+      indexes: [
+        ['colonyAddress', {}],
+        ['status', {}],
+      ],
     },
   ],
 ])
