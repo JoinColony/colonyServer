@@ -9,6 +9,7 @@ import {
   EventDoc,
   NotificationDoc,
   PersistentTaskDoc,
+  ProgramDoc,
   SubmissionDoc,
   SuggestionDoc,
   TaskDoc,
@@ -22,6 +23,8 @@ import {
   Event,
   PersistentTask,
   PersistentTaskStatus,
+  Program,
+  ProgramStatus,
   Submission,
   SubmissionStatus,
   Suggestion,
@@ -42,6 +45,7 @@ interface Collections {
   events: CachedCollection<EventDoc<any>>
   notifications: CachedCollection<NotificationDoc>
   persistentTasks: CachedCollection<PersistentTaskDoc>
+  programs: CachedCollection<ProgramDoc>
   submissions: CachedCollection<SubmissionDoc>
   suggestions: CachedCollection<SuggestionDoc>
   tasks: CachedCollection<TaskDoc>
@@ -60,6 +64,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       db.collection(CollectionNames.Events),
       db.collection(CollectionNames.Notifications),
       db.collection(CollectionNames.PersistentTasks),
+      db.collection(CollectionNames.Programs),
       db.collection(CollectionNames.Submissions),
       db.collection(CollectionNames.Suggestions),
       db.collection(CollectionNames.Tasks),
@@ -184,6 +189,16 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
   }
 
+  private static transformProgram({ _id, ...doc }: ProgramDoc): Program {
+    return {
+      ...doc,
+      id: _id.toHexString(),
+      createdAt: _id.getTimestamp(),
+      levels: undefined,
+      submissions: undefined,
+    }
+  }
+
   private static transformSuggestion({
     _id,
     taskId,
@@ -223,7 +238,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
 
   private static transformPersistenTask({
     payouts = [],
-      _id,
+    _id,
     ...doc
   }: PersistentTaskDoc): PersistentTask {
     return {
@@ -332,15 +347,21 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   async getPersistentTaskById(id: string, ttl?: number) {
-    const query = { _id: new ObjectID(id), status: { $ne: PersistentTaskStatus.Deleted } }
+    const query = {
+      _id: new ObjectID(id),
+      status: { $ne: PersistentTaskStatus.Deleted },
+    }
     let doc: PersistentTaskDoc
     if (ttl) {
-      const docs = await this.collections.persistentTasks.findManyByQuery(query, { ttl })
+      const docs = await this.collections.persistentTasks.findManyByQuery(
+        query,
+        { ttl },
+      )
       doc = docs[0]
     } else {
       doc = await this.collections.persistentTasks.collection.findOne(query)
     }
-    
+
     if (!doc) throw new Error(`Persistent Task with id '${id}' not found`)
 
     return ColonyMongoDataSource.transformPersistenTask(doc)
@@ -359,6 +380,27 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     if (!doc) throw new Error(`Submission with id '${id}' not found`)
 
     return ColonyMongoDataSource.transformSubmission(doc)
+  }
+
+  async getProgramById(id: string, ttl?: number) {
+    const query = {
+      _id: new ObjectID(id),
+      status: { $ne: ProgramStatus.Deleted },
+    }
+    let doc: ProgramDoc
+    if (ttl) {
+      const docs = await this.collections.programs.findManyByQuery(
+        query,
+        { ttl },
+      )
+      doc = docs[0]
+    } else {
+      doc = await this.collections.programs.collection.findOne(query)
+    }
+
+    if (!doc) throw new Error(`Program with id '${id}' not found`)
+
+    return ColonyMongoDataSource.transformProgram(doc)
   }
 
   async getSuggestionById(id: string, ttl?: number) {
