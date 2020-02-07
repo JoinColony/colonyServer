@@ -87,7 +87,7 @@ export interface EventDoc<C extends object> extends MongoDoc {
 export interface ProgramDoc extends MongoDoc {
   colonyAddress: string
   creatorAddress: string
-  title: string
+  title?: string
   description?: string
   levelIds: string[]
   status: ProgramStatus
