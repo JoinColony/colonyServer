@@ -340,6 +340,7 @@ export type Mutation = {
   /** Programs */
   createProgram?: Maybe<Program>,
   editProgram?: Maybe<Program>,
+  reorderProgramLevels?: Maybe<Program>,
   publishProgram?: Maybe<Program>,
   removeProgram?: Maybe<Program>,
 };
@@ -570,6 +571,11 @@ export type MutationEditProgramArgs = {
 };
 
 
+export type MutationReorderProgramLevelsArgs = {
+  input: ReorderProgramLevelsInput
+};
+
+
 export type MutationPublishProgramArgs = {
   input: PublishProgramInput
 };
@@ -712,6 +718,11 @@ export type RemoveTaskSkillInput = {
 
 export type RemoveUpvoteFromSuggestionInput = {
   id: Scalars['String'],
+};
+
+export type ReorderProgramLevelsInput = {
+  id: Scalars['String'],
+  levelIds: Array<Scalars['String']>,
 };
 
 export type SendTaskMessageInput = {
@@ -1137,6 +1148,7 @@ export type ResolversTypes = {
   RemoveLevelInput: RemoveLevelInput,
   CreateProgramInput: CreateProgramInput,
   EditProgramInput: EditProgramInput,
+  ReorderProgramLevelsInput: ReorderProgramLevelsInput,
   PublishProgramInput: PublishProgramInput,
   RemoveProgramInput: RemoveProgramInput,
 };
@@ -1234,6 +1246,7 @@ export type ResolversParentTypes = {
   RemoveLevelInput: RemoveLevelInput,
   CreateProgramInput: CreateProgramInput,
   EditProgramInput: EditProgramInput,
+  ReorderProgramLevelsInput: ReorderProgramLevelsInput,
   PublishProgramInput: PublishProgramInput,
   RemoveProgramInput: RemoveProgramInput,
 };
@@ -1401,6 +1414,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   removeLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationRemoveLevelArgs, 'input'>>,
   createProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationCreateProgramArgs, 'input'>>,
   editProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationEditProgramArgs, 'input'>>,
+  reorderProgramLevels?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationReorderProgramLevelsArgs, 'input'>>,
   publishProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationPublishProgramArgs, 'input'>>,
   removeProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationRemoveProgramArgs, 'input'>>,
 };
