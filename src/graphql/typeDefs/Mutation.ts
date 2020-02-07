@@ -224,7 +224,7 @@ export default gql`
 
   input EditProgramInput {
     id: String!
-    title: String!
+    title: String
     description: String
   }
 
