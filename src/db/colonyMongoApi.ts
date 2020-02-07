@@ -367,7 +367,7 @@ export class ColonyMongoApi {
       initiator,
       // @ts-ignore This is too fiddly to type, for now
       { colonyAddresses: { $ne: colonyAddress } },
-      { $push: { colonyAddresses: colonyAddress } },
+      { $addToSet: { colonyAddresses: colonyAddress } },
     )
   }
 
@@ -390,7 +390,7 @@ export class ColonyMongoApi {
       initiator,
       // @ts-ignore This is too fiddly to type, for now
       { taskIds: { $ne: taskId } },
-      { $push: { taskIds: taskId } },
+      { $addToSet: { taskIds: taskId } },
     )
   }
 
@@ -523,7 +523,7 @@ export class ColonyMongoApi {
     const taskId = insertedId.toString()
 
     await this.subscribeToTask(initiator, taskId)
-    await this.updateColony(colonyAddress, {}, { $push: { taskIds: taskId } })
+    await this.updateColony(colonyAddress, {}, { $addToSet: { taskIds: taskId } })
 
     const eventId = await this.createEvent(initiator, EventType.CreateTask, {
       colonyAddress,
@@ -654,7 +654,7 @@ export class ColonyMongoApi {
     return this.updateTask(
       taskId,
       {},
-      { $push: { workRequestAddresses: initiator } },
+      { $addToSet: { workRequestAddresses: initiator } },
     )
   }
 
@@ -690,7 +690,7 @@ export class ColonyMongoApi {
     return this.updateTask(
       taskId,
       {},
-      { $push: { workInviteAddresses: workerAddress } },
+      { $addToSet: { workInviteAddresses: workerAddress } },
     )
   }
 
@@ -712,7 +712,7 @@ export class ColonyMongoApi {
       colonyAddress,
     })
     await this.createTaskNotification(initiator, eventId, taskId)
-    return this.updateTask(taskId, {}, { $push: { payouts: payout } })
+    return this.updateTask(taskId, {}, { $addToSet: { payouts: payout } })
   }
 
   async removeTaskPayout(
@@ -1085,7 +1085,7 @@ export class ColonyMongoApi {
     const payout = { amount, tokenAddress }
     return this.persistentTasks.updateOne(
       { _id: new ObjectID(persistentTaskId) },
-      { $push: { payouts: payout } },
+      { $addToSet: { payouts: payout } },
     )
   }
 
@@ -1148,7 +1148,7 @@ export class ColonyMongoApi {
 
     await this.levels.updateOne(
       { _id: new ObjectID(levelId) },
-      { $push: { stepIds: taskId } },
+      { $addToSet: { stepIds: taskId } },
     )
 
     return taskId
@@ -1277,7 +1277,7 @@ export class ColonyMongoApi {
 
     await this.programs.updateOne(
       { _id: new ObjectID(programId) },
-      { $push: { levelIds: insertedId.toHexString() } },
+      { $addToSet: { levelIds: insertedId.toHexString() } },
     )
 
     return insertedId.toString()
