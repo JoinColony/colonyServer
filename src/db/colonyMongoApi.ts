@@ -1153,4 +1153,26 @@ export class ColonyMongoApi {
       update,
     )
   }
+
+  async reorderProgramLevels(
+    initiator: string,
+    id: string,
+    orderedLevelIds: string[],
+  ) {
+    await this.tryGetUser(initiator)
+    const { levelIds } = await this.tryGetProgram(id)
+
+    assert.ok(
+      orderedLevelIds.length === levelIds.length &&
+        orderedLevelIds.every((levelId: string) => levelIds.includes(levelId)),
+      'Provided levelIds do not match existing levelIds. This only allows for re-sorting',
+    )
+
+    return this.programs.updateOne(
+      {
+        _id: new ObjectID(id),
+      },
+      { levelIds },
+    )
+  }
 }
