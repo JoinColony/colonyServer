@@ -16,6 +16,7 @@ export default gql`
     description: String
     levelIds: [String!]!
     levels: [Level!]!
+    enrolledUserAddresses: [String!]!
     status: ProgramStatus!
     submissions: [Submission!]!
   }
