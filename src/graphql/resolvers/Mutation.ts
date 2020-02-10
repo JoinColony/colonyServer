@@ -588,8 +588,11 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     { userAddress, api, dataSources: { data } },
   ) {
     const { programId } = await data.getLevelById(levelId)
-    const submissableLevels = await data.getSubmissibleLevels(userAddress, programId)
-    
+    const submissableLevels = await data.getSubmissibleLevels(
+      userAddress,
+      programId,
+    )
+
     if (!submissableLevels.includes(levelId)) {
       throw new Error("Can't post submissions for this level (yet)")
     }
@@ -627,7 +630,9 @@ export const Mutation: MutationResolvers<ApolloContext> = {
         userAddress,
       }),
     )
-    await api.editSubmission(userAddress, id, { status: SubmissionStatus.Accepted })
+    await api.editSubmission(userAddress, id, {
+      status: SubmissionStatus.Accepted,
+    })
     return data.getSubmissionById(id)
   },
   // Programs
@@ -643,6 +648,16 @@ export const Mutation: MutationResolvers<ApolloContext> = {
       }),
     )
     const id = await api.createProgram(userAddress, colonyAddress)
+    return data.getProgramById(id)
+  },
+  async enrollInProgram(
+    parent,
+    { input: { id } },
+    { userAddress, api, dataSources: { auth, data } },
+  ) {
+    await api.editProgram(userAddress, id, {
+      $push: { enrolledUsers: userAddress },
+    })
     return data.getProgramById(id)
   },
   async editProgram(
@@ -715,11 +730,11 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     await tryAuth(
       auth.assertCanCreateLevel({
         colonyAddress,
-        userAddress
-      })
+        userAddress,
+      }),
     )
     const levelId = await api.createLevel(userAddress, programId)
-    return data.getLevelById(levelId) 
+    return data.getLevelById(levelId)
   },
   async editLevel(
     parent,
