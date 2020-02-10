@@ -1137,6 +1137,8 @@ export class ColonyMongoApi {
     levelId: string,
     submission: string,
   ) {
+    await this.tryGetLevel(levelId)
+
     const taskId = await this.createSubmission(
       initiator,
       persistentTaskId,
@@ -1179,6 +1181,7 @@ export class ColonyMongoApi {
     const { insertedId } = await this.programs.insertOne({
       colonyAddress,
       creatorAddress: initiator,
+      enrolledUserAddresses: [],
       levelIds: [],
       status: ProgramStatus.Draft,
     })
@@ -1269,6 +1272,7 @@ export class ColonyMongoApi {
       creatorAddress: initiator,
       programId: new ObjectID(programId),
       stepIds: [],
+      completedBy: [],
       status: LevelStatus.Active,
     })
 
