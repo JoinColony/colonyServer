@@ -383,10 +383,15 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   async getSubmissionById(id: string, ttl?: number) {
-    const query = { _id: new ObjectID(id), status: { $ne: SubmissionStatus.Deleted } }
+    const query = {
+      _id: new ObjectID(id),
+      status: { $ne: SubmissionStatus.Deleted },
+    }
     let doc: SubmissionDoc
     if (ttl) {
-      const docs = await this.collections.submissions.findManyByQuery(query, { ttl })
+      const docs = await this.collections.submissions.findManyByQuery(query, {
+        ttl,
+      })
       doc = docs[0]
     } else {
       doc = await this.collections.submissions.collection.findOne(query)
@@ -404,10 +409,9 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
     let doc: ProgramDoc
     if (ttl) {
-      const docs = await this.collections.programs.findManyByQuery(
-        query,
-        { ttl },
-      )
+      const docs = await this.collections.programs.findManyByQuery(query, {
+        ttl,
+      })
       doc = docs[0]
     } else {
       doc = await this.collections.programs.collection.findOne(query)
@@ -425,10 +429,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
     let doc: LevelDoc
     if (ttl) {
-      const docs = await this.collections.levels.findManyByQuery(
-        query,
-        { ttl },
-      )
+      const docs = await this.collections.levels.findManyByQuery(query, { ttl })
       doc = docs[0]
     } else {
       doc = await this.collections.levels.collection.findOne(query)
@@ -437,6 +438,36 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     if (!doc) throw new Error(`Level with id '${id}' not found`)
 
     return ColonyMongoDataSource.transformLevel(doc)
+  }
+
+  // Users can always submit in levels they already have completed plus in the upcoming level
+  async getSubmissibleLevels(
+    userAddress: string,
+    programId: string,
+    ttl?: number,
+  ) {
+    const levelQuery = {
+      completedBy: userAddress,
+      programId: new ObjectID(programId),
+      status: { $ne: LevelStatus.Deleted },
+    }
+    const { levelIds, enrolledUserAddresses } = await this.getProgramById(
+      programId,
+      ttl,
+    )
+    if (!enrolledUserAddresses.includes(userAddress)) {
+      throw new Error(
+        `User with address ${userAddress} is not enrolled in this program`,
+      )
+    }
+    const completedLevelIds = await this.collections.levels.collection.distinct(
+      '_id',
+      levelQuery,
+    )
+    const [nextLevelId] = levelIds.filter(
+      levelId => !completedLevelIds.includes(levelId),
+    )
+    return [...completedLevelIds, nextLevelId]
   }
 
   async getSuggestionById(id: string, ttl?: number) {

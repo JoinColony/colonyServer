@@ -664,6 +664,14 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                   bsonType: 'string',
                 },
               },
+              completedBy: {
+                bsonType: 'array',
+                description: 'must be an array of user addresses',
+                uniqueItems: true,
+                items: {
+                  bsonType: 'string',
+                },
+              },
               status: {
                 enum: ['Active', 'Deleted'],
                 maxLength: 10,
@@ -672,7 +680,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
           },
         },
       },
-      indexes: [['status', {}]],
+      indexes: [['status', {}], ['completedBy', {}]],
     },
   ],
   [
@@ -763,6 +771,14 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 description: 'must be an array of token addresses',
                 uniqueItems: true,
                 additionalProperties: false,
+                items: {
+                  bsonType: 'string',
+                },
+              },
+              enrolledUserAddresses: {
+                bsonType: 'array',
+                description: 'must be an array of user addresses',
+                uniqueItems: true,
                 items: {
                   bsonType: 'string',
                 },
