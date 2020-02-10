@@ -26,7 +26,7 @@ export enum EventType {
  * Colonies that newly created users on mainnet are automatically subscribed to
  */
 export const AUTO_SUBSCRIBED_COLONIES = [
-  '0x1235E5896ecB60fE5f76a5B87dbFec53dE664aBd', // `consulate`
+  '0x869814034d96544f3c62de2ac22448ed79ac8e70', // `beta`
 ]
 
 /*
