@@ -91,6 +91,7 @@ export interface ProgramDoc extends MongoDoc {
   title?: string
   description?: string
   levelIds: string[]
+  enrolledUserAddresses: string[]
   status: ProgramStatus
 }
 
@@ -102,6 +103,7 @@ export interface LevelDoc extends MongoDoc {
   achievement?: string
   numRequiredSteps?: number
   stepIds: string[]
+  completedBy: string[]
   status: LevelStatus
 }
 

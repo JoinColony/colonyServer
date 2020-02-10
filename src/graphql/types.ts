@@ -645,6 +645,7 @@ export type Program = {
   description?: Maybe<Scalars['String']>,
   levelIds: Array<Scalars['String']>,
   levels: Array<Level>,
+  enrolledUserAddresses: Array<Scalars['String']>,
   status: ProgramStatus,
   submissions: Array<Submission>,
 };
@@ -1491,6 +1492,7 @@ export type ProgramResolvers<ContextType = any, ParentType extends ResolversPare
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   levelIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   levels?: Resolver<Array<ResolversTypes['Level']>, ParentType, ContextType>,
+  enrolledUserAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   status?: Resolver<ResolversTypes['ProgramStatus'], ParentType, ContextType>,
   submissions?: Resolver<Array<ResolversTypes['Submission']>, ParentType, ContextType>,
 };

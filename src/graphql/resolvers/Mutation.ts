@@ -587,6 +587,13 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     { input: { levelId, persistentTaskId, submission } },
     { userAddress, api, dataSources: { data } },
   ) {
+    const { programId } = await data.getLevelById(levelId)
+    const submissableLevels = await data.getSubmissibleLevels(userAddress, programId)
+    
+    if (!submissableLevels.includes(levelId)) {
+      throw new Error("Can't post submissions for this level (yet)")
+    }
+
     const submissionId = await api.createLevelTaskSubmission(
       userAddress,
       persistentTaskId,
