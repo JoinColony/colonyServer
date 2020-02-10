@@ -382,6 +382,20 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return ColonyMongoDataSource.transformPersistenTask(doc)
   }
 
+  async getTaskSubmissions(id: string, ttl?: number) {
+    const query = {
+      persistentTaskId: new ObjectID(id),
+      status: { $ne: SubmissionStatus.Deleted },
+    }
+    let docs: SubmissionDoc[]
+    if (ttl) {
+      docs = await this.collections.submissions.findManyByQuery(query, { ttl })
+    } else {
+      docs = await this.collections.submissions.collection.find(query).toArray()
+    }
+    return docs.map(ColonyMongoDataSource.transformSubmission)
+  }
+
   async getSubmissionById(id: string, ttl?: number) {
     const query = {
       _id: new ObjectID(id),
