@@ -227,6 +227,10 @@ export default gql`
     colonyAddress: String!
   }
 
+  input EnrollInProgramInput {
+    id: String!
+  }
+
   input EditProgramInput {
     id: String!
     title: String
@@ -308,6 +312,7 @@ export default gql`
     removeLevel(input: RemoveLevelInput!): Level
     # Programs
     createProgram(input: CreateProgramInput!): Program
+    enrollInProgram(input: EnrollInProgramInput!): Program
     editProgram(input: EditProgramInput!): Program
     reorderProgramLevels(input: ReorderProgramLevelsInput!): Program
     publishProgram(input: PublishProgramInput!): Program
