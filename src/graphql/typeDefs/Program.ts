@@ -12,7 +12,7 @@ export default gql`
     createdAt: GraphQLDateTime!
     creatorAddress: String!
     colonyAddress: String!
-    title: String!
+    title: String
     description: String
     levelIds: [String!]!
     levels: [Level!]!

@@ -11,6 +11,7 @@ import {
 import { EventType } from '../constants'
 import {
   PersistentTaskStatus,
+  ProgramStatus,
   SubmissionStatus,
   SuggestionStatus,
   TaskPayout,
@@ -81,6 +82,15 @@ export interface EventDoc<C extends object> extends MongoDoc {
   initiatorAddress: string
   sourceType: 'db' | 'contract'
   context: C
+}
+
+export interface ProgramDoc extends MongoDoc {
+  colonyAddress: string
+  creatorAddress: string
+  title?: string
+  description?: string
+  levelIds: string[]
+  status: ProgramStatus
 }
 
 export interface PersistentTaskDoc extends MongoDoc {

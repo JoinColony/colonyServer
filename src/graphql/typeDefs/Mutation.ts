@@ -219,8 +219,13 @@ export default gql`
 
   input EditProgramInput {
     id: String!
-    title: String!
+    title: String
     description: String
+  }
+
+  input ReorderProgramLevelsInput {
+    id: String!
+    levelIds: [String!]!
   }
 
   input PublishProgramInput {
@@ -274,7 +279,9 @@ export default gql`
     unsubscribeFromColony(input: UnsubscribeFromColonyInput!): User
     setUserTokens(input: SetUserTokensInput!): User
     # Submissions
-    createLevelTaskSubmission(input: CreateLevelTaskSubmissionInput!): Submission
+    createLevelTaskSubmission(
+      input: CreateLevelTaskSubmissionInput!
+    ): Submission
     editSubmission(input: EditSubmissionInput!): Submission
     acceptSubmission(input: AcceptSubmissionInput!): Submission
     # PersistentTasks
@@ -290,6 +297,7 @@ export default gql`
     # Programs
     createProgram(input: CreateProgramInput!): Program
     editProgram(input: EditProgramInput!): Program
+    reorderProgramLevels(input: ReorderProgramLevelsInput!): Program
     publishProgram(input: PublishProgramInput!): Program
     removeProgram(input: RemoveProgramInput!): Program
   }
