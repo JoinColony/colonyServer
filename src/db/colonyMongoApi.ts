@@ -523,7 +523,11 @@ export class ColonyMongoApi {
     const taskId = insertedId.toString()
 
     await this.subscribeToTask(initiator, taskId)
-    await this.updateColony(colonyAddress, {}, { $addToSet: { taskIds: taskId } })
+    await this.updateColony(
+      colonyAddress,
+      {},
+      { $addToSet: { taskIds: taskId } },
+    )
 
     const eventId = await this.createEvent(initiator, EventType.CreateTask, {
       colonyAddress,
@@ -997,10 +1001,7 @@ export class ColonyMongoApi {
     )
   }
 
-  async createPersistentTask(
-    initiator: string,
-    colonyAddress: string,
-  ) {
+  async createPersistentTask(initiator: string, colonyAddress: string) {
     await this.tryGetUser(initiator)
     await this.tryGetColony(colonyAddress)
 
@@ -1014,10 +1015,7 @@ export class ColonyMongoApi {
     return insertedId.toString()
   }
 
-  async createLevelTask(
-    initiator: string,
-    levelId: string,
-  ) {
+  async createLevelTask(initiator: string, levelId: string) {
     const { programId } = await this.tryGetLevel(levelId)
     const { colonyAddress } = await this.tryGetProgram(programId.toHexString())
 
@@ -1031,11 +1029,7 @@ export class ColonyMongoApi {
     return taskId
   }
 
-  async removeLevelTask(
-    initiator: string,
-    taskId: string,
-    levelId: string,
-  ) {
+  async removeLevelTask(initiator: string, taskId: string, levelId: string) {
     await this.tryGetPersistentTask(taskId)
     await this.tryGetLevel(levelId)
 
@@ -1208,7 +1202,13 @@ export class ColonyMongoApi {
       title,
       description,
       status,
-    }: { title?: string; description?: string; status?: ProgramStatus },
+      $push,
+    }: {
+      title?: string
+      description?: string
+      status?: ProgramStatus
+      $push?: { enrolledUsers: string }
+    },
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetProgram(id)
@@ -1217,6 +1217,7 @@ export class ColonyMongoApi {
       title?: string
       description?: string
       status?: ProgramStatus
+      $push?: { enrolledUsers: string }
     }
 
     if (title) {
@@ -1227,6 +1228,9 @@ export class ColonyMongoApi {
     }
     if (status) {
       update.status = status
+    }
+    if ($push) {
+      update.$push = $push
     }
 
     return this.programs.updateOne(
