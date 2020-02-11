@@ -484,6 +484,14 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return ColonyMongoDataSource.transformProgram(doc)
   }
 
+  async getColonyPrograms(colonyAddress: string, ttl?: number) {
+    const query = { colonyAddress, status: { $ne: ProgramStatus.Deleted } }
+    const docs = ttl
+      ? await this.collections.programs.findManyByQuery(query, { ttl })
+      : await this.collections.programs.collection.find(query).toArray()
+    return docs.map(ColonyMongoDataSource.transformProgram)
+  }
+
   async getLevelById(id: string, ttl?: number) {
     const query = {
       _id: new ObjectID(id),

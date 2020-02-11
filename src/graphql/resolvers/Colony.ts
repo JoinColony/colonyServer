@@ -8,6 +8,9 @@ export const Colony: ColonyResolvers<ApolloContext> = {
   async founder({ founderAddress }, input, { dataSources: { data } }) {
     return data.getUserByAddress(founderAddress)
   },
+  async programs({ colonyAddress }, input, { dataSources: { data } }) {
+    return data.getColonyPrograms(colonyAddress)
+  },
   async subscribedUsers({ colonyAddress }, input, { dataSources: { data } }) {
     return data.getColonySubscribedUsers(colonyAddress)
   },
