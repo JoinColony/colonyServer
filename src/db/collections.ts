@@ -744,8 +744,6 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
             required: [
               'colonyAddress',
               'creatorAddress',
-              'title',
-              'levelIds',
               'status',
             ],
             properties: {
@@ -768,9 +766,8 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
               },
               levelIds: {
                 bsonType: 'array',
-                description: 'must be an array of token addresses',
+                description: 'must be an ordered array of level Ids',
                 uniqueItems: true,
-                additionalProperties: false,
                 items: {
                   bsonType: 'string',
                 },
@@ -781,6 +778,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 uniqueItems: true,
                 items: {
                   bsonType: 'string',
+                  maxLength: 42,
                 },
               },
               status: {
