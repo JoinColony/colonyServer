@@ -1248,7 +1248,7 @@ export class ColonyMongoApi {
     if (title) {
       update.title = title
     }
-    if (description) {
+    if (typeof description === 'string') {
       update.description = description
     }
     if (status) {
