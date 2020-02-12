@@ -1237,7 +1237,7 @@ export class ColonyMongoApi {
       {
         _id: new ObjectID(id),
       },
-      update,
+      { $set: update },
     )
   }
 
@@ -1250,11 +1250,17 @@ export class ColonyMongoApi {
       levelIds.map((levelId: string) => this.removeLevel(initiator, levelId)),
     )
 
+    const update = {
+      status: ProgramStatus.Deleted,
+    } as {
+      status: ProgramStatus
+    }
+
     return this.programs.updateOne(
       {
         _id: new ObjectID(id),
       },
-      { status: ProgramStatus.Deleted },
+      { $set: update },
     )
   }
 
@@ -1276,7 +1282,7 @@ export class ColonyMongoApi {
       {
         _id: new ObjectID(id),
       },
-      { levelIds },
+      { $set: { levelIds: orderedLevelIds } },
     )
   }
 
@@ -1348,7 +1354,7 @@ export class ColonyMongoApi {
       {
         _id: new ObjectID(id),
       },
-      update,
+      { $set: update },
     )
   }
 
@@ -1370,7 +1376,7 @@ export class ColonyMongoApi {
       {
         _id: new ObjectID(id),
       },
-      { stepIds },
+      { $set: { stepIds: orderedStepIds } },
     )
   }
 
@@ -1391,9 +1397,15 @@ export class ColonyMongoApi {
       { $pull: { levelIds: levelId } },
     )
 
+    const update = {
+      status: LevelStatus.Deleted,
+    } as {
+      status: LevelStatus,
+    }
+
     return this.levels.updateOne(
       { _id: new ObjectID(levelId) },
-      { status: LevelStatus.Deleted },
+      { $set: update },
     )
   }
 }
