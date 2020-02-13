@@ -211,6 +211,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       createdAt: _id.getTimestamp(),
       programId: programId.toHexString(),
       steps: undefined,
+      unlocked: undefined
     }
   }
 
@@ -522,6 +523,19 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return docs.map(ColonyMongoDataSource.transformLevel)
   }
 
+  async getLevelTasks(levelId: string, ttl?: number) {
+    const { stepIds } = await this.getLevelById(levelId)
+    const stepObjectIds = stepIds.map(id => new ObjectID(id))
+    const query = {
+      _id: { $in: stepObjectIds },
+      status: { $ne: PersistentTaskStatus.Deleted },
+    }
+    const docs = ttl
+      ? await this.collections.persistentTasks.findManyByQuery(query, { ttl })
+      : await this.collections.persistentTasks.collection.find(query).toArray()
+    return docs.map(ColonyMongoDataSource.transformPersistenTask)
+  }
+
   // Users can always submit in levels they already have completed plus in the upcoming level
   async getSubmissibleLevels(
     userAddress: string,
@@ -538,9 +552,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       ttl,
     )
     if (!enrolledUserAddresses.includes(userAddress)) {
-      throw new Error(
-        `User with address ${userAddress} is not enrolled in this program`,
-      )
+      return []
     }
     const completedLevelIds = await this.collections.levels.collection.distinct(
       '_id',

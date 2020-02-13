@@ -274,6 +274,7 @@ export type Level = {
   stepIds: Array<Scalars['String']>,
   steps: Array<PersistentTask>,
   status: LevelStatus,
+  unlocked: Scalars['Boolean'],
 };
 
 export enum LevelStatus {
@@ -1372,6 +1373,7 @@ export type LevelResolvers<ContextType = any, ParentType extends ResolversParent
   stepIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   steps?: Resolver<Array<ResolversTypes['PersistentTask']>, ParentType, ContextType>,
   status?: Resolver<ResolversTypes['LevelStatus'], ParentType, ContextType>,
+  unlocked?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
