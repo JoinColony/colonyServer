@@ -2,6 +2,12 @@ import { MongoClient, ObjectID } from 'mongodb'
 import { CachedCollection } from 'apollo-datasource-mongo'
 
 import { ColonyMongoDataSource } from '../colonyMongoDataSource'
+import {
+  LevelStatus,
+  PersistentTaskStatus,
+  ProgramStatus,
+  SubmissionStatus
+} from '../../graphql/types'
 import { EventType } from '../../constants'
 
 describe('ColonyMongoDataSource', () => {
@@ -28,7 +34,11 @@ describe('ColonyMongoDataSource', () => {
     await db.collection('colonies').deleteMany({})
     await db.collection('domains').deleteMany({})
     await db.collection('events').deleteMany({})
+    await db.collection('levels').deleteMany({})
     await db.collection('notifications').deleteMany({})
+    await db.collection('persistentTasks').deleteMany({})
+    await db.collection('programs').deleteMany({})
+    await db.collection('submissions').deleteMany({})
     await db.collection('suggestions').deleteMany({})
     await db.collection('tasks').deleteMany({})
     await db.collection('tokens').deleteMany({})
@@ -52,7 +62,11 @@ describe('ColonyMongoDataSource', () => {
       colonies: expect.any(CachedCollection),
       domains: expect.any(CachedCollection),
       events: expect.any(CachedCollection),
+      levels: expect.any(CachedCollection),
       notifications: expect.any(CachedCollection),
+      persistentTasks: expect.any(CachedCollection),
+      programs: expect.any(CachedCollection),
+      submissions: expect.any(CachedCollection),
       tasks: expect.any(CachedCollection),
       tokens: expect.any(CachedCollection),
       users: expect.any(CachedCollection),
@@ -69,6 +83,104 @@ describe('ColonyMongoDataSource', () => {
         walletAddress: 'first',
         username: 'first_user',
       },
+    })
+  })
+
+  it('should get all submissions for a program', async () => {
+    const {
+      insertedIds: taskIds,
+    } = await data.collections.persistentTasks.collection.insertMany([
+      {
+        colonyAddress: '0xdeadbeef',
+        creatorAddress: 'first',
+        title: 'One task',
+        payouts: [],
+        status: PersistentTaskStatus.Active,
+      },
+      {
+        colonyAddress: '0xdeadbeef',
+        creatorAddress: 'first',
+        title: 'Another task',
+        payouts: [],
+        status: PersistentTaskStatus.Active,
+      },
+    ])
+    const {
+      insertedId: programId,
+    } = await data.collections.programs.collection.insertOne({
+      colonyAddress: '0xdeadbeef',
+      creatorAddress: 'first',
+      levelIds: [],
+      enrolledUserAddresses: [],
+      status: ProgramStatus.Active,
+    })
+    const {
+      insertedIds: levelIds,
+    } = await data.collections.levels.collection.insertMany([
+      {
+        creatorAddress: 'first',
+        programId: programId,
+        stepIds: [taskIds[0].toString()],
+        completedBy: [],
+        status: LevelStatus.Active,
+      },
+      {
+        creatorAddress: 'first',
+        programId: programId,
+        stepIds: [taskIds[1].toString()],
+        completedBy: [],
+        status: LevelStatus.Active,
+      },
+    ])
+
+    await data.collections.programs.collection.updateOne(
+      {
+        _id: programId,
+      },
+      {
+        $push: {
+          levelIds: { $each: [levelIds[0].toString(), levelIds[1].toString()] },
+        },
+      },
+    )
+
+    await data.collections.submissions.collection.insertMany([
+      {
+        creatorAddress: 'second',
+        persistentTaskId: taskIds[0],
+        submission: 'My result',
+        status: SubmissionStatus.Open,
+        statusChangedAt: new Date(),
+      },
+      {
+        creatorAddress: 'third',
+        persistentTaskId: taskIds[1],
+        submission: 'My other result',
+        status: SubmissionStatus.Open,
+        statusChangedAt: new Date(),
+      },
+      {
+        creatorAddress: 'third',
+        persistentTaskId: taskIds[1],
+        submission: 'My other result for second task',
+        status: SubmissionStatus.Open,
+        statusChangedAt: new Date(),
+      },
+    ])
+
+    const submissions = await data.getProgramSubmissions(programId.toString())
+
+    expect(submissions[0]).toMatchObject({
+      creatorAddress: 'second',
+      submission: 'My result',
+    })
+    expect(submissions[1]).toMatchObject({
+      creatorAddress: 'third',
+      submission: 'My other result',
+    })
+    expect(submissions[2]).toMatchObject({
+      creatorAddress: 'third',
+      submission: 'My other result for second task',
     })
   })
 
