@@ -387,13 +387,61 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       persistentTaskId: new ObjectID(id),
       status: { $ne: SubmissionStatus.Deleted },
     }
-    let docs: SubmissionDoc[]
-    if (ttl) {
-      docs = await this.collections.submissions.findManyByQuery(query, { ttl })
-    } else {
-      docs = await this.collections.submissions.collection.find(query).toArray()
-    }
+    const docs = ttl
+      ? await this.collections.submissions.findManyByQuery(query, { ttl })
+      : await this.collections.submissions.collection.find(query).toArray()
     return docs.map(ColonyMongoDataSource.transformSubmission)
+  }
+
+  async getProgramSubmissions(programId: string, ttl?: number) {
+    const { levelIds } = await this.getProgramById(programId)
+    const levelObjectIds = levelIds.map(id => new ObjectID(id))
+    const query = {
+      _id: { $in: levelObjectIds },
+      status: { $ne: LevelStatus.Deleted },
+    }
+    const docs = await this.collections.levels.collection.aggregate<
+      SubmissionDoc
+    >([
+      // 1. Map stepId array to ObjectIds (they are stored as strings)
+      {
+        $project: {
+          stepIds: {
+            $map: {
+              input: '$stepIds',
+              as: 'stepStringId',
+              in: { $toObjectId: '$$stepStringId' },
+            },
+          },
+        },
+      },
+      // 2. Look up persistent tasks for the given stepIds
+      {
+        $lookup: {
+          from: this.collections.persistentTasks.collection.collectionName,
+          localField: 'stepIds',
+          foreignField: '_id',
+          as: 'persistentTasks',
+        },
+      },
+      // 3. Flatten persisten task arrays
+      { $unwind: '$persistentTasks' },
+      // 4. Look up all submissions for the given persistent tasks
+      {
+        $lookup: {
+          from: this.collections.submissions.collection.collectionName,
+          localField: 'persistentTasks._id',
+          foreignField: 'persistentTaskId',
+          as: 'submissions',
+        },
+      },
+      // 5. Flatten all submissions arrays
+      { $unwind: '$submissions' },
+      // 6. Replace the root documents with the submission docs (so we end up with SubmissionDocs)
+      { $replaceRoot: { newRoot: '$submissions' } },
+    ])
+    const submissions = await docs.toArray()
+    return submissions.map(ColonyMongoDataSource.transformSubmission)
   }
 
   async getSubmissionById(id: string, ttl?: number) {
@@ -452,6 +500,18 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     if (!doc) throw new Error(`Level with id '${id}' not found`)
 
     return ColonyMongoDataSource.transformLevel(doc)
+  }
+
+  async getLevelsById(ids: string[], ttl?: number) {
+    const levelObjectIds = ids.map(id => new ObjectID(id))
+    const query = {
+      _id: { $in: levelObjectIds },
+      status: { $ne: LevelStatus.Deleted },
+    }
+    const docs = ttl
+      ? await this.collections.levels.findManyByQuery(query, { ttl })
+      : await this.collections.levels.collection.find(query).toArray()
+    return docs.map(ColonyMongoDataSource.transformLevel)
   }
 
   // Users can always submit in levels they already have completed plus in the upcoming level
