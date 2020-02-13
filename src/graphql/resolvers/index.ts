@@ -6,6 +6,7 @@ import { Query } from './Query'
 import { Colony } from './Colony'
 import { Domain } from './Domain'
 import { PersistentTask } from './PersistentTask'
+import { Program } from './Program'
 import { Suggestion } from './Suggestion'
 import { Submission } from './Submission'
 import { User } from './User'
@@ -22,6 +23,7 @@ export const resolvers: Resolvers<ApolloContext> = {
   Query,
   Domain,
   PersistentTask,
+  Program,
   Suggestion,
   User,
   Task,
