@@ -199,6 +199,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       ...doc,
       id: _id.toHexString(),
       createdAt: _id.getTimestamp(),
+      enrolled: undefined,
       levels: undefined,
       submissions: undefined,
     }
