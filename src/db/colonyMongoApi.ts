@@ -1243,7 +1243,11 @@ export class ColonyMongoApi {
     await this.tryGetUser(initiator)
     await this.tryGetSubmission(id)
 
-    const edit = {} as { submission?: string; status?: SubmissionStatus }
+    const edit = { statusChangedAt: new Date() } as {
+      statusChangedAt: Date
+      submission?: string
+      status?: SubmissionStatus
+    }
 
     if (submission) {
       edit.submission = submission
