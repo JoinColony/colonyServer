@@ -24,9 +24,12 @@ export enum EventType {
 
 /*
  * Colonies that newly created users on mainnet are automatically subscribed to
+ *
+ * @NOTE Make sure the addresses in the this array are checksummed, otherwise
+ * all kinds of *nasty* things will happen.
  */
 export const AUTO_SUBSCRIBED_COLONIES = [
-  '0x869814034d96544f3c62de2ac22448ed79ac8e70', // `beta`
+  '0x869814034d96544f3C62DE2aC22448ed79Ac8e70', // `beta`
 ]
 
 /*
