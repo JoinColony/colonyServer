@@ -17,6 +17,7 @@ export default gql`
     levelIds: [String!]!
     levels: [Level!]!
     enrolledUserAddresses: [String!]!
+    enrolled: Boolean! # Current user is enrolled
     status: ProgramStatus!
     submissions: [Submission!]!
   }

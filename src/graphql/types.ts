@@ -653,6 +653,7 @@ export type Program = {
   levelIds: Array<Scalars['String']>,
   levels: Array<Level>,
   enrolledUserAddresses: Array<Scalars['String']>,
+  enrolled: Scalars['Boolean'],
   status: ProgramStatus,
   submissions: Array<Submission>,
 };
@@ -1501,6 +1502,7 @@ export type ProgramResolvers<ContextType = any, ParentType extends ResolversPare
   levelIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   levels?: Resolver<Array<ResolversTypes['Level']>, ParentType, ContextType>,
   enrolledUserAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
+  enrolled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
   status?: Resolver<ResolversTypes['ProgramStatus'], ParentType, ContextType>,
   submissions?: Resolver<Array<ResolversTypes['Submission']>, ParentType, ContextType>,
 };
