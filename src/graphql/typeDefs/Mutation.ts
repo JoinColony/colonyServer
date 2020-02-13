@@ -177,8 +177,9 @@ export default gql`
     submission: String!
   }
 
-  input AcceptSubmissionInput {
-    id: String!
+  input AcceptLevelTaskSubmissionInput {
+    levelId: String!
+    submissionId: String!
   }
 
   input CreateLevelTaskInput {
@@ -296,8 +297,8 @@ export default gql`
     createLevelTaskSubmission(
       input: CreateLevelTaskSubmissionInput!
     ): Submission
+    acceptLevelTaskSubmission(input: AcceptLevelTaskSubmissionInput!): Submission
     editSubmission(input: EditSubmissionInput!): Submission
-    acceptSubmission(input: AcceptSubmissionInput!): Submission
     # PersistentTasks
     createLevelTask(input: CreateLevelTaskInput!): PersistentTask
     removeLevelTask(input: RemoveLevelTaskInput!): PersistentTask

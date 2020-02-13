@@ -601,12 +601,12 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     await api.editSubmission(userAddress, id, { submission })
     return data.getSubmissionById(id)
   },
-  async acceptSubmission(
+  async acceptLevelTaskSubmission(
     parent,
-    { input: { id } },
+    { input: { levelId, submissionId } },
     { userAddress, api, dataSources: { auth, data } },
   ) {
-    const { persistentTaskId } = await data.getSubmissionById(id)
+    const { persistentTaskId } = await data.getSubmissionById(submissionId)
     const { colonyAddress } = await data.getPersistentTaskById(persistentTaskId)
     await tryAuth(
       auth.assertCanAcceptSubmission({
@@ -614,10 +614,8 @@ export const Mutation: MutationResolvers<ApolloContext> = {
         userAddress,
       }),
     )
-    await api.editSubmission(userAddress, id, {
-      status: SubmissionStatus.Accepted,
-    })
-    return data.getSubmissionById(id)
+    await api.acceptLevelTaskSubmission(userAddress, submissionId, levelId)
+    return data.getSubmissionById(submissionId)
   },
   // Programs
   async createProgram(

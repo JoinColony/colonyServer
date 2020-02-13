@@ -405,7 +405,9 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     const docs = await this.collections.levels.collection.aggregate<
       SubmissionDoc
     >([
-      // 1. Map stepId array to ObjectIds (they are stored as strings)
+      // 1. Find all levels matching the above query
+      { $match: query },
+      // 2. Map stepId array to ObjectIds (they are stored as strings)
       {
         $project: {
           stepIds: {
@@ -417,7 +419,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
           },
         },
       },
-      // 2. Look up persistent tasks for the given stepIds
+      // 3. Look up persistent tasks for the given stepIds
       {
         $lookup: {
           from: this.collections.persistentTasks.collection.collectionName,
@@ -426,9 +428,9 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
           as: 'persistentTasks',
         },
       },
-      // 3. Flatten persisten task arrays
+      // 4. Flatten persisten task arrays
       { $unwind: '$persistentTasks' },
-      // 4. Look up all submissions for the given persistent tasks
+      // 5. Look up all submissions for the given persistent tasks
       {
         $lookup: {
           from: this.collections.submissions.collection.collectionName,
@@ -437,9 +439,9 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
           as: 'submissions',
         },
       },
-      // 5. Flatten all submissions arrays
+      // 6. Flatten all submissions arrays
       { $unwind: '$submissions' },
-      // 6. Replace the root documents with the submission docs (so we end up with SubmissionDocs)
+      // 7. Replace the root documents with the submission docs (so we end up with SubmissionDocs)
       { $replaceRoot: { newRoot: '$submissions' } },
     ])
     const submissions = await docs.toArray()

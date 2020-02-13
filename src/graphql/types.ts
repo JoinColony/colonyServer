@@ -12,8 +12,9 @@ export type Scalars = {
   GraphQLDateTime: any,
 };
 
-export type AcceptSubmissionInput = {
-  id: Scalars['String'],
+export type AcceptLevelTaskSubmissionInput = {
+  levelId: Scalars['String'],
+  submissionId: Scalars['String'],
 };
 
 export type AddUpvoteToSuggestionInput = {
@@ -329,8 +330,8 @@ export type Mutation = {
   setUserTokens?: Maybe<User>,
   /** Submissions */
   createLevelTaskSubmission?: Maybe<Submission>,
+  acceptLevelTaskSubmission?: Maybe<Submission>,
   editSubmission?: Maybe<Submission>,
-  acceptSubmission?: Maybe<Submission>,
   /** PersistentTasks */
   createLevelTask?: Maybe<PersistentTask>,
   removeLevelTask?: Maybe<PersistentTask>,
@@ -513,13 +514,13 @@ export type MutationCreateLevelTaskSubmissionArgs = {
 };
 
 
-export type MutationEditSubmissionArgs = {
-  input: EditSubmissionInput
+export type MutationAcceptLevelTaskSubmissionArgs = {
+  input: AcceptLevelTaskSubmissionInput
 };
 
 
-export type MutationAcceptSubmissionArgs = {
-  input: AcceptSubmissionInput
+export type MutationEditSubmissionArgs = {
+  input: EditSubmissionInput
 };
 
 
@@ -1151,8 +1152,8 @@ export type ResolversTypes = {
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
   SetUserTokensInput: SetUserTokensInput,
   CreateLevelTaskSubmissionInput: CreateLevelTaskSubmissionInput,
+  AcceptLevelTaskSubmissionInput: AcceptLevelTaskSubmissionInput,
   EditSubmissionInput: EditSubmissionInput,
-  AcceptSubmissionInput: AcceptSubmissionInput,
   CreateLevelTaskInput: CreateLevelTaskInput,
   RemoveLevelTaskInput: RemoveLevelTaskInput,
   EditPersistentTaskInput: EditPersistentTaskInput,
@@ -1250,8 +1251,8 @@ export type ResolversParentTypes = {
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
   SetUserTokensInput: SetUserTokensInput,
   CreateLevelTaskSubmissionInput: CreateLevelTaskSubmissionInput,
+  AcceptLevelTaskSubmissionInput: AcceptLevelTaskSubmissionInput,
   EditSubmissionInput: EditSubmissionInput,
-  AcceptSubmissionInput: AcceptSubmissionInput,
   CreateLevelTaskInput: CreateLevelTaskInput,
   RemoveLevelTaskInput: RemoveLevelTaskInput,
   EditPersistentTaskInput: EditPersistentTaskInput,
@@ -1411,8 +1412,8 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   unsubscribeFromColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUnsubscribeFromColonyArgs, 'input'>>,
   setUserTokens?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSetUserTokensArgs, 'input'>>,
   createLevelTaskSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationCreateLevelTaskSubmissionArgs, 'input'>>,
+  acceptLevelTaskSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationAcceptLevelTaskSubmissionArgs, 'input'>>,
   editSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationEditSubmissionArgs, 'input'>>,
-  acceptSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationAcceptSubmissionArgs, 'input'>>,
   createLevelTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationCreateLevelTaskArgs, 'input'>>,
   removeLevelTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemoveLevelTaskArgs, 'input'>>,
   editPersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationEditPersistentTaskArgs, 'input'>>,

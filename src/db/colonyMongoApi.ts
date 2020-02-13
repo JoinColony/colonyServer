@@ -316,6 +316,38 @@ export class ColonyMongoApi {
     return colonies.filter(Boolean)
   }
 
+  private async countAcceptedLevelSubmissions(
+    stepIds: LevelDoc['stepIds'],
+    creatorAddress: string,
+  ) {
+    const stepObjectIds = stepIds.map(stepId => new ObjectID(stepId))
+    const query = {
+      _id: { $in: stepObjectIds },
+    }
+    const cursor = await this.persistentTasks.aggregate<SubmissionDoc>([
+      // 1. Find all persistent tasks matching the above query
+      { $match: query },
+      // 2. Look up all submissions for the given persistent tasks and the given user
+      {
+        $lookup: {
+          from: this.submissions.collectionName,
+          pipeline: [
+            { $match: { status: SubmissionStatus.Accepted, creatorAddress } },
+          ],
+          localField: '_id',
+          foreignField: 'persistentTaskId',
+          as: 'submissions',
+        },
+      },
+      // 3. Flatten all submissions arrays
+      { $unwind: '$submissions' },
+      // 4. Count the aaccepted submissions
+      { $count: 'count' },
+    ])
+    const result = (await cursor.close()) as { count: number }
+    return result.count
+  }
+
   async createUser(walletAddress: string, username: string) {
     const doc = { walletAddress, username } as UserDoc
 
@@ -1132,6 +1164,18 @@ export class ColonyMongoApi {
     submission: string,
   ) {
     await this.tryGetLevel(levelId)
+    await this.tryGetPersistentTask(persistentTaskId)
+
+    const existingSubmission = await this.submissions.findOne({
+      persistentTaskId: new ObjectID(persistentTaskId),
+      status: { $in: [SubmissionStatus.Accepted, SubmissionStatus.Open] },
+    })
+
+    if (existingSubmission) {
+      throw new Error(
+        'An open or an accepted submission for that task already exists',
+      )
+    }
 
     const taskId = await this.createSubmission(
       initiator,
@@ -1145,6 +1189,38 @@ export class ColonyMongoApi {
     )
 
     return taskId
+  }
+
+  async acceptLevelTaskSubmission(
+    initiator: string,
+    submissionId: string,
+    levelId: string,
+  ) {
+    await this.tryGetUser(initiator)
+    const { stepIds, numRequiredSteps } = await this.tryGetLevel(levelId)
+    const { creatorAddress, persistentTaskId } = await this.tryGetSubmission(
+      submissionId,
+    )
+
+    if (!stepIds.includes(persistentTaskId.toString())) {
+      throw new Error('Submission id not valid for this level')
+    }
+
+    await this.editSubmission(initiator, submissionId, {
+      status: SubmissionStatus.Accepted,
+    })
+
+    const numAcceptedSteps = await this.countAcceptedLevelSubmissions(
+      stepIds,
+      creatorAddress,
+    )
+
+    if (numAcceptedSteps === numRequiredSteps) {
+      await this.levels.updateOne(
+        { _id: new ObjectID(levelId) },
+        { $push: { completedBy: creatorAddress } },
+      )
+    }
   }
 
   async editSubmission(
@@ -1388,7 +1464,7 @@ export class ColonyMongoApi {
     const update = {
       status: LevelStatus.Deleted,
     } as {
-      status: LevelStatus,
+      status: LevelStatus
     }
 
     return this.levels.updateOne(
