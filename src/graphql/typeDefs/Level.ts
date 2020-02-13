@@ -18,5 +18,6 @@ export default gql`
     stepIds: [String!]! # list of stepIds in the correct order
     steps: [PersistentTask!]! # resolved
     status: LevelStatus!
+    unlocked: Boolean!
   }
 `
