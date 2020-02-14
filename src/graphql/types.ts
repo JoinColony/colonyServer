@@ -340,7 +340,6 @@ export type Mutation = {
   editPersistentTask?: Maybe<PersistentTask>,
   setPersistentTaskPayout?: Maybe<PersistentTask>,
   removePersistentTaskPayout?: Maybe<PersistentTask>,
-  removePersistentTask?: Maybe<PersistentTask>,
   /** Levels */
   createLevel?: Maybe<Level>,
   editLevel?: Maybe<Level>,
@@ -556,11 +555,6 @@ export type MutationRemovePersistentTaskPayoutArgs = {
 };
 
 
-export type MutationRemovePersistentTaskArgs = {
-  input: RemovePersistentTaskInput
-};
-
-
 export type MutationCreateLevelArgs = {
   input: CreateLevelInput
 };
@@ -724,10 +718,6 @@ export type RemoveLevelInput = {
 export type RemoveLevelTaskInput = {
   id: Scalars['String'],
   levelId: Scalars['String'],
-};
-
-export type RemovePersistentTaskInput = {
-  id: Scalars['String'],
 };
 
 export type RemoveProgramInput = {
@@ -1192,7 +1182,6 @@ export type ResolversTypes = {
   CreateLevelTaskInput: CreateLevelTaskInput,
   RemoveLevelTaskInput: RemoveLevelTaskInput,
   EditPersistentTaskInput: EditPersistentTaskInput,
-  RemovePersistentTaskInput: RemovePersistentTaskInput,
   CreateLevelInput: CreateLevelInput,
   EditLevelInput: EditLevelInput,
   ReorderLevelStepsInput: ReorderLevelStepsInput,
@@ -1293,7 +1282,6 @@ export type ResolversParentTypes = {
   CreateLevelTaskInput: CreateLevelTaskInput,
   RemoveLevelTaskInput: RemoveLevelTaskInput,
   EditPersistentTaskInput: EditPersistentTaskInput,
-  RemovePersistentTaskInput: RemovePersistentTaskInput,
   CreateLevelInput: CreateLevelInput,
   EditLevelInput: EditLevelInput,
   ReorderLevelStepsInput: ReorderLevelStepsInput,
@@ -1466,7 +1454,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   editPersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationEditPersistentTaskArgs, 'input'>>,
   setPersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationSetPersistentTaskPayoutArgs, 'input'>>,
   removePersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemovePersistentTaskPayoutArgs, 'input'>>,
-  removePersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemovePersistentTaskArgs, 'input'>>,
   createLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationCreateLevelArgs, 'input'>>,
   editLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationEditLevelArgs, 'input'>>,
   reorderLevelSteps?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationReorderLevelStepsArgs, 'input'>>,

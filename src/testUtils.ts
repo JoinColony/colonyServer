@@ -7,7 +7,9 @@ import {
   EventDoc,
   LevelDoc,
   NotificationDoc,
+  PersistentTaskDoc,
   ProgramDoc,
+  SubmissionDoc,
   SuggestionDoc,
   TaskDoc,
   TokenDoc,
@@ -35,7 +37,9 @@ interface DocsToInsert {
   events?: Partial<EventDoc<any>>[]
   levels?: Partial<LevelDoc>[]
   notifications?: Partial<NotificationDoc>[]
+  persistentTasks?: Partial<PersistentTaskDoc>[]
   programs?: Partial<ProgramDoc>[]
+  submissions?: Partial<SubmissionDoc>[]
   suggestions?: Partial<SuggestionDoc>[]
   tasks?: Partial<TaskDoc>[]
   tokens?: Partial<TokenDoc>[]
@@ -48,7 +52,9 @@ interface InsertedDocs {
   events: string[]
   levels: string[]
   notifications: string[]
+  persistentTasks: string[]
   programs: string[]
+  submissions: string[]
   suggestions: string[]
   tasks: string[]
   tokens: string[]
@@ -91,7 +97,9 @@ export const insertDocs = async (
       events: [],
       levels: [],
       notifications: [],
+      persistentTasks: [],
       programs: [],
+      submissions: [],
       suggestions: [],
       tasks: [],
       tokens: [],
