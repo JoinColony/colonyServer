@@ -41,6 +41,7 @@ enum AuthChecks {
   SetTaskDueDate = 'SetTaskDueDate',
   SetTaskPayout = 'SetTaskPayout',
   SetTaskSkill = 'SetTaskSkill',
+  RemoveTaskSkill = 'RemoveTaskSkill',
   SetTaskTitle = 'SetTaskTitle',
   UnassignWorker = 'UnassignWorker',
 }
@@ -146,6 +147,11 @@ const AUTH_DECLARATIONS: Record<AuthChecks, AuthDeclaration> = {
   },
   SetTaskSkill: {
     description: 'Set task skill',
+    roles: [ColonyRoles.Administration],
+    type: AuthTypes.Task,
+  },
+  RemoveTaskSkill: {
+    description: 'Remove task skill',
     roles: [ColonyRoles.Administration],
     type: AuthTypes.Task,
   },
@@ -309,6 +315,10 @@ export class ColonyAuthDataSource extends DataSource<any> {
 
   async assertCanSetTaskSkill(args: TaskAuthArgs) {
     return this.assertForTask(AuthChecks.SetTaskSkill, args)
+  }
+
+  async assertCanRemoveTaskSkill(args: TaskAuthArgs) {
+    return this.assertForTask(AuthChecks.RemoveTaskSkill, args)
   }
 
   async assertCanSetTaskDueDate(args: TaskAuthArgs) {
