@@ -769,8 +769,8 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     { input: { id } },
     { userAddress, api, dataSources: { auth, data } },
   ) {
-    const { programId } = await data.getLevelById(id)
-    const { colonyAddress } = await data.getProgramById(programId)
+    const level = await data.getLevelById(id)
+    const { colonyAddress } = await data.getProgramById(level.programId)
     await tryAuth(
       auth.assertCanEditLevel({
         colonyAddress,
@@ -778,6 +778,6 @@ export const Mutation: MutationResolvers<ApolloContext> = {
       }),
     )
     await api.removeLevel(userAddress, id)
-    return data.getLevelById(id)
+    return { ...level, status: LevelStatus.Deleted }
   },
 }

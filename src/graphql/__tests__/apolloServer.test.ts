@@ -35,7 +35,7 @@ import {
   TokenDoc,
   UserDoc,
 } from '../../db/types'
-import { ProgramStatus, SuggestionStatus } from '../types'
+import { LevelStatus, ProgramStatus, SuggestionStatus } from '../types'
 import { EventType } from '../../constants'
 import { CollectionNames } from '../../db/collections'
 
@@ -133,7 +133,14 @@ const programDoc = {
   creatorAddress: user1Doc.walletAddress,
   levelIds: [],
   enrolledUserAddresses: [],
-  status: ProgramStatus.Active,
+  status: ProgramStatus.Draft,
+}
+
+const levelDoc = {
+  creatorAddress: user1Doc.walletAddress,
+  stepIds: [],
+  completedBy: [],
+  status: LevelStatus.Active,
 }
 
 const systemInfoResult = {
@@ -2085,7 +2092,11 @@ describe('Apollo Server', () => {
     })
 
     it('reorderProgramLevels', async () => {
-      const levelIds = [new ObjectID().toString(), new ObjectID().toString(), new ObjectID().toString()]
+      const levelIds = [
+        new ObjectID().toString(),
+        new ObjectID().toString(),
+        new ObjectID().toString(),
+      ]
       const {
         programs: [id],
       } = await insertDocs(db, {
@@ -2114,7 +2125,7 @@ describe('Apollo Server', () => {
         data: {
           reorderProgramLevels: {
             creatorAddress: ctxUserAddress,
-            levelIds: orderedLevelIds
+            levelIds: orderedLevelIds,
           },
         },
         errors: undefined,
@@ -2148,7 +2159,7 @@ describe('Apollo Server', () => {
         data: {
           publishProgram: {
             creatorAddress: ctxUserAddress,
-            status: ProgramStatus.Active
+            status: ProgramStatus.Active,
           },
         },
         errors: undefined,
@@ -2182,7 +2193,182 @@ describe('Apollo Server', () => {
         data: {
           removeProgram: {
             creatorAddress: ctxUserAddress,
-            status: ProgramStatus.Deleted
+            status: ProgramStatus.Deleted,
+          },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('createLevel', async () => {
+      const {
+        programs: [id],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        programs: [programDoc],
+      })
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation createLevel($input: CreateLevelInput!) {
+              createLevel(input: $input) {
+                creatorAddress
+                programId
+                status
+              }
+            }
+          `,
+          variables: {
+            input: { programId: id },
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          createLevel: {
+            creatorAddress: ctxUserAddress,
+            programId: id,
+            status: LevelStatus.Active,
+          },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('editLevel', async () => {
+      const {
+        programs: [programId],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        programs: [programDoc],
+      })
+
+      const {
+        levels: [id],
+      } = await insertDocs(db, {
+        levels: [{ ...levelDoc, programId: new ObjectID(programId) }],
+      })
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation editLevel($input: EditLevelInput!) {
+              editLevel(input: $input) {
+                creatorAddress
+                title
+                description
+                achievement
+                numRequiredSteps
+              }
+            }
+          `,
+          variables: {
+            input: {
+              id,
+              title: 'Foovel',
+              description: 'Onto a new level',
+              achievement: 'Panda Bear',
+              numRequiredSteps: 895,
+            },
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          editLevel: {
+            creatorAddress: ctxUserAddress,
+            title: 'Foovel',
+            description: 'Onto a new level',
+            achievement: 'Panda Bear',
+            numRequiredSteps: 895,
+          },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('reorderLevelSteps', async () => {
+      const stepIds = [
+        new ObjectID().toString(),
+        new ObjectID().toString(),
+        new ObjectID().toString(),
+      ]
+      const {
+        programs: [programId],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        programs: [programDoc],
+      })
+
+      const {
+        levels: [id],
+      } = await insertDocs(db, {
+        levels: [{ ...levelDoc, programId: new ObjectID(programId), stepIds }],
+      })
+
+      const orderedStepIds = [stepIds[2], stepIds[0], stepIds[1]]
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation reorderLevelSteps($input: ReorderLevelStepsInput!) {
+              reorderLevelSteps(input: $input) {
+                creatorAddress
+                stepIds
+              }
+            }
+          `,
+          variables: {
+            input: { id, stepIds: orderedStepIds },
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          reorderLevelSteps: {
+            creatorAddress: ctxUserAddress,
+            stepIds: orderedStepIds,
+          },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('removeLevel', async () => {
+      const {
+        programs: [programId],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        programs: [programDoc],
+      })
+
+      const {
+        levels: [id],
+      } = await insertDocs(db, {
+        levels: [{ ...levelDoc, programId: new ObjectID(programId) }],
+      })
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation removeLevel($input: RemoveLevelInput!) {
+              removeLevel(input: $input) {
+                creatorAddress
+                status
+              }
+            }
+          `,
+          variables: {
+            input: { id },
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          removeLevel: {
+            creatorAddress: ctxUserAddress,
+            status: LevelStatus.Deleted,
           },
         },
         errors: undefined,
