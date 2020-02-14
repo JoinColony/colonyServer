@@ -667,6 +667,8 @@ export type Query = {
   user: User,
   colony: Colony,
   domain: Domain,
+  level: Level,
+  program: Program,
   task: Task,
   tokenInfo: TokenInfo,
   systemInfo: SystemInfo,
@@ -686,6 +688,16 @@ export type QueryColonyArgs = {
 export type QueryDomainArgs = {
   colonyAddress: Scalars['String'],
   ethDomainId: Scalars['Int']
+};
+
+
+export type QueryLevelArgs = {
+  id: Scalars['String']
+};
+
+
+export type QueryProgramArgs = {
+  id: Scalars['String']
 };
 
 
@@ -1475,6 +1487,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'address'>>,
   colony?: Resolver<ResolversTypes['Colony'], ParentType, ContextType, RequireFields<QueryColonyArgs, 'address'>>,
   domain?: Resolver<ResolversTypes['Domain'], ParentType, ContextType, RequireFields<QueryDomainArgs, 'colonyAddress' | 'ethDomainId'>>,
+  level?: Resolver<ResolversTypes['Level'], ParentType, ContextType, RequireFields<QueryLevelArgs, 'id'>>,
+  program?: Resolver<ResolversTypes['Program'], ParentType, ContextType, RequireFields<QueryProgramArgs, 'id'>>,
   task?: Resolver<ResolversTypes['Task'], ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>,
   tokenInfo?: Resolver<ResolversTypes['TokenInfo'], ParentType, ContextType, RequireFields<QueryTokenInfoArgs, 'address'>>,
   systemInfo?: Resolver<ResolversTypes['SystemInfo'], ParentType, ContextType>,
