@@ -5,6 +5,7 @@ import {
   ColonyDoc,
   DomainDoc,
   EventDoc,
+  LevelDoc,
   NotificationDoc,
   ProgramDoc,
   SuggestionDoc,
@@ -32,6 +33,7 @@ interface DocsToInsert {
   colonies?: Partial<ColonyDoc>[]
   domains?: Partial<DomainDoc>[]
   events?: Partial<EventDoc<any>>[]
+  levels?: Partial<LevelDoc>[]
   notifications?: Partial<NotificationDoc>[]
   programs?: Partial<ProgramDoc>[]
   suggestions?: Partial<SuggestionDoc>[]
@@ -44,6 +46,7 @@ interface InsertedDocs {
   colonies: string[]
   domains: string[]
   events: string[]
+  levels: string[]
   notifications: string[]
   programs: string[]
   suggestions: string[]
@@ -86,6 +89,7 @@ export const insertDocs = async (
       colonies: [],
       domains: [],
       events: [],
+      levels: [],
       notifications: [],
       programs: [],
       suggestions: [],
