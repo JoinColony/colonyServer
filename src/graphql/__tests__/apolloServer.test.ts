@@ -35,7 +35,13 @@ import {
   TokenDoc,
   UserDoc,
 } from '../../db/types'
-import { LevelStatus, ProgramStatus, SuggestionStatus } from '../types'
+import {
+  LevelStatus,
+  PersistentTaskStatus,
+  ProgramStatus,
+  SubmissionStatus,
+  SuggestionStatus,
+} from '../types'
 import { EventType } from '../../constants'
 import { CollectionNames } from '../../db/collections'
 
@@ -135,12 +141,22 @@ const programDoc = {
   enrolledUserAddresses: [],
   status: ProgramStatus.Draft,
 }
-
 const levelDoc = {
   creatorAddress: user1Doc.walletAddress,
   stepIds: [],
   completedBy: [],
   status: LevelStatus.Active,
+}
+const persistentTaskDoc = {
+  colonyAddress: 'colony address',
+  creatorAddress: user1Doc.walletAddress,
+  payouts: [],
+  status: PersistentTaskStatus.Active,
+}
+const submissionDoc = {
+  creatorAddress: user1Doc.walletAddress,
+  status: SubmissionStatus.Open,
+  statusChangedAt: new Date(2000),
 }
 
 const systemInfoResult = {
@@ -165,7 +181,11 @@ describe('Apollo Server', () => {
     await db.collection(CollectionNames.Colonies).deleteMany({})
     await db.collection(CollectionNames.Domains).deleteMany({})
     await db.collection(CollectionNames.Events).deleteMany({})
+    await db.collection(CollectionNames.Levels).deleteMany({})
     await db.collection(CollectionNames.Notifications).deleteMany({})
+    await db.collection(CollectionNames.PersistentTasks).deleteMany({})
+    await db.collection(CollectionNames.Programs).deleteMany({})
+    await db.collection(CollectionNames.Submissions).deleteMany({})
     await db.collection(CollectionNames.Tasks).deleteMany({})
     await db.collection(CollectionNames.Tokens).deleteMany({})
     await db.collection(CollectionNames.Users).deleteMany({})
@@ -2373,6 +2393,479 @@ describe('Apollo Server', () => {
         },
         errors: undefined,
       })
+    })
+
+    it('createLevelTask', async () => {
+      const {
+        programs: [programId],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        programs: [programDoc],
+      })
+
+      const {
+        levels: [levelId],
+      } = await insertDocs(db, {
+        levels: [{ ...levelDoc, programId: new ObjectID(programId) }],
+      })
+
+      const result = await mutate({
+        mutation: gql`
+          mutation createLevelTask($input: CreateLevelTaskInput!) {
+            createLevelTask(input: $input) {
+              id
+              colonyAddress
+              creatorAddress
+              payouts {
+                tokenAddress
+              }
+              submissions {
+                id
+              }
+              status
+            }
+          }
+        `,
+        variables: {
+          input: { levelId },
+        },
+      })
+
+      expect(result).toMatchObject({
+        data: {
+          createLevelTask: {
+            id: expect.any(String),
+            colonyAddress: colonyDoc.colonyAddress,
+            creatorAddress: ctxUserAddress,
+            payouts: [],
+            submissions: [],
+            status: PersistentTaskStatus.Active,
+          },
+        },
+        errors: undefined,
+      })
+
+      const { id: taskId } = result.data.createLevelTask
+
+      await expect(
+        query({
+          query: gql`
+            query level($id: String!) {
+              level(id: $id) {
+                stepIds
+              }
+            }
+          `,
+          variables: {
+            id: levelId,
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          level: { stepIds: [taskId] },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('removeLevelTask', async () => {
+      const {
+        programs: [programId],
+        persistentTasks: [taskId],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        programs: [programDoc],
+        persistentTasks: [persistentTaskDoc],
+      })
+
+      const {
+        levels: [levelId],
+      } = await insertDocs(db, {
+        levels: [
+          {
+            ...levelDoc,
+            programId: new ObjectID(programId),
+            stepIds: [taskId],
+          },
+        ],
+      })
+
+      const result = await mutate({
+        mutation: gql`
+          mutation removeLevelTask($input: RemoveLevelTaskInput!) {
+            removeLevelTask(input: $input) {
+              id
+              status
+            }
+          }
+        `,
+        variables: {
+          input: { id: taskId, levelId },
+        },
+      })
+
+      expect(result).toMatchObject({
+        data: {
+          removeLevelTask: {
+            id: taskId,
+            status: PersistentTaskStatus.Deleted,
+          },
+        },
+        errors: undefined,
+      })
+
+      await expect(
+        query({
+          query: gql`
+            query level($id: String!) {
+              level(id: $id) {
+                stepIds
+              }
+            }
+          `,
+          variables: {
+            id: levelId,
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          level: { stepIds: [] },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('editPersistentTask', async () => {
+      const {
+        persistentTasks: [taskId],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        persistentTasks: [persistentTaskDoc],
+      })
+
+      const result = await mutate({
+        mutation: gql`
+          mutation editPersistentTask($input: EditPersistentTaskInput!) {
+            editPersistentTask(input: $input) {
+              id
+              ethDomainId
+              ethSkillId
+              title
+              description
+            }
+          }
+        `,
+        variables: {
+          input: {
+            id: taskId,
+            ethDomainId: 5,
+            ethSkillId: 3,
+            title: 'Foo',
+            description: 'Bar',
+          },
+        },
+      })
+
+      expect(result).toMatchObject({
+        data: {
+          editPersistentTask: {
+            id: taskId,
+            ethDomainId: 5,
+            ethSkillId: 3,
+            title: 'Foo',
+            description: 'Bar',
+          },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('setPersistentTaskPayout', async () => {
+      const {
+        persistentTasks: [taskId],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        persistentTasks: [persistentTaskDoc],
+      })
+
+      const result = await mutate({
+        mutation: gql`
+          mutation setPersistentTaskPayout($input: SetTaskPayoutInput!) {
+            setPersistentTaskPayout(input: $input) {
+              id
+              payouts {
+                amount
+                tokenAddress
+              }
+            }
+          }
+        `,
+        variables: {
+          input: {
+            id: taskId,
+            amount: '500',
+            tokenAddress: '0xtoooooooken',
+          },
+        },
+      })
+
+      expect(result).toMatchObject({
+        data: {
+          setPersistentTaskPayout: {
+            id: taskId,
+            payouts: [{ amount: '500', tokenAddress: '0xtoooooooken' }],
+          },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('removePersistentTaskPayout', async () => {
+      const {
+        persistentTasks: [taskId],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        persistentTasks: [
+          {
+            ...persistentTaskDoc,
+            payouts: [{ amount: '500', tokenAddress: '0xfoo' }],
+          },
+        ],
+      })
+
+      const result = await mutate({
+        mutation: gql`
+          mutation removePersistentTaskPayout($input: RemoveTaskPayoutInput!) {
+            removePersistentTaskPayout(input: $input) {
+              id
+              payouts {
+                amount
+                tokenAddress
+              }
+            }
+          }
+        `,
+        variables: {
+          input: {
+            id: taskId,
+            amount: '500',
+            tokenAddress: '0xfoo',
+          },
+        },
+      })
+
+      expect(result).toMatchObject({
+        data: {
+          removePersistentTaskPayout: {
+            id: taskId,
+            payouts: [],
+          },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('createLevelTaskSubmission', async () => {
+      const {
+        programs: [programId],
+        persistentTasks: [taskId],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        programs: [{ ...programDoc, enrolledUserAddresses: [ctxUserAddress] }],
+        persistentTasks: [persistentTaskDoc],
+      })
+
+      const {
+        levels: [levelId],
+      } = await insertDocs(db, {
+        levels: [
+          {
+            ...levelDoc,
+            programId: new ObjectID(programId),
+            stepIds: [taskId],
+          },
+        ],
+      })
+
+      await db
+        .collection('programs')
+        .updateOne(
+          { _id: new ObjectID(programId) },
+          { $push: { levelIds: levelId } },
+        )
+
+      const result = await mutate({
+        mutation: gql`
+          mutation createLevelTaskSubmission(
+            $input: CreateLevelTaskSubmissionInput!
+          ) {
+            createLevelTaskSubmission(input: $input) {
+              id
+              creatorAddress
+              persistentTaskId
+              submission
+              status
+              statusChangedAt
+            }
+          }
+        `,
+        variables: {
+          input: {
+            persistentTaskId: taskId,
+            levelId,
+            submission: 'Foomission',
+          },
+        },
+      })
+
+      expect(result).toMatchObject({
+        data: {
+          createLevelTaskSubmission: {
+            id: expect.any(String),
+            creatorAddress: ctxUserAddress,
+            persistentTaskId: taskId,
+            submission: 'Foomission',
+            statusChangedAt: expect.any(String),
+            status: SubmissionStatus.Open,
+          },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('editSubmission', async () => {
+      const {
+        persistentTasks: [taskId],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        persistentTasks: [persistentTaskDoc],
+      })
+
+      const {
+        submissions: [id],
+      } = await insertDocs(db, {
+        submissions: [
+          { ...submissionDoc, persistentTaskId: new ObjectID(taskId) },
+        ],
+      })
+
+      const result = await mutate({
+        mutation: gql`
+          mutation editSubmission($input: EditSubmissionInput!) {
+            editSubmission(input: $input) {
+              id
+              submission
+              persistentTaskId
+              status
+              statusChangedAt
+            }
+          }
+        `,
+        variables: {
+          input: {
+            id,
+            submission: 'Changed submission',
+          },
+        },
+      })
+
+      expect(result).toMatchObject({
+        data: {
+          editSubmission: {
+            id,
+            submission: 'Changed submission',
+            persistentTaskId: taskId,
+            status: SubmissionStatus.Open,
+          },
+        },
+        errors: undefined,
+      })
+
+      expect(
+        new Date(result.data.editSubmission.statusChangedAt) >
+          new Date(submissionDoc.statusChangedAt),
+      ).toBeTruthy()
+    })
+
+    it('acceptLevelTaskSubmission', async () => {
+      const {
+        programs: [programId],
+        persistentTasks: [taskId],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        programs: [{ ...programDoc, enrolledUserAddresses: [ctxUserAddress] }],
+        persistentTasks: [persistentTaskDoc],
+      })
+
+      const {
+        levels: [levelId],
+        submissions: [id],
+      } = await insertDocs(db, {
+        levels: [
+          {
+            ...levelDoc,
+            programId: new ObjectID(programId),
+            stepIds: [taskId],
+          },
+        ],
+        submissions: [
+          { ...submissionDoc, persistentTaskId: new ObjectID(taskId) },
+        ],
+      })
+
+      await db
+        .collection('programs')
+        .updateOne(
+          { _id: new ObjectID(programId) },
+          { $push: { levelIds: levelId } },
+        )
+
+      const result = await mutate({
+        mutation: gql`
+          mutation acceptLevelTaskSubmission(
+            $input: AcceptLevelTaskSubmissionInput!
+          ) {
+            acceptLevelTaskSubmission(input: $input) {
+              id
+              creatorAddress
+              persistentTaskId
+              status
+              statusChangedAt
+            }
+          }
+        `,
+        variables: {
+          input: {
+            levelId,
+            submissionId: id,
+          },
+        },
+      })
+
+      expect(result).toMatchObject({
+        data: {
+          acceptLevelTaskSubmission: {
+            id: expect.any(String),
+            creatorAddress: ctxUserAddress,
+            persistentTaskId: taskId,
+            status: SubmissionStatus.Accepted,
+          },
+        },
+        errors: undefined,
+      })
+
+      expect(
+        new Date(result.data.acceptLevelTaskSubmission.statusChangedAt) >
+          new Date(submissionDoc.statusChangedAt),
+      ).toBeTruthy()
     })
   })
 })
