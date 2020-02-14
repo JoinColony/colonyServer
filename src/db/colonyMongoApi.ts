@@ -324,27 +324,37 @@ export class ColonyMongoApi {
     const query = {
       _id: { $in: stepObjectIds },
     }
-    const cursor = await this.persistentTasks.aggregate<SubmissionDoc>([
+    const cursor = await this.persistentTasks.aggregate<{ count: number }>([
       // 1. Find all persistent tasks matching the above query
       { $match: query },
       // 2. Look up all submissions for the given persistent tasks and the given user
       {
         $lookup: {
           from: this.submissions.collectionName,
+          let: { persistentTaskId: '$_id' },
           pipeline: [
-            { $match: { status: SubmissionStatus.Accepted, creatorAddress } },
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$persistentTaskId', '$$persistentTaskId'] },
+                    { $eq: ['$status', SubmissionStatus.Accepted] },
+                    { $eq: ['$creatorAddress', creatorAddress] },
+                  ],
+                },
+              },
+            },
           ],
-          localField: '_id',
-          foreignField: 'persistentTaskId',
           as: 'submissions',
         },
       },
       // 3. Flatten all submissions arrays
       { $unwind: '$submissions' },
-      // 4. Count the aaccepted submissions
+      // // 4. Count the aaccepted submissions
       { $count: 'count' },
     ])
-    const result = (await cursor.close()) as { count: number }
+    const result = await cursor.next()
+    await cursor.close()
     return result.count
   }
 
