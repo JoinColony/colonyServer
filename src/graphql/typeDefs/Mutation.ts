@@ -40,6 +40,11 @@ export default gql`
     ethSkillId: Int!
   }
 
+  input RemoveTaskSkillInput {
+    id: String!
+    ethSkillId: Int!
+  }
+
   input SetTaskTitleInput {
     id: String!
     title: String!

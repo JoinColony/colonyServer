@@ -18,6 +18,7 @@ export default gql`
     SetTaskDueDate
     SetTaskPayout
     SetTaskSkill
+    RemoveTaskSkill
     SetTaskTitle
     TaskMessage
     UnassignWorker
