@@ -1,9 +1,12 @@
-import { toChecksumAddress } from 'web3-utils';
+import { toChecksumAddress } from 'web3-utils'
 
 import { ApolloContext } from '../apolloTypes'
 import { TokenInfo, QueryResolvers } from '../types'
-import { EthplorerDataSource, EthplorerTokenInfo } from '../../external/ethplorerDataSource'
-import { SystemDataSource } from '../../external/systemDataSource';
+import {
+  EthplorerDataSource,
+  EthplorerTokenInfo,
+} from '../../external/ethplorerDataSource'
+import { SystemDataSource } from '../../external/systemDataSource'
 
 export const Query: QueryResolvers<ApolloContext> = {
   async user(parent, { address }, { dataSources: { data } }) {
@@ -26,6 +29,12 @@ export const Query: QueryResolvers<ApolloContext> = {
   ) {
     return data.getDomainByEthId(colonyAddress, ethDomainId)
   },
+  async level(parent, { id }: { id: string }, { dataSources: { data } }) {
+    return data.getLevelById(id)
+  },
+  async program(parent, { id }: { id: string }, { dataSources: { data } }) {
+    return data.getProgramById(id)
+  },
   // TODO task by ethPotId/colonyAddress
   async task(parent, { id }: { id: string }, { dataSources: { data } }) {
     return data.getTaskById(id)
@@ -39,13 +48,13 @@ export const Query: QueryResolvers<ApolloContext> = {
      * @NOTE In all likelyhood the address that comes from the dApp is already checksummed
      * But we'll checksum it again here as a precaution
      */
-    const checksummedTokenAddress: string = toChecksumAddress(address);
+    const checksummedTokenAddress: string = toChecksumAddress(address)
     let ethplorerTokenInfo = {} as EthplorerTokenInfo
     // There might be a better way to check whether we're on mainnet (not on QA)
     if (EthplorerDataSource.isActive) {
       try {
         ethplorerTokenInfo = await ethplorer.getTokenInfo(
-          checksummedTokenAddress
+          checksummedTokenAddress,
         )
       } catch (e) {
         // Do nothing, might be just a token that isn't on ethplorer
@@ -53,9 +62,7 @@ export const Query: QueryResolvers<ApolloContext> = {
     }
     let databaseTokenInfo = {} as TokenInfo
     try {
-      databaseTokenInfo = await data.getTokenByAddress(
-        checksummedTokenAddress
-      )
+      databaseTokenInfo = await data.getTokenByAddress(checksummedTokenAddress)
     } catch (e) {
       // Also do nothing, might be just a token that isn't in the db
     }
@@ -65,13 +72,14 @@ export const Query: QueryResolvers<ApolloContext> = {
       address: checksummedTokenAddress,
       decimals: ethplorerTokenInfo.decimals || databaseTokenInfo.decimals || 18,
       iconHash: databaseTokenInfo.iconHash,
-      name: ethplorerTokenInfo.name || databaseTokenInfo.name || 'Unknown token',
+      name:
+        ethplorerTokenInfo.name || databaseTokenInfo.name || 'Unknown token',
       symbol: ethplorerTokenInfo.symbol || databaseTokenInfo.symbol || '???',
       verified: ethplorerTokenInfo.verified || false,
     }
   },
   async systemInfo() {
-    const system = new SystemDataSource();
-    return system.getSystemInfo();
+    const system = new SystemDataSource()
+    return system.getSystemInfo()
   },
 }
