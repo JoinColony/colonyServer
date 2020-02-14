@@ -653,9 +653,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     { input: { id } },
     { userAddress, api, dataSources: { auth, data } },
   ) {
-    await api.editProgram(userAddress, id, {
-      $push: { enrolledUsers: userAddress },
-    })
+    await api.enrollInProgram(userAddress, id)
     return data.getProgramById(id)
   },
   async editProgram(

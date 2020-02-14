@@ -35,7 +35,7 @@ import {
   TokenDoc,
   UserDoc,
 } from '../../db/types'
-import { SuggestionStatus } from '../types'
+import { ProgramStatus, SuggestionStatus } from '../types'
 import { EventType } from '../../constants'
 import { CollectionNames } from '../../db/collections'
 
@@ -128,6 +128,14 @@ const token3Doc = {
   symbol: 'TKN3',
   decimals: 18,
 }
+const programDoc = {
+  colonyAddress: 'colony address',
+  creatorAddress: user1Doc.walletAddress,
+  levelIds: [],
+  enrolledUserAddresses: [],
+  status: ProgramStatus.Active,
+}
+
 const systemInfoResult = {
   version: JSON.parse(
     /*
@@ -1969,6 +1977,214 @@ describe('Apollo Server', () => {
         }),
       ).resolves.toMatchObject({
         data: { removeUpvoteFromSuggestion: { upvotes: [] } },
+        errors: undefined,
+      })
+    })
+
+    it('createProgram', async () => {
+      await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+      })
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation createProgram($input: CreateProgramInput!) {
+              createProgram(input: $input) {
+                colonyAddress
+                creatorAddress
+              }
+            }
+          `,
+          variables: {
+            input: {
+              colonyAddress: colonyDoc.colonyAddress,
+            },
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          createProgram: {
+            creatorAddress: ctxUserAddress,
+            colonyAddress: colonyDoc.colonyAddress,
+          },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('enrollInProgram', async () => {
+      const {
+        programs: [id],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        programs: [programDoc],
+      })
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation enrollInProgram($input: EnrollInProgramInput!) {
+              enrollInProgram(input: $input) {
+                creatorAddress
+                enrolledUserAddresses
+                enrolled
+              }
+            }
+          `,
+          variables: { input: { id } },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          enrollInProgram: {
+            creatorAddress: ctxUserAddress,
+            enrolledUserAddresses: [ctxUserAddress],
+            enrolled: true,
+          },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('editProgram', async () => {
+      const {
+        programs: [id],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        programs: [programDoc],
+      })
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation editProgram($input: EditProgramInput!) {
+              editProgram(input: $input) {
+                creatorAddress
+                title
+                description
+              }
+            }
+          `,
+          variables: {
+            input: { id, title: 'Foogram', description: 'Much foo' },
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          editProgram: {
+            creatorAddress: ctxUserAddress,
+            title: 'Foogram',
+            description: 'Much foo',
+          },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('reorderProgramLevels', async () => {
+      const levelIds = [new ObjectID().toString(), new ObjectID().toString(), new ObjectID().toString()]
+      const {
+        programs: [id],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        programs: [{ ...programDoc, levelIds }],
+      })
+
+      const orderedLevelIds = [levelIds[2], levelIds[0], levelIds[1]]
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation reorderProgramLevels($input: ReorderProgramLevelsInput!) {
+              reorderProgramLevels(input: $input) {
+                creatorAddress
+                levelIds
+              }
+            }
+          `,
+          variables: {
+            input: { id, levelIds: orderedLevelIds },
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          reorderProgramLevels: {
+            creatorAddress: ctxUserAddress,
+            levelIds: orderedLevelIds
+          },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('publishProgram', async () => {
+      const {
+        programs: [id],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        programs: [programDoc],
+      })
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation publishProgram($input: PublishProgramInput!) {
+              publishProgram(input: $input) {
+                creatorAddress
+                status
+              }
+            }
+          `,
+          variables: {
+            input: { id },
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          publishProgram: {
+            creatorAddress: ctxUserAddress,
+            status: ProgramStatus.Active
+          },
+        },
+        errors: undefined,
+      })
+    })
+
+    it('removeProgram', async () => {
+      const {
+        programs: [id],
+      } = await insertDocs(db, {
+        users: [user1Doc],
+        colonies: [colonyDoc],
+        programs: [programDoc],
+      })
+
+      await expect(
+        mutate({
+          mutation: gql`
+            mutation removeProgram($input: RemoveProgramInput!) {
+              removeProgram(input: $input) {
+                creatorAddress
+                status
+              }
+            }
+          `,
+          variables: {
+            input: { id },
+          },
+        }),
+      ).resolves.toMatchObject({
+        data: {
+          removeProgram: {
+            creatorAddress: ctxUserAddress,
+            status: ProgramStatus.Deleted
+          },
+        },
         errors: undefined,
       })
     })
