@@ -1280,12 +1280,10 @@ export class ColonyMongoApi {
       title,
       description,
       status,
-      $push,
     }: {
       title?: string
       description?: string
       status?: ProgramStatus
-      $push?: { enrolledUsers: string }
     },
   ) {
     await this.tryGetUser(initiator)
@@ -1295,7 +1293,6 @@ export class ColonyMongoApi {
       title?: string
       description?: string
       status?: ProgramStatus
-      $push?: { enrolledUsers: string }
     }
 
     if (title) {
@@ -1307,15 +1304,24 @@ export class ColonyMongoApi {
     if (status) {
       update.status = status
     }
-    if ($push) {
-      update.$push = $push
-    }
 
     return this.programs.updateOne(
       {
         _id: new ObjectID(id),
       },
       { $set: update },
+    )
+  }
+
+  async enrollInProgram(initiator: string, id: string) {
+    await this.tryGetUser(initiator)
+    await this.tryGetProgram(id)
+
+    return this.programs.updateOne(
+      {
+        _id: new ObjectID(id),
+      },
+      { $push: { enrolledUserAddresses: initiator } },
     )
   }
 
