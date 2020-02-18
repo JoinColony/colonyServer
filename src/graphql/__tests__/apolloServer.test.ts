@@ -149,7 +149,8 @@ describe('Apollo Server', () => {
   }
 
   beforeAll(async () => {
-    connection = await MongoClient.connect(process.env.DB_URL, {
+    // Use the MONGO_URL injected by jest-mongodb
+    connection = await MongoClient.connect(process.env.MONGO_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     })
