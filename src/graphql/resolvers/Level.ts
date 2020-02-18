@@ -10,7 +10,7 @@ export const Level: LevelResolvers<ApolloContext> = {
     input,
     { dataSources: { data }, userAddress },
   ) {
-    const submissibleLevels = await data.getSubmissibleLevels(programId, userAddress)
+    const submissibleLevels = await data.getSubmissibleLevels(userAddress, programId)
     return submissibleLevels.includes(id)
   },
 }
