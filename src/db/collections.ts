@@ -627,10 +627,9 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
             additionalProperties: false,
             bsonType: 'object',
             required: [
+              'completedBy',
               'creatorAddress',
               'programId',
-              'title',
-              'numRequiredSteps',
               'stepIds',
               'status',
             ],
