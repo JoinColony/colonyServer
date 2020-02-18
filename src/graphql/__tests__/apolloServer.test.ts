@@ -472,26 +472,10 @@ describe('Apollo Server', () => {
     })
 
     it('suggestions', async () => {
-      const {
-        suggestions: [id],
-      } = await insertDocs(db, {
-        suggestions: [suggestionDoc],
-      })
-
-      const colonyDoc = {
-        colonyAddress: 'colony address',
-        colonyName: 'colony name',
-        founderAddress: user1Doc.walletAddress,
-        taskIds: [],
-        nativeTokenAddress: token1Doc.address,
-        isNativeTokenExternal: false,
-        tokenAddresses: [],
-        suggestions: [id],
-      }
-
       await insertDocs(db, {
         users: [user1Doc],
         colonies: [colonyDoc],
+        suggestions: [suggestionDoc],
       })
 
       await expect(
@@ -1453,7 +1437,9 @@ describe('Apollo Server', () => {
         events: [eventId],
       } = await insertDocs(db, {
         users: [user1Doc],
-        events: [{ type: EventType.CreateDomain }],
+        events: [
+          { type: EventType.CreateDomain, sourceType: 'db', context: {} },
+        ],
       })
       const {
         notifications: [id],
@@ -1520,10 +1506,10 @@ describe('Apollo Server', () => {
       } = await insertDocs(db, {
         users: [user1Doc, user2Doc],
         events: [
-          { type: EventType.CreateDomain },
-          { type: EventType.CreateTask },
-          { type: EventType.CancelTask },
-          { type: EventType.FinalizeTask },
+          { type: EventType.CreateDomain, sourceType: 'db', context: {} },
+          { type: EventType.CreateTask, sourceType: 'db', context: {} },
+          { type: EventType.CancelTask, sourceType: 'db', context: {} },
+          { type: EventType.FinalizeTask, sourceType: 'db', context: {} },
         ],
       })
 
