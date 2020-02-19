@@ -6,8 +6,8 @@ config()
 import { connect } from '../src/db/connect'
 import { COLLECTIONS_MANIFEST } from '../src/db/collections'
 
-const createCollections = async (db: Db) => {
-  const collections = await db.collections();
+export const createCollections = async (db: Db) => {
+  const collections = await db.collections()
   return Promise.all(
     Array.from(COLLECTIONS_MANIFEST.entries()).map(
       async ([name, { create, indexes, seedDocs = [] }]) => {
@@ -20,15 +20,15 @@ const createCollections = async (db: Db) => {
           ),
         )
         if (collections.map(c => c.collectionName).includes(name)) {
-          console.log(`${name} collection already exists, don't seed it again`);
-          return;
+          console.log(`${name} collection already exists, don't seed it again`)
+          return
         }
         if (seedDocs.length) {
           await db.collection(name).insertMany(seedDocs)
         }
       },
     ),
-  );
+  )
 }
 
 const setup = async () => {
@@ -37,12 +37,14 @@ const setup = async () => {
   await createCollections(db)
 }
 
-setup()
-  .then(() => {
-    console.info('Database setup completed successfully.')
-    process.exit(0)
-  })
-  .catch(error => {
-    console.error(error)
-    process.exit(1)
-  })
+if (require.main === module) {
+  setup()
+    .then(() => {
+      console.info('Database setup completed successfully.')
+      process.exit(0)
+    })
+    .catch(error => {
+      console.error(error)
+      process.exit(1)
+    })
+}

@@ -10,7 +10,8 @@ describe('ColonyMongoDataSource', () => {
   let data
 
   beforeAll(async () => {
-    connection = await MongoClient.connect(process.env.DB_URL, {
+    // Use the MONGO_URL injected by jest-mongodb
+    connection = await MongoClient.connect(process.env.MONGO_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     })
@@ -79,21 +80,25 @@ describe('ColonyMongoDataSource', () => {
       [
         {
           type: EventType.TaskMessage,
+          sourceType: 'db',
           initiatorAddress: 'second',
           context: { taskId: 'task id', message: 'message 1' },
         },
         {
           type: EventType.TaskMessage,
+          sourceType: 'db',
           initiatorAddress: 'second',
           context: { taskId: 'task id', message: 'message 2' },
         },
         {
           type: EventType.TaskMessage,
+          sourceType: 'db',
           initiatorAddress: 'second',
           context: { taskId: 'task id', message: 'message 3' },
         },
         {
           type: EventType.TaskMessage,
+          sourceType: 'db',
           initiatorAddress: 'first',
           context: { taskId: 'task id', message: 'message 4' },
         },
@@ -103,19 +108,19 @@ describe('ColonyMongoDataSource', () => {
     await data.collections.notifications.collection.insertMany([
       {
         eventId: insertedIds[0],
-        users: { address: 'first', read: true },
+        users: [{ address: 'first', read: true }],
       },
       {
         eventId: insertedIds[1],
-        users: { address: 'first', read: false },
+        users: [{ address: 'first', read: false }],
       },
       {
         eventId: insertedIds[2],
-        users: { address: 'first', read: false },
+        users: [{ address: 'first', read: false }],
       },
       {
         eventId: insertedIds[3],
-        users: { address: 'second', read: false },
+        users: [{ address: 'second', read: false }],
       },
     ] as any)
 
