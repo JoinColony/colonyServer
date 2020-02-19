@@ -157,6 +157,7 @@ const submissionDoc = {
   creatorAddress: user1Doc.walletAddress,
   status: SubmissionStatus.Open,
   statusChangedAt: new Date(2000),
+  submission: 'My cool submission',
 }
 
 const systemInfoResult = {
