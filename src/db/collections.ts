@@ -321,7 +321,6 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
             required: [
               'creatorAddress',
               'colonyAddress',
-              'ethDomainId',
               'status',
             ],
             properties: {
@@ -378,7 +377,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       },
       indexes: [
         ['colonyAddress', {}],
-        ['ethDomainId', {}],
+        ['ethDomainId', { sparse: true }],
         ['status', {}],
       ],
     },
