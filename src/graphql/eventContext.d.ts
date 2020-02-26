@@ -14,6 +14,7 @@ import {
   SetTaskDueDateEvent,
   SetTaskPayoutEvent,
   SetTaskSkillEvent,
+  RemoveTaskSkillEvent,
   SetTaskTitleEvent,
   TaskMessageEvent,
   UnassignWorkerEvent,
@@ -33,6 +34,7 @@ interface EventContextMap {
   [EventType.SetTaskDueDate]: SetTaskDueDateEvent
   [EventType.SetTaskPayout]: SetTaskPayoutEvent
   [EventType.SetTaskSkill]: SetTaskSkillEvent
+  [EventType.RemoveTaskSkill]: RemoveTaskSkillEvent
   [EventType.SetTaskTitle]: SetTaskTitleEvent
   [EventType.TaskMessage]: TaskMessageEvent
   [EventType.UnassignWorker]: UnassignWorkerEvent
