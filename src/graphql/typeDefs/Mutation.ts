@@ -203,6 +203,7 @@ export default gql`
     setTaskDueDate(input: SetTaskDueDateInput!): Task
     setTaskPayout(input: SetTaskPayoutInput!): Task
     setTaskSkill(input: SetTaskSkillInput!): Task
+    removeTaskSkill(input: RemoveTaskSkillInput!): Task
     setTaskTitle(input: SetTaskTitleInput!): Task
     unassignWorker(input: UnassignWorkerInput!): Task
     # Users
