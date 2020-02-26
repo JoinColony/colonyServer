@@ -546,6 +546,23 @@ const _abi = [
         type: 'uint256',
       },
       {
+        indexed: true,
+        name: 'skillId',
+        type: 'uint256',
+      },
+    ],
+    name: 'TaskSkillRemove',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        name: 'taskId',
+        type: 'uint256',
+      },
+      {
         indexed: false,
         name: 'role',
         type: 'uint8',
@@ -2159,6 +2176,24 @@ const _abi = [
       },
     ],
     name: 'setTaskSkill',
+    outputs: [],
+    payable: false,
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    constant: false,
+    inputs: [
+      {
+        name: '_id',
+        type: 'uint256',
+      },
+      {
+        name: '_skillId',
+        type: 'uint256',
+      },
+    ],
+    name: 'removeTaskSkill',
     outputs: [],
     payable: false,
     stateMutability: 'nonpayable',

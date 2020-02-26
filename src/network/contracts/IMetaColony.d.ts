@@ -473,6 +473,10 @@ interface IMetaColonyInterface extends Interface {
       encode([_id, _skillId]: [BigNumberish, BigNumberish]): string
     }>
 
+    removeTaskSkill: TypedFunctionDescription<{
+      encode([_id, _skillId]: [BigNumberish, BigNumberish]): string
+    }>
+
     authority: TypedFunctionDescription<{ encode([]: []): string }>
 
     getTaskCount: TypedFunctionDescription<{ encode([]: []): string }>
@@ -731,6 +735,13 @@ interface IMetaColonyInterface extends Interface {
     }>
 
     TaskSkillSet: TypedEventDescription<{
+      encodeTopics([taskId, skillId]: [
+        BigNumberish | null,
+        BigNumberish | null
+      ]): string[]
+    }>
+
+    TaskSkillRemove: TypedEventDescription<{
       encodeTopics([taskId, skillId]: [
         BigNumberish | null,
         BigNumberish | null
@@ -1303,6 +1314,12 @@ export class IMetaColony extends Contract {
     ): Promise<ContractTransaction>
 
     setTaskSkill(
+      _id: BigNumberish,
+      _skillId: BigNumberish,
+      overrides?: TransactionOverrides,
+    ): Promise<ContractTransaction>
+
+    removeTaskSkill(
       _id: BigNumberish,
       _skillId: BigNumberish,
       overrides?: TransactionOverrides,
@@ -1946,6 +1963,12 @@ export class IMetaColony extends Contract {
     overrides?: TransactionOverrides,
   ): Promise<ContractTransaction>
 
+  removeTaskSkill(
+    _id: BigNumberish,
+    _skillId: BigNumberish,
+    overrides?: TransactionOverrides,
+  ): Promise<ContractTransaction>
+
   authority(): Promise<string>
 
   getTaskCount(): Promise<BigNumber>
@@ -2172,6 +2195,11 @@ export class IMetaColony extends Contract {
     TaskDueDateSet(taskId: BigNumberish | null, dueDate: null): EventFilter
 
     TaskSkillSet(
+      taskId: BigNumberish | null,
+      skillId: BigNumberish | null,
+    ): EventFilter
+
+    TaskSkillRemove(
       taskId: BigNumberish | null,
       skillId: BigNumberish | null,
     ): EventFilter
@@ -2561,6 +2589,8 @@ export class IMetaColony extends Contract {
     ): Promise<BigNumber>
 
     setTaskSkill(_id: BigNumberish, _skillId: BigNumberish): Promise<BigNumber>
+
+    removeTaskSkill(_id: BigNumberish, _skillId: BigNumberish): Promise<BigNumber>
 
     authority(): Promise<BigNumber>
 

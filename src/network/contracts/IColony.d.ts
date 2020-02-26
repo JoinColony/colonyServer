@@ -429,6 +429,10 @@ interface IColonyInterface extends Interface {
       encode([_id, _skillId]: [BigNumberish, BigNumberish]): string
     }>
 
+    removeTaskSkill: TypedFunctionDescription<{
+      encode([_id, _skillId]: [BigNumberish, BigNumberish]): string
+    }>
+
     setTaskBrief: TypedFunctionDescription<{
       encode([_id, _specificationHash]: [BigNumberish, Arrayish]): string
     }>
@@ -713,6 +717,13 @@ interface IColonyInterface extends Interface {
     }>
 
     TaskSkillSet: TypedEventDescription<{
+      encodeTopics([taskId, skillId]: [
+        BigNumberish | null,
+        BigNumberish | null
+      ]): string[]
+    }>
+
+    TaskSkillRemove: TypedEventDescription<{
       encodeTopics([taskId, skillId]: [
         BigNumberish | null,
         BigNumberish | null
@@ -1215,6 +1226,12 @@ export class IColony extends Contract {
     ): Promise<ContractTransaction>
 
     setTaskSkill(
+      _id: BigNumberish,
+      _skillId: BigNumberish,
+      overrides?: TransactionOverrides,
+    ): Promise<ContractTransaction>
+
+    removeTaskSkill(
       _id: BigNumberish,
       _skillId: BigNumberish,
       overrides?: TransactionOverrides,
@@ -1836,6 +1853,12 @@ export class IColony extends Contract {
     overrides?: TransactionOverrides,
   ): Promise<ContractTransaction>
 
+  removeTaskSkill(
+    _id: BigNumberish,
+    _skillId: BigNumberish,
+    overrides?: TransactionOverrides,
+  ): Promise<ContractTransaction>
+
   setTaskBrief(
     _id: BigNumberish,
     _specificationHash: Arrayish,
@@ -2106,6 +2129,11 @@ export class IColony extends Contract {
     TaskDueDateSet(taskId: BigNumberish | null, dueDate: null): EventFilter
 
     TaskSkillSet(
+      taskId: BigNumberish | null,
+      skillId: BigNumberish | null,
+    ): EventFilter
+
+    TaskSkillRemove(
       taskId: BigNumberish | null,
       skillId: BigNumberish | null,
     ): EventFilter
@@ -2458,6 +2486,8 @@ export class IColony extends Contract {
     removeTaskWorkerRole(_id: BigNumberish): Promise<BigNumber>
 
     setTaskSkill(_id: BigNumberish, _skillId: BigNumberish): Promise<BigNumber>
+
+    removeTaskSkill(_id: BigNumberish, _skillId: BigNumberish): Promise<BigNumber>
 
     setTaskBrief(
       _id: BigNumberish,
