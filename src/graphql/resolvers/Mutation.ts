@@ -262,6 +262,22 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     await api.setTaskSkill(userAddress, id, ethSkillId)
     return data.getTaskById(id)
   },
+  async removeTaskSkill(
+    parent,
+    { input: { id, ethSkillId } },
+    { userAddress, api, dataSources: { data, auth } },
+  ) {
+    const { colonyAddress, ethDomainId } = await data.getTaskById(id)
+    await tryAuth(
+      auth.assertCanRemoveTaskSkill({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
+    )
+    await api.removeTaskSkill(userAddress, id, ethSkillId)
+    return data.getTaskById(id)
+  },
   async setTaskDueDate(
     parent,
     { input: { id, dueDate } },

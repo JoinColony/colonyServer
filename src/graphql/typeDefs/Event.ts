@@ -95,6 +95,12 @@ export default gql`
     ethSkillId: Int!
   }
 
+  type RemoveTaskSkillEvent implements TaskEvent {
+    type: EventType!
+    taskId: String!
+    ethSkillId: Int!
+  }
+
   type SetTaskTitleEvent implements TaskEvent {
     type: EventType!
     taskId: String!
@@ -126,6 +132,7 @@ export default gql`
     | SetTaskDueDateEvent
     | SetTaskPayoutEvent
     | SetTaskSkillEvent
+    | RemoveTaskSkillEvent
     | SetTaskTitleEvent
     | TaskMessageEvent
     | UnassignWorkerEvent

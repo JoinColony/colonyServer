@@ -40,6 +40,11 @@ export default gql`
     ethSkillId: Int!
   }
 
+  input RemoveTaskSkillInput {
+    id: String!
+    ethSkillId: Int!
+  }
+
   input SetTaskTitleInput {
     id: String!
     title: String!
@@ -198,6 +203,7 @@ export default gql`
     setTaskDueDate(input: SetTaskDueDateInput!): Task
     setTaskPayout(input: SetTaskPayoutInput!): Task
     setTaskSkill(input: SetTaskSkillInput!): Task
+    removeTaskSkill(input: RemoveTaskSkillInput!): Task
     setTaskTitle(input: SetTaskTitleInput!): Task
     unassignWorker(input: UnassignWorkerInput!): Task
     # Users

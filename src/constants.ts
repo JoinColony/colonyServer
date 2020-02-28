@@ -16,6 +16,7 @@ export enum EventType {
   SetTaskDueDate = 'SetTaskDueDate',
   SetTaskPayout = 'SetTaskPayout',
   SetTaskSkill = 'SetTaskSkill',
+  RemoveTaskSkill = 'RemoveTaskSkill',
   SetTaskTitle = 'SetTaskTitle',
   NewUser = 'NewUser',
   TaskMessage = 'TaskMessage',
