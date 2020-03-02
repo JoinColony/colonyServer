@@ -40,19 +40,15 @@ import { CollectionNames } from './collections'
 import { matchUsernames } from './matchers'
 
 export class ColonyMongoApi {
-  private static profileModifier(profile: Record<string, any>) {
+  private static createEditUpdater(edit: Record<string, any>) {
     // Set non-null values, unset null values
-    return Object.keys(profile).reduce(
-      (modifier, field) => ({
-        ...(profile[field] === null
-          ? { ...modifier, $unset: { ...modifier.$unset, [field]: '' } }
-          : {
-              ...modifier,
-              $set: { ...modifier.$set, [field]: profile[field] },
-            }),
-      }),
-      {} as { $set?: {}; $unset?: {} },
-    )
+    return Object.keys(edit).reduce((modifier, field) => {
+      if (typeof edit[field] == 'undefined') return modifier
+      if (edit[field] === null) {
+        return { ...modifier, $unset: { ...modifier.$unset, [field]: '' } }
+      }
+      return { ...modifier, $set: { ...modifier.$set, [field]: edit[field] } }
+    }, {} as { $set?: {}; $unset?: {} })
   }
 
   private readonly colonies: Collection<ColonyDoc>
@@ -397,7 +393,7 @@ export class ColonyMongoApi {
     return this.updateUser(
       initiator,
       {},
-      ColonyMongoApi.profileModifier(profile),
+      ColonyMongoApi.createEditUpdater(profile),
     )
   }
 
@@ -503,7 +499,7 @@ export class ColonyMongoApi {
     return this.updateColony(
       colonyAddress,
       {},
-      ColonyMongoApi.profileModifier(profile),
+      ColonyMongoApi.createEditUpdater(profile),
     )
   }
 
@@ -999,28 +995,21 @@ export class ColonyMongoApi {
     initiator: string,
     id: string,
     {
-      status,
       taskId,
-      title,
-    }: { status?: SuggestionStatus; taskId?: string; title?: string },
+      ...edit
+    }: {
+      status?: SuggestionStatus
+      taskId?: string | null
+      title?: string | null
+    },
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetSuggestion(id)
-    const edit = {} as {
-      status?: SuggestionStatus
-      taskId?: ObjectID
-      title?: string
-    }
-    if (status) {
-      edit.status = status
-    }
-    if (title) {
-      edit.title = title
-    }
-    if (taskId) {
-      edit.taskId = new ObjectID(taskId)
-    }
-    return this.suggestions.updateOne({ _id: new ObjectID(id) }, { $set: edit })
+    const update = ColonyMongoApi.createEditUpdater({
+      ...edit,
+      taskId: taskId ? new ObjectID(taskId) : undefined,
+    })
+    return this.suggestions.updateOne({ _id: new ObjectID(id) }, update)
   }
 
   async addUpvoteToSuggestion(initiator: string, id: string) {
@@ -1089,33 +1078,13 @@ export class ColonyMongoApi {
   async editPersistentTask(
     initiator: string,
     id: string,
-    {
-      ethDomainId,
-      ethSkillId,
-      title,
-      description,
-    }: Omit<EditPersistentTaskInput, 'id'>,
+    edit: Omit<EditPersistentTaskInput, 'id'>,
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetPersistentTask(id)
 
-    const edit = {} as Omit<EditPersistentTaskInput, 'id'>
-    if (ethDomainId) {
-      edit.ethDomainId = ethDomainId
-    }
-    if (ethSkillId) {
-      edit.ethSkillId = ethSkillId
-    }
-    if (title) {
-      edit.title = title
-    }
-    if (description) {
-      edit.description = description
-    }
-    return this.persistentTasks.updateOne(
-      { _id: new ObjectID(id) },
-      { $set: edit },
-    )
+    const update = ColonyMongoApi.createEditUpdater(edit)
+    return this.persistentTasks.updateOne({ _id: new ObjectID(id) }, update)
   }
 
   async setPersistentTaskPayout(
@@ -1248,26 +1217,16 @@ export class ColonyMongoApi {
   async editSubmission(
     initiator: string,
     id: string,
-    { submission, status }: { submission?: string; status?: SubmissionStatus },
+    edit: { submission?: string | null; status?: SubmissionStatus },
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetSubmission(id)
 
-    const edit = { statusChangedAt: new Date() } as {
-      statusChangedAt: Date
-      submission?: string
-      status?: SubmissionStatus
-    }
-
-    if (submission) {
-      edit.submission = submission
-    }
-
-    if (status) {
-      edit.status = status
-    }
-
-    return this.submissions.updateOne({ _id: new ObjectID(id) }, { $set: edit })
+    const update = ColonyMongoApi.createEditUpdater({
+      ...edit,
+      statusChangedAt: new Date(),
+    })
+    return this.submissions.updateOne({ _id: new ObjectID(id) }, update)
   }
 
   async createProgram(initiator: string, colonyAddress: string) {
@@ -1288,40 +1247,21 @@ export class ColonyMongoApi {
   async editProgram(
     initiator: string,
     id: string,
-    {
-      title,
-      description,
-      status,
-    }: {
-      title?: string
-      description?: string
+    edit: {
+      title?: string | null
+      description?: string | null
       status?: ProgramStatus
     },
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetProgram(id)
 
-    const update = {} as {
-      title?: string
-      description?: string
-      status?: ProgramStatus
-    }
-
-    if (title) {
-      update.title = title
-    }
-    if (typeof description === 'string') {
-      update.description = description
-    }
-    if (status) {
-      update.status = status
-    }
-
+    const update = ColonyMongoApi.createEditUpdater(edit)
     return this.programs.updateOne(
       {
         _id: new ObjectID(id),
       },
-      { $set: update },
+      update,
     )
   }
 
@@ -1405,52 +1345,23 @@ export class ColonyMongoApi {
   async editLevel(
     initiator: string,
     id: string,
-    {
-      title,
-      description,
-      achievement,
-      numRequiredSteps,
-      status,
-    }: {
-      title?: string
-      description?: string
-      achievement?: string
-      numRequiredSteps?: number
+    edit: {
+      title?: string | null 
+      description?: string | null
+      achievement?: string | null
+      numRequiredSteps?: number | null
       status?: LevelStatus
     },
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetLevel(id)
 
-    const update = {} as {
-      title?: string
-      description?: string
-      achievement?: string
-      numRequiredSteps?: number
-      status?: LevelStatus
-    }
-
-    if (title) {
-      update.title = title
-    }
-    if (description) {
-      update.description = description
-    }
-    if (achievement) {
-      update.achievement = achievement
-    }
-    if (numRequiredSteps) {
-      update.numRequiredSteps = numRequiredSteps
-    }
-    if (status) {
-      update.status = status
-    }
-
+    const update = ColonyMongoApi.createEditUpdater(edit);
     return this.levels.updateOne(
       {
         _id: new ObjectID(id),
       },
-      { $set: update },
+      update,
     )
   }
 
