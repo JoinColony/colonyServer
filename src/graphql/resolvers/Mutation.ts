@@ -537,36 +537,6 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     await api.editPersistentTask(userAddress, id, update)
     return data.getPersistentTaskById(id)
   },
-  async setPersistentTaskPayout(
-    parent,
-    { input: { id, amount, tokenAddress } },
-    { userAddress, api, dataSources: { data, auth } },
-  ) {
-    const { colonyAddress } = await data.getPersistentTaskById(id)
-    await tryAuth(
-      auth.assertCanEditPersistentTask({
-        colonyAddress,
-        userAddress,
-      }),
-    )
-    await api.setPersistentTaskPayout(userAddress, id, amount, tokenAddress)
-    return data.getPersistentTaskById(id)
-  },
-  async removePersistentTaskPayout(
-    parent,
-    { input: { id, amount, tokenAddress } },
-    { userAddress, api, dataSources: { data, auth } },
-  ) {
-    const { colonyAddress } = await data.getPersistentTaskById(id)
-    await tryAuth(
-      auth.assertCanEditPersistentTask({
-        colonyAddress,
-        userAddress,
-      }),
-    )
-    await api.removePersistentTaskPayout(userAddress, id, amount, tokenAddress)
-    return data.getPersistentTaskById(id)
-  },
   // Submissions
   async createLevelTaskSubmission(
     parent,
