@@ -191,6 +191,7 @@ export type EditPersistentTaskInput = {
   ethSkillId?: Maybe<Scalars['Int']>,
   title?: Maybe<Scalars['String']>,
   description?: Maybe<Scalars['String']>,
+  payouts?: Maybe<Array<Payout>>,
 };
 
 export type EditProgramInput = {
@@ -338,8 +339,6 @@ export type Mutation = {
   createLevelTask?: Maybe<PersistentTask>,
   removeLevelTask?: Maybe<PersistentTask>,
   editPersistentTask?: Maybe<PersistentTask>,
-  setPersistentTaskPayout?: Maybe<PersistentTask>,
-  removePersistentTaskPayout?: Maybe<PersistentTask>,
   /** Levels */
   createLevel?: Maybe<Level>,
   editLevel?: Maybe<Level>,
@@ -545,16 +544,6 @@ export type MutationEditPersistentTaskArgs = {
 };
 
 
-export type MutationSetPersistentTaskPayoutArgs = {
-  input: SetTaskPayoutInput
-};
-
-
-export type MutationRemovePersistentTaskPayoutArgs = {
-  input: RemoveTaskPayoutInput
-};
-
-
 export type MutationCreateLevelArgs = {
   input: CreateLevelInput
 };
@@ -614,6 +603,11 @@ export type Notification = {
   id: Scalars['String'],
   event: Event,
   read: Scalars['Boolean'],
+};
+
+export type Payout = {
+  amount: Scalars['String'],
+  tokenAddress: Scalars['String'],
 };
 
 export type PersistentTask = {
@@ -1082,8 +1076,6 @@ export type TypeResolveFn<TTypes, TParent = {}, TContext = {}> = (
   info: GraphQLResolveInfo
 ) => Maybe<TTypes>;
 
-export type isTypeOfResolverFn<T = {}> = (obj: T, info: GraphQLResolveInfo) => boolean;
-
 export type NextResolverFn<T> = () => Promise<T>;
 
 export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs = {}> = (
@@ -1182,6 +1174,7 @@ export type ResolversTypes = {
   CreateLevelTaskInput: CreateLevelTaskInput,
   RemoveLevelTaskInput: RemoveLevelTaskInput,
   EditPersistentTaskInput: EditPersistentTaskInput,
+  Payout: Payout,
   CreateLevelInput: CreateLevelInput,
   EditLevelInput: EditLevelInput,
   ReorderLevelStepsInput: ReorderLevelStepsInput,
@@ -1282,6 +1275,7 @@ export type ResolversParentTypes = {
   CreateLevelTaskInput: CreateLevelTaskInput,
   RemoveLevelTaskInput: RemoveLevelTaskInput,
   EditPersistentTaskInput: EditPersistentTaskInput,
+  Payout: Payout,
   CreateLevelInput: CreateLevelInput,
   EditLevelInput: EditLevelInput,
   ReorderLevelStepsInput: ReorderLevelStepsInput,
@@ -1298,13 +1292,11 @@ export type AssignWorkerEventResolvers<ContextType = any, ParentType extends Res
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   workerAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type CancelTaskEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['CancelTaskEvent'] = ResolversParentTypes['CancelTaskEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type ColonyResolvers<ContextType = any, ParentType extends ResolversParentTypes['Colony'] = ResolversParentTypes['Colony']> = {
@@ -1328,7 +1320,6 @@ export type ColonyResolvers<ContextType = any, ParentType extends ResolversParen
   subscribedUsers?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>,
   suggestions?: Resolver<Array<ResolversTypes['Suggestion']>, ParentType, ContextType>,
   tokenAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type ColonyEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['ColonyEvent'] = ResolversParentTypes['ColonyEvent']> = {
@@ -1341,7 +1332,6 @@ export type CreateDomainEventResolvers<ContextType = any, ParentType extends Res
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
   colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type CreateTaskEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['CreateTaskEvent'] = ResolversParentTypes['CreateTaskEvent']> = {
@@ -1349,13 +1339,11 @@ export type CreateTaskEventResolvers<ContextType = any, ParentType extends Resol
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
   colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type CreateWorkRequestEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['CreateWorkRequestEvent'] = ResolversParentTypes['CreateWorkRequestEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type DomainResolvers<ContextType = any, ParentType extends ResolversParentTypes['Domain'] = ResolversParentTypes['Domain']> = {
@@ -1368,7 +1356,6 @@ export type DomainResolvers<ContextType = any, ParentType extends ResolversParen
   colony?: Resolver<Maybe<ResolversTypes['Colony']>, ParentType, ContextType>,
   parent?: Resolver<Maybe<ResolversTypes['Domain']>, ParentType, ContextType>,
   tasks?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type EventResolvers<ContextType = any, ParentType extends ResolversParentTypes['Event'] = ResolversParentTypes['Event']> = {
@@ -1380,7 +1367,6 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   sourceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   sourceType?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   context?: Resolver<ResolversTypes['EventContext'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type EventContextResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventContext'] = ResolversParentTypes['EventContext']> = {
@@ -1390,7 +1376,6 @@ export type EventContextResolvers<ContextType = any, ParentType extends Resolver
 export type FinalizeTaskEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['FinalizeTaskEvent'] = ResolversParentTypes['FinalizeTaskEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export interface GraphQlDateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['GraphQLDateTime'], any> {
@@ -1452,8 +1437,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   createLevelTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationCreateLevelTaskArgs, 'input'>>,
   removeLevelTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemoveLevelTaskArgs, 'input'>>,
   editPersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationEditPersistentTaskArgs, 'input'>>,
-  setPersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationSetPersistentTaskPayoutArgs, 'input'>>,
-  removePersistentTaskPayout?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemovePersistentTaskPayoutArgs, 'input'>>,
   createLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationCreateLevelArgs, 'input'>>,
   editLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationEditLevelArgs, 'input'>>,
   reorderLevelSteps?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationReorderLevelStepsArgs, 'input'>>,
@@ -1468,14 +1451,12 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type NewUserEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['NewUserEvent'] = ResolversParentTypes['NewUserEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type NotificationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = {
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   event?: Resolver<ResolversTypes['Event'], ParentType, ContextType>,
   read?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type PersistentTaskResolvers<ContextType = any, ParentType extends ResolversParentTypes['PersistentTask'] = ResolversParentTypes['PersistentTask']> = {
@@ -1523,42 +1504,36 @@ export type RemoveTaskPayoutEventResolvers<ContextType = any, ParentType extends
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   tokenAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   amount?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type RemoveTaskSkillEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['RemoveTaskSkillEvent'] = ResolversParentTypes['RemoveTaskSkillEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   ethSkillId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type SendWorkInviteEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SendWorkInviteEvent'] = ResolversParentTypes['SendWorkInviteEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   workerAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type SetTaskDescriptionEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskDescriptionEvent'] = ResolversParentTypes['SetTaskDescriptionEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type SetTaskDomainEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskDomainEvent'] = ResolversParentTypes['SetTaskDomainEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type SetTaskDueDateEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskDueDateEvent'] = ResolversParentTypes['SetTaskDueDateEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   dueDate?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type SetTaskPayoutEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskPayoutEvent'] = ResolversParentTypes['SetTaskPayoutEvent']> = {
@@ -1566,21 +1541,18 @@ export type SetTaskPayoutEventResolvers<ContextType = any, ParentType extends Re
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   tokenAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   amount?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type SetTaskSkillEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskSkillEvent'] = ResolversParentTypes['SetTaskSkillEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   ethSkillId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type SetTaskTitleEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskTitleEvent'] = ResolversParentTypes['SetTaskTitleEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type SubmissionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Submission'] = ResolversParentTypes['Submission']> = {
@@ -1605,12 +1577,10 @@ export type SuggestionResolvers<ContextType = any, ParentType extends ResolversP
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   taskId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   upvotes?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type SystemInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['SystemInfo'] = ResolversParentTypes['SystemInfo']> = {
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type TaskResolvers<ContextType = any, ParentType extends ResolversParentTypes['Task'] = ResolversParentTypes['Task']> = {
@@ -1637,7 +1607,6 @@ export type TaskResolvers<ContextType = any, ParentType extends ResolversParentT
   workRequestAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   events?: Resolver<Array<ResolversTypes['Event']>, ParentType, ContextType>,
   payouts?: Resolver<Array<ResolversTypes['TaskPayout']>, ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type TaskEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['TaskEvent'] = ResolversParentTypes['TaskEvent']> = {
@@ -1650,13 +1619,11 @@ export type TaskMessageEventResolvers<ContextType = any, ParentType extends Reso
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type TaskPayoutResolvers<ContextType = any, ParentType extends ResolversParentTypes['TaskPayout'] = ResolversParentTypes['TaskPayout']> = {
   amount?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   tokenAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type TokenInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['TokenInfo'] = ResolversParentTypes['TokenInfo']> = {
@@ -1667,14 +1634,12 @@ export type TokenInfoResolvers<ContextType = any, ParentType extends ResolversPa
   decimals?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
   symbol?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   verified?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type UnassignWorkerEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['UnassignWorkerEvent'] = ResolversParentTypes['UnassignWorkerEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   workerAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
@@ -1687,7 +1652,6 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   taskIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   tokenAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType, UserNotificationsArgs>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type UserProfileResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserProfile'] = ResolversParentTypes['UserProfile']> = {
@@ -1698,7 +1662,6 @@ export type UserProfileResolvers<ContextType = any, ParentType extends Resolvers
   location?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   walletAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type Resolvers<ContextType = any> = {
