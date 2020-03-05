@@ -19,5 +19,6 @@ export default gql`
     payouts: [TaskPayout!]!
     submissions: [Submission!]!
     status: PersistentTaskStatus!
+    currentUserSubmission: Submission
   }
 `

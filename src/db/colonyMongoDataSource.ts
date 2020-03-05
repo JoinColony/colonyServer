@@ -214,7 +214,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       createdAt: _id.getTimestamp(),
       programId: programId.toHexString(),
       steps: undefined,
-      unlocked: undefined
+      unlocked: undefined,
     }
   }
 
@@ -266,6 +266,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       createdAt: _id.getTimestamp(),
       payouts: payouts.map(payout => ({ ...payout, token: undefined })),
       submissions: [],
+      currentUserSubmission: undefined,
     }
   }
 
@@ -395,6 +396,30 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       ? await this.collections.submissions.findManyByQuery(query, { ttl })
       : await this.collections.submissions.collection.find(query).toArray()
     return docs.map(ColonyMongoDataSource.transformSubmission)
+  }
+
+  async getUserSubmissionForTask(
+    id: string,
+    creatorAddress: string,
+    ttl?: number,
+  ) {
+    const query = { persistentTaskId: new ObjectID(id), creatorAddress }
+    let doc: SubmissionDoc
+    if (ttl) {
+      const docs = await this.collections.submissions.findManyByQuery(query, {
+        ttl,
+      })
+      doc = docs[0]
+    } else {
+      doc = await this.collections.submissions.collection.findOne(query)
+    }
+
+    if (!doc)
+      throw new Error(
+        `Submission for task '${id}' and user '${creatorAddress}' not found`,
+      )
+
+    return ColonyMongoDataSource.transformSubmission(doc)
   }
 
   async getProgramSubmissions(programId: string, ttl?: number) {
@@ -670,7 +695,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   async getUserCompletedLevels(address: string, ttl?: number) {
-    const query = { completedBy: address, status: { $ne: LevelStatus.Deleted } };
+    const query = { completedBy: address, status: { $ne: LevelStatus.Deleted } }
     const levels = ttl
       ? await this.collections.levels.findManyByQuery(query, { ttl })
       : await this.collections.levels.collection.find(query).toArray()
