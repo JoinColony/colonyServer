@@ -19,4 +19,18 @@ export default gql`
     statusChangedAt: GraphQLDateTime
     task: PersistentTask!
   }
+
+  type ProgramSubmission {
+    id: String! # mongodb ObjectId
+    createdAt: GraphQLDateTime!
+    creatorAddress: String!
+    creator: User! # resolved
+    persistentTaskId: String!
+    submission: String!
+    status: SubmissionStatus!
+    statusChangedAt: GraphQLDateTime
+    task: PersistentTask! # resolved
+    levelId: String!
+    level: Level! # resolved
+  }
 `

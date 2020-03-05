@@ -19,6 +19,6 @@ export default gql`
     enrolledUserAddresses: [String!]!
     enrolled: Boolean! # Current user is enrolled
     status: ProgramStatus!
-    submissions: [Submission!]!
+    submissions: [ProgramSubmission!]!
   }
 `
