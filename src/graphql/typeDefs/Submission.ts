@@ -17,5 +17,6 @@ export default gql`
     submission: String!
     status: SubmissionStatus!
     statusChangedAt: GraphQLDateTime
+    task: PersistentTask!
   }
 `

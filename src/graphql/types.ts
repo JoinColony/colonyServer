@@ -887,6 +887,7 @@ export type Submission = {
   submission: Scalars['String'],
   status: SubmissionStatus,
   statusChangedAt?: Maybe<Scalars['GraphQLDateTime']>,
+  task: PersistentTask,
 };
 
 export enum SubmissionStatus {
@@ -1596,6 +1597,7 @@ export type SubmissionResolvers<ContextType = any, ParentType extends ResolversP
   submission?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   status?: Resolver<ResolversTypes['SubmissionStatus'], ParentType, ContextType>,
   statusChangedAt?: Resolver<Maybe<ResolversTypes['GraphQLDateTime']>, ParentType, ContextType>,
+  task?: Resolver<ResolversTypes['PersistentTask'], ParentType, ContextType>,
 };
 
 export type SuggestionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Suggestion'] = ResolversParentTypes['Suggestion']> = {

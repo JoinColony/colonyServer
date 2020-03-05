@@ -193,6 +193,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       createdAt: _id.getTimestamp(),
       creator: undefined,
       persistentTaskId: persistentTaskId.toHexString(),
+      task: undefined,
     }
   }
 
