@@ -117,6 +117,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       id: profile.walletAddress,
       createdAt: _id.getTimestamp(),
       colonies: [],
+      completedLevels: [],
       notifications: [],
       tasks: [],
       colonyAddresses,
@@ -135,6 +136,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       notifications: [],
       tasks: [],
       colonyAddresses: [],
+      completedLevels: [],
       tokenAddresses: [],
       taskIds: [],
       profile: {
@@ -665,6 +667,14 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return this.getUserNotifications(address, {
       users: { address, read: false },
     })
+  }
+
+  async getUserCompletedLevels(address: string, ttl?: number) {
+    const query = { completedBy: address, status: { $ne: LevelStatus.Deleted } };
+    const levels = ttl
+      ? await this.collections.levels.findManyByQuery(query, { ttl })
+      : await this.collections.levels.collection.find(query).toArray()
+    return levels.map(ColonyMongoDataSource.transformLevel)
   }
 
   async getTaskEvents(taskId: string, ttl?: number) {

@@ -19,7 +19,7 @@ export const User: UserResolvers<ApolloContext> = {
     { userAddress, dataSources: { data } },
   ) {
     // Only find notifications for the current user
-    if (id !== userAddress) return null
+    if (id !== userAddress) return []
 
     if (read === false) {
       return data.getUnreadUserNotifications(userAddress)
@@ -28,5 +28,8 @@ export const User: UserResolvers<ApolloContext> = {
     } else {
       return data.getAllUserNotifications(userAddress)
     }
+  },
+  completedLevels({ id }, input, { dataSources: { data } }) {
+    return data.getUserCompletedLevels(id);
   },
 }

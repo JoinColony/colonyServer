@@ -1015,6 +1015,7 @@ export type User = {
   taskIds: Array<Scalars['String']>,
   tokenAddresses: Array<Scalars['String']>,
   notifications: Array<Notification>,
+  completedLevels: Array<Level>,
 };
 
 
@@ -1684,6 +1685,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   taskIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   tokenAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType, UserNotificationsArgs>,
+  completedLevels?: Resolver<Array<ResolversTypes['Level']>, ParentType, ContextType>,
 };
 
 export type UserProfileResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserProfile'] = ResolversParentTypes['UserProfile']> = {
