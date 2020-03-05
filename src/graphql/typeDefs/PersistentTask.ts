@@ -13,6 +13,7 @@ export default gql`
     colonyAddress: String!
     creatorAddress: String!
     ethDomainId: Int
+    domain: Domain
     ethSkillId: Int
     title: String
     description: String
