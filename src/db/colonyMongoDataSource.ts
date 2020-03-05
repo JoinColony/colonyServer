@@ -11,6 +11,7 @@ import {
   NotificationDoc,
   PersistentTaskDoc,
   ProgramDoc,
+  ProgramSubmissionDoc,
   SubmissionDoc,
   SuggestionDoc,
   TaskDoc,
@@ -28,6 +29,7 @@ import {
   PersistentTaskStatus,
   Program,
   ProgramStatus,
+  ProgramSubmission,
   Submission,
   SubmissionStatus,
   Suggestion,
@@ -194,6 +196,18 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       creator: undefined,
       persistentTaskId: persistentTaskId.toHexString(),
       task: undefined,
+    }
+  }
+
+  private static transformProgramSubmission({
+    levelId,
+    ...doc
+  }: ProgramSubmissionDoc): ProgramSubmission {
+    return {
+      ...ColonyMongoDataSource.transformSubmission(doc),
+      __typename: 'ProgramSubmission',
+      levelId,
+      level: undefined,
     }
   }
 
@@ -445,6 +459,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
               in: { $toObjectId: '$$stepStringId' },
             },
           },
+          levelId: '$_id',
         },
       },
       // 3. Look up persistent tasks for the given stepIds
@@ -458,22 +473,45 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       },
       // 4. Flatten persisten task arrays
       { $unwind: '$persistentTasks' },
-      // 5. Look up all submissions for the given persistent tasks
+      // 5. Do some projections to store variables
+      {
+        $project: {
+          levelId: 1,
+          persistentTaskId: '$persistentTasks._id',
+        },
+      },
+      // 6. Look up all submissions for the given persistent tasks
       {
         $lookup: {
           from: this.collections.submissions.collection.collectionName,
-          localField: 'persistentTasks._id',
-          foreignField: 'persistentTaskId',
+          let: { persistentTaskId: '$persistentTaskId', levelId: '$levelId' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$persistentTaskId', '$$persistentTaskId'] },
+                    { $eq: ['$status', SubmissionStatus.Open] },
+                  ],
+                },
+              },
+            },
+            {
+              $addFields: {
+                levelId: '$$levelId',
+              },
+            },
+          ],
           as: 'submissions',
         },
       },
-      // 6. Flatten all submissions arrays
+      // 7. Flatten all submissions arrays
       { $unwind: '$submissions' },
-      // 7. Replace the root documents with the submission docs (so we end up with SubmissionDocs)
+      // 8. Replace the root documents with the submission docs (so we end up with SubmissionDocs)
       { $replaceRoot: { newRoot: '$submissions' } },
     ])
-    const submissions = await docs.toArray()
-    return submissions.map(ColonyMongoDataSource.transformSubmission)
+    const submissions = (await docs.toArray() as ProgramSubmissionDoc[])
+    return submissions.map(ColonyMongoDataSource.transformProgramSubmission)
   }
 
   async getSubmissionById(id: string, ttl?: number) {

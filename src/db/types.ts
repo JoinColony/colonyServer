@@ -136,6 +136,10 @@ export interface SuggestionDoc extends MongoDoc {
   title: string
 }
 
+export interface ProgramSubmissionDoc extends SubmissionDoc {
+  levelId: string
+}
+
 export interface TaskDoc extends MongoDoc {
   colonyAddress: string
   creatorAddress: string
