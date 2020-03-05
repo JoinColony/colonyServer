@@ -627,6 +627,7 @@ export type PersistentTask = {
   payouts: Array<TaskPayout>,
   submissions: Array<Submission>,
   status: PersistentTaskStatus,
+  currentUserSubmission?: Maybe<Submission>,
 };
 
 export enum PersistentTaskStatus {
@@ -1492,6 +1493,7 @@ export type PersistentTaskResolvers<ContextType = any, ParentType extends Resolv
   payouts?: Resolver<Array<ResolversTypes['TaskPayout']>, ParentType, ContextType>,
   submissions?: Resolver<Array<ResolversTypes['Submission']>, ParentType, ContextType>,
   status?: Resolver<ResolversTypes['PersistentTaskStatus'], ParentType, ContextType>,
+  currentUserSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType>,
 };
 
 export type ProgramResolvers<ContextType = any, ParentType extends ResolversParentTypes['Program'] = ResolversParentTypes['Program']> = {
