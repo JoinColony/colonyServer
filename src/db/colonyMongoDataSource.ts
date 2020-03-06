@@ -429,11 +429,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       doc = await this.collections.submissions.collection.findOne(query)
     }
 
-    if (!doc)
-      throw new Error(
-        `Submission for task '${id}' and user '${creatorAddress}' not found`,
-      )
-
+    if (!doc) return null;
     return ColonyMongoDataSource.transformSubmission(doc)
   }
 
