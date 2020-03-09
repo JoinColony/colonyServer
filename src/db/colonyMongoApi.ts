@@ -1087,11 +1087,20 @@ export class ColonyMongoApi {
 
   async removeLevelTask(initiator: string, taskId: string, levelId: string) {
     await this.tryGetPersistentTask(taskId)
-    await this.tryGetLevel(levelId)
+    const { numRequiredSteps, stepIds } = await this.tryGetLevel(levelId)
+
+    const update: {
+      $pull: { stepIds: string }
+      $set?: { numRequiredSteps: number }
+    } = { $pull: { stepIds: taskId } }
+
+    if (numRequiredSteps > stepIds.length - 1) {
+      update.$set = { numRequiredSteps: stepIds.length - 1 }
+    }
 
     await this.levels.updateOne(
       { _id: new ObjectID(levelId) },
-      { $pull: { stepIds: taskId } },
+      update,
     )
 
     return this.persistentTasks.updateOne(
@@ -1371,7 +1380,7 @@ export class ColonyMongoApi {
     initiator: string,
     id: string,
     edit: {
-      title?: string | null 
+      title?: string | null
       description?: string | null
       achievement?: string | null
       numRequiredSteps?: number | null
@@ -1381,7 +1390,7 @@ export class ColonyMongoApi {
     await this.tryGetUser(initiator)
     await this.tryGetLevel(id)
 
-    const update = ColonyMongoApi.createEditUpdater(edit);
+    const update = ColonyMongoApi.createEditUpdater(edit)
     return this.levels.updateOne(
       {
         _id: new ObjectID(id),
