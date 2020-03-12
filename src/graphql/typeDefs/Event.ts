@@ -38,7 +38,7 @@ export default gql`
     type: EventType!
     taskId: String!
     ethDomainId: Int!
-    colonyAddress: String!
+    colonyAddress: String
   }
 
   type CreateWorkRequestEvent implements TaskEvent {
@@ -111,6 +111,7 @@ export default gql`
     type: EventType!
     taskId: String!
     message: String!
+    colonyAddress: String
   }
 
   type NewUserEvent {

@@ -434,10 +434,11 @@ export const Mutation: MutationResolvers<ApolloContext> = {
   async sendTaskMessage(
     parent,
     { input: { id, message } },
-    { userAddress, api },
+    { userAddress, api, dataSources: { data }},
   ) {
     // No auth call needed; anyone can do this (for now...?)
-    await api.sendTaskMessage(userAddress, id, message)
+    const { colonyAddress } = await data.getTaskById(id)
+    await api.sendTaskMessage(userAddress, id, message, colonyAddress)
     return true
   },
   // Domains
