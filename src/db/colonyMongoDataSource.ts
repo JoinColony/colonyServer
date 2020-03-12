@@ -429,7 +429,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       doc = await this.collections.submissions.collection.findOne(query)
     }
 
-    if (!doc) return null;
+    if (!doc) return null
     return ColonyMongoDataSource.transformSubmission(doc)
   }
 
@@ -506,7 +506,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       // 8. Replace the root documents with the submission docs (so we end up with SubmissionDocs)
       { $replaceRoot: { newRoot: '$submissions' } },
     ])
-    const submissions = (await docs.toArray() as ProgramSubmissionDoc[])
+    const submissions = (await docs.toArray()) as ProgramSubmissionDoc[]
     return submissions.map(ColonyMongoDataSource.transformProgramSubmission)
   }
 
@@ -619,10 +619,11 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     if (!enrolledUserAddresses.includes(userAddress)) {
       return []
     }
-    const completedLevelIds = await this.collections.levels.collection.distinct(
+    const completedLevelObjectIds = await this.collections.levels.collection.distinct(
       '_id',
       levelQuery,
     )
+    const completedLevelIds = completedLevelObjectIds.map(id => id.toString())
     const [nextLevelId] = levelIds.filter(
       levelId => !completedLevelIds.includes(levelId),
     )
