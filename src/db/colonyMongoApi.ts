@@ -1039,6 +1039,7 @@ export class ColonyMongoApi {
     const { insertedId } = await this.persistentTasks.insertOne({
       colonyAddress,
       creatorAddress: initiator,
+      ethDomainId: ROOT_DOMAIN,
       payouts: [],
       status: PersistentTaskStatus.Active,
     })
