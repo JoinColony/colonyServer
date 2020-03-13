@@ -558,6 +558,7 @@ export type SetTaskDueDateEvent = TaskEvent & {
   type: EventType,
   taskId: Scalars['String'],
   dueDate: Scalars['GraphQLDateTime'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type SetTaskDueDateInput = {
@@ -1156,6 +1157,7 @@ export type SetTaskDueDateEventResolvers<ContextType = any, ParentType extends R
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   dueDate?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type SetTaskPayoutEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskPayoutEvent'] = ResolversParentTypes['SetTaskPayoutEvent']> = {

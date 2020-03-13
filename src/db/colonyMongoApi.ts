@@ -520,11 +520,13 @@ export class ColonyMongoApi {
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskDueDate, {
       taskId,
       dueDate,
+      colonyAddress,
     })
     return this.updateTask(
       taskId,

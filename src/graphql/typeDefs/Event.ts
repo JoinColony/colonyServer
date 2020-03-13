@@ -89,6 +89,7 @@ export default gql`
     type: EventType!
     taskId: String!
     dueDate: GraphQLDateTime!
+    colonyAddress: String
   }
 
   type SetTaskPayoutEvent implements TaskEvent {
