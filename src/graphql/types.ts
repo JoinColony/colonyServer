@@ -586,6 +586,7 @@ export type SetTaskSkillEvent = TaskEvent & {
   type: EventType,
   taskId: Scalars['String'],
   ethSkillId: Scalars['Int'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type SetTaskSkillInput = {
@@ -1173,6 +1174,7 @@ export type SetTaskSkillEventResolvers<ContextType = any, ParentType extends Res
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   ethSkillId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type SetTaskTitleEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskTitleEvent'] = ResolversParentTypes['SetTaskTitleEvent']> = {

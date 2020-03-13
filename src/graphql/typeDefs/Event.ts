@@ -104,6 +104,7 @@ export default gql`
     type: EventType!
     taskId: String!
     ethSkillId: Int!
+    colonyAddress: String
   }
 
   type RemoveTaskSkillEvent implements TaskEvent {
