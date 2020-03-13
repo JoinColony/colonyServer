@@ -53,6 +53,7 @@ export default gql`
   type FinalizeTaskEvent implements TaskEvent {
     type: EventType!
     taskId: String!
+    colonyAddress: String
   }
 
   type RemoveTaskPayoutEvent implements TaskEvent {

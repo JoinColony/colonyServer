@@ -203,6 +203,7 @@ export type FinalizeTaskEvent = TaskEvent & {
    __typename?: 'FinalizeTaskEvent',
   type: EventType,
   taskId: Scalars['String'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type FinalizeTaskInput = {
@@ -1050,6 +1051,7 @@ export type EventContextResolvers<ContextType = any, ParentType extends Resolver
 export type FinalizeTaskEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['FinalizeTaskEvent'] = ResolversParentTypes['FinalizeTaskEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export interface GraphQlDateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['GraphQLDateTime'], any> {
