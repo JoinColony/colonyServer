@@ -1074,10 +1074,7 @@ export class ColonyMongoApi {
       update.$set = { numRequiredSteps: stepIds.length - 1 }
     }
 
-    await this.levels.updateOne(
-      { _id: new ObjectID(levelId) },
-      update,
-    )
+    await this.levels.updateOne({ _id: new ObjectID(levelId) }, update)
 
     return this.persistentTasks.updateOne(
       { _id: new ObjectID(taskId) },
@@ -1334,12 +1331,14 @@ export class ColonyMongoApi {
 
   async createLevel(initiator: string, programId: string) {
     await this.tryGetUser(initiator)
-    await this.tryGetProgram(programId)
+    const { colonyAddress } = await this.tryGetProgram(programId)
+
+    const taskId = await this.createPersistentTask(initiator, colonyAddress)
 
     const { insertedId } = await this.levels.insertOne({
       creatorAddress: initiator,
       programId: new ObjectID(programId),
-      stepIds: [],
+      stepIds: [taskId],
       completedBy: [],
       status: LevelStatus.Active,
     })
