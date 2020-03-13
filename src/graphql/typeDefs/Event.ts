@@ -97,6 +97,7 @@ export default gql`
     taskId: String!
     tokenAddress: String!
     amount: String!
+    colonyAddress: String
   }
 
   type SetTaskSkillEvent implements TaskEvent {

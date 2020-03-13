@@ -572,6 +572,7 @@ export type SetTaskPayoutEvent = TaskEvent & {
   taskId: Scalars['String'],
   tokenAddress: Scalars['String'],
   amount: Scalars['String'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type SetTaskPayoutInput = {
@@ -1165,6 +1166,7 @@ export type SetTaskPayoutEventResolvers<ContextType = any, ParentType extends Re
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   tokenAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   amount?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type SetTaskSkillEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskSkillEvent'] = ResolversParentTypes['SetTaskSkillEvent']> = {
