@@ -170,15 +170,15 @@ describe('ColonyMongoDataSource', () => {
 
     const submissions = await data.getProgramSubmissions(programId.toString())
 
-    expect(submissions[0]).toMatchObject({
+    expect(submissions[0].submission).toMatchObject({
       creatorAddress: 'second',
       submission: 'My result',
     })
-    expect(submissions[1]).toMatchObject({
+    expect(submissions[1].submission).toMatchObject({
       creatorAddress: 'third',
       submission: 'My other result',
     })
-    expect(submissions[2]).toMatchObject({
+    expect(submissions[2].submission).toMatchObject({
       creatorAddress: 'third',
       submission: 'My other result for second task',
     })

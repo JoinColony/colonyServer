@@ -126,6 +126,11 @@ export interface SubmissionDoc extends MongoDoc {
   statusChangedAt: Date
 }
 
+export interface ProgramSubmissionDoc extends MongoDoc {
+  levelId: ObjectID
+  submission: SubmissionDoc
+}
+
 export interface SuggestionDoc extends MongoDoc {
   colonyAddress: string
   creatorAddress: string
@@ -134,10 +139,6 @@ export interface SuggestionDoc extends MongoDoc {
   upvotes: string[]
   taskId?: ObjectID
   title: string
-}
-
-export interface ProgramSubmissionDoc extends SubmissionDoc {
-  levelId: string
 }
 
 export interface TaskDoc extends MongoDoc {
