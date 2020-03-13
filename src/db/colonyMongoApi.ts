@@ -502,11 +502,13 @@ export class ColonyMongoApi {
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskDescription, {
       taskId,
       description,
+      colonyAddress,
     })
     return this.updateTask(taskId, {}, { $set: { description } })
   }

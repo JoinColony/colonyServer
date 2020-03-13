@@ -75,6 +75,7 @@ export default gql`
     type: EventType!
     taskId: String!
     description: String!
+    colonyAddress: String
   }
 
   type SetTaskDomainEvent implements TaskEvent {

@@ -532,6 +532,7 @@ export type SetTaskDescriptionEvent = TaskEvent & {
   type: EventType,
   taskId: Scalars['String'],
   description: Scalars['String'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type SetTaskDescriptionInput = {
@@ -1140,6 +1141,7 @@ export type SetTaskDescriptionEventResolvers<ContextType = any, ParentType exten
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type SetTaskDomainEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskDomainEvent'] = ResolversParentTypes['SetTaskDomainEvent']> = {
