@@ -28,6 +28,7 @@ export default gql`
   type CancelTaskEvent implements TaskEvent {
     type: EventType!
     taskId: String!
+    colonyAddress: String
   }
 
   type CreateDomainEvent implements ColonyEvent {

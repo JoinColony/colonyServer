@@ -33,6 +33,7 @@ export type CancelTaskEvent = TaskEvent & {
    __typename?: 'CancelTaskEvent',
   type: EventType,
   taskId: Scalars['String'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type Colony = {
@@ -967,6 +968,7 @@ export type AssignWorkerEventResolvers<ContextType = any, ParentType extends Res
 export type CancelTaskEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['CancelTaskEvent'] = ResolversParentTypes['CancelTaskEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type ColonyResolvers<ContextType = any, ParentType extends ResolversParentTypes['Colony'] = ResolversParentTypes['Colony']> = {
