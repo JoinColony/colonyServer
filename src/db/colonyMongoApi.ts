@@ -562,6 +562,7 @@ export class ColonyMongoApi {
     const { workRequestAddresses = [], creatorAddress } = await this.tryGetTask(
       taskId,
     )
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
 
@@ -574,7 +575,10 @@ export class ColonyMongoApi {
     const eventId = await this.createEvent(
       initiator,
       EventType.CreateWorkRequest,
-      { taskId },
+      {
+        taskId,
+        colonyAddress,
+      },
     )
     await this.createNotification(eventId, [creatorAddress])
 

@@ -41,11 +41,13 @@ export default gql`
     type: EventType!
     taskId: String!
     ethDomainId: Int!
+    colonyAddress: String
   }
 
   type CreateWorkRequestEvent implements TaskEvent {
     type: EventType!
     taskId: String!
+    colonyAddress: String
   }
 
   type FinalizeTaskEvent implements TaskEvent {
