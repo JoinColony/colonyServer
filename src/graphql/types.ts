@@ -474,6 +474,7 @@ export type RemoveTaskPayoutEvent = TaskEvent & {
   taskId: Scalars['String'],
   tokenAddress: Scalars['String'],
   amount: Scalars['String'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type RemoveTaskPayoutInput = {
@@ -1118,6 +1119,7 @@ export type RemoveTaskPayoutEventResolvers<ContextType = any, ParentType extends
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   tokenAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   amount?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type RemoveTaskSkillEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['RemoveTaskSkillEvent'] = ResolversParentTypes['RemoveTaskSkillEvent']> = {

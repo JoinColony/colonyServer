@@ -61,6 +61,7 @@ export default gql`
     taskId: String!
     tokenAddress: String!
     amount: String!
+    colonyAddress: String
   }
 
   type SendWorkInviteEvent implements TaskEvent {
