@@ -2238,6 +2238,7 @@ describe('Apollo Server', () => {
                 creatorAddress
                 programId
                 status
+                stepIds
               }
             }
           `,
@@ -2251,6 +2252,7 @@ describe('Apollo Server', () => {
             creatorAddress: ctxUserAddress,
             programId: id,
             status: LevelStatus.Active,
+            stepIds: [expect.any(String)],
           },
         },
         errors: undefined,
