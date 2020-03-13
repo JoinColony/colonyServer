@@ -545,6 +545,7 @@ export type SetTaskDomainEvent = TaskEvent & {
   type: EventType,
   taskId: Scalars['String'],
   ethDomainId: Scalars['Int'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type SetTaskDomainInput = {
@@ -1148,6 +1149,7 @@ export type SetTaskDomainEventResolvers<ContextType = any, ParentType extends Re
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type SetTaskDueDateEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskDueDateEvent'] = ResolversParentTypes['SetTaskDueDateEvent']> = {

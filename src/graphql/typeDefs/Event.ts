@@ -82,6 +82,7 @@ export default gql`
     type: EventType!
     taskId: String!
     ethDomainId: Int!
+    colonyAddress: String
   }
 
   type SetTaskDueDateEvent implements TaskEvent {
