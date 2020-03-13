@@ -509,6 +509,7 @@ export type SendWorkInviteEvent = TaskEvent & {
   type: EventType,
   taskId: Scalars['String'],
   workerAddress: Scalars['String'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type SendWorkInviteInput = {
@@ -1132,6 +1133,7 @@ export type SendWorkInviteEventResolvers<ContextType = any, ParentType extends R
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   workerAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type SetTaskDescriptionEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskDescriptionEvent'] = ResolversParentTypes['SetTaskDescriptionEvent']> = {

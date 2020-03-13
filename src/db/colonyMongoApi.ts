@@ -596,6 +596,7 @@ export class ColonyMongoApi {
   ) {
     await this.tryGetUser(initiator)
     const { workInviteAddresses = [] } = await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
 
@@ -608,7 +609,11 @@ export class ColonyMongoApi {
     const eventId = await this.createEvent(
       initiator,
       EventType.SendWorkInvite,
-      { taskId, workerAddress },
+      {
+        taskId,
+        workerAddress,
+        colonyAddress,
+      },
     )
     await this.createNotification(eventId, [workerAddress])
 

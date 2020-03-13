@@ -68,6 +68,7 @@ export default gql`
     type: EventType!
     taskId: String!
     workerAddress: String!
+    colonyAddress: String
   }
 
   type SetTaskDescriptionEvent implements TaskEvent {
