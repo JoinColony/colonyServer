@@ -488,6 +488,7 @@ export type RemoveTaskSkillEvent = TaskEvent & {
   type: EventType,
   taskId: Scalars['String'],
   ethSkillId: Scalars['Int'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type RemoveTaskSkillInput = {
@@ -1132,6 +1133,7 @@ export type RemoveTaskSkillEventResolvers<ContextType = any, ParentType extends 
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   ethSkillId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type SendWorkInviteEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SendWorkInviteEvent'] = ResolversParentTypes['SendWorkInviteEvent']> = {
