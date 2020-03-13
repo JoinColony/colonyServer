@@ -118,6 +118,7 @@ export default gql`
     type: EventType!
     taskId: String!
     title: String!
+    colonyAddress: String
   }
 
   type TaskMessageEvent implements TaskEvent {

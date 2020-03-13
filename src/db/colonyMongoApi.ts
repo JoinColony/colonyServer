@@ -489,9 +489,14 @@ export class ColonyMongoApi {
   async setTaskTitle(initiator: string, taskId: string, title: string) {
     await this.tryGetUser(initiator)
     await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
-    await this.createEvent(initiator, EventType.SetTaskTitle, { taskId, title })
+    await this.createEvent(initiator, EventType.SetTaskTitle, {
+      taskId,
+      title,
+      colonyAddress,
+    })
     return this.updateTask(taskId, {}, { $set: { title } })
   }
 

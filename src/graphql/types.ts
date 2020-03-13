@@ -600,6 +600,7 @@ export type SetTaskTitleEvent = TaskEvent & {
   type: EventType,
   taskId: Scalars['String'],
   title: Scalars['String'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type SetTaskTitleInput = {
@@ -1183,6 +1184,7 @@ export type SetTaskTitleEventResolvers<ContextType = any, ParentType extends Res
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type SuggestionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Suggestion'] = ResolversParentTypes['Suggestion']> = {
