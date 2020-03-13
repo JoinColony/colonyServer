@@ -21,6 +21,7 @@ export type AssignWorkerEvent = TaskEvent & {
   type: EventType,
   taskId: Scalars['String'],
   workerAddress: Scalars['String'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type AssignWorkerInput = {
@@ -670,6 +671,7 @@ export type TaskMessageEvent = TaskEvent & {
   type: EventType,
   taskId: Scalars['String'],
   message: Scalars['String'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type TaskPayout = {
@@ -959,6 +961,7 @@ export type AssignWorkerEventResolvers<ContextType = any, ParentType extends Res
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   workerAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type CancelTaskEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['CancelTaskEvent'] = ResolversParentTypes['CancelTaskEvent']> = {
@@ -1212,6 +1215,7 @@ export type TaskMessageEventResolvers<ContextType = any, ParentType extends Reso
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type TaskPayoutResolvers<ContextType = any, ParentType extends ResolversParentTypes['TaskPayout'] = ResolversParentTypes['TaskPayout']> = {

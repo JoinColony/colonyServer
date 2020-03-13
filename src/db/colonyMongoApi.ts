@@ -662,11 +662,13 @@ export class ColonyMongoApi {
   async assignWorker(initiator: string, taskId: string, workerAddress: string) {
     await this.tryGetUser(initiator)
     await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
     const eventId = await this.createEvent(initiator, EventType.AssignWorker, {
       taskId,
       workerAddress,
+      colonyAddress,
     })
     await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(

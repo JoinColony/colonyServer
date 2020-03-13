@@ -16,6 +16,7 @@ export default gql`
     type: EventType!
     taskId: String!
     workerAddress: String!
+    colonyAddress: String
   }
 
   type UnassignWorkerEvent implements TaskEvent {
@@ -111,6 +112,7 @@ export default gql`
     type: EventType!
     taskId: String!
     message: String!
+    colonyAddress: String
   }
 
   type NewUserEvent {
