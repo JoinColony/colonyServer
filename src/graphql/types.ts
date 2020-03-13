@@ -99,7 +99,6 @@ export type CreateTaskEvent = TaskEvent & {
   type: EventType,
   taskId: Scalars['String'],
   ethDomainId: Scalars['Int'],
-  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type CreateTaskFromSuggestionInput = {
@@ -659,6 +658,7 @@ export type Task = {
 export type TaskEvent = {
   type: EventType,
   taskId: Scalars['String'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type TaskIdInput = {
@@ -670,7 +670,6 @@ export type TaskMessageEvent = TaskEvent & {
   type: EventType,
   taskId: Scalars['String'],
   message: Scalars['String'],
-  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type TaskPayout = {
@@ -1005,7 +1004,6 @@ export type CreateTaskEventResolvers<ContextType = any, ParentType extends Resol
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
-  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type CreateWorkRequestEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['CreateWorkRequestEvent'] = ResolversParentTypes['CreateWorkRequestEvent']> = {
@@ -1207,13 +1205,13 @@ export type TaskEventResolvers<ContextType = any, ParentType extends ResolversPa
   __resolveType: TypeResolveFn<'AssignWorkerEvent' | 'CancelTaskEvent' | 'CreateTaskEvent' | 'CreateWorkRequestEvent' | 'FinalizeTaskEvent' | 'RemoveTaskPayoutEvent' | 'SendWorkInviteEvent' | 'SetTaskDescriptionEvent' | 'SetTaskDomainEvent' | 'SetTaskDueDateEvent' | 'SetTaskPayoutEvent' | 'SetTaskSkillEvent' | 'RemoveTaskSkillEvent' | 'SetTaskTitleEvent' | 'TaskMessageEvent' | 'UnassignWorkerEvent', ParentType, ContextType>,
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type TaskMessageEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['TaskMessageEvent'] = ResolversParentTypes['TaskMessageEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type TaskPayoutResolvers<ContextType = any, ParentType extends ResolversParentTypes['TaskPayout'] = ResolversParentTypes['TaskPayout']> = {

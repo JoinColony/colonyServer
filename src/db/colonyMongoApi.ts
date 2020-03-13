@@ -481,6 +481,7 @@ export class ColonyMongoApi {
     await this.createEvent(initiator, EventType.SetTaskDomain, {
       taskId,
       ethDomainId,
+      colonyAddress,
     })
     return this.updateTask(taskId, {}, { $set: { ethDomainId } })
   }
@@ -845,9 +846,10 @@ export class ColonyMongoApi {
     return this.updateDomain(colonyAddress, ethDomainId, {}, { $set: { name } })
   }
 
-  async sendTaskMessage(initiator: string, taskId: string, message: string, colonyAddress: string) {
+  async sendTaskMessage(initiator: string, taskId: string, message: string) {
     await this.tryGetUser(initiator)
     await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
     const eventId = await this.createEvent(initiator, EventType.TaskMessage, {
