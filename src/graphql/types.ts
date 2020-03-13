@@ -709,6 +709,7 @@ export type UnassignWorkerEvent = TaskEvent & {
   type: EventType,
   taskId: Scalars['String'],
   workerAddress: Scalars['String'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type UnassignWorkerInput = {
@@ -1263,6 +1264,7 @@ export type UnassignWorkerEventResolvers<ContextType = any, ParentType extends R
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   workerAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
