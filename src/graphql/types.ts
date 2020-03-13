@@ -658,16 +658,9 @@ export enum ProgramStatus {
 export type ProgramSubmission = {
    __typename?: 'ProgramSubmission',
   id: Scalars['String'],
-  createdAt: Scalars['GraphQLDateTime'],
-  creatorAddress: Scalars['String'],
-  creator: User,
-  persistentTaskId: Scalars['String'],
-  submission: Scalars['String'],
-  status: SubmissionStatus,
-  statusChangedAt?: Maybe<Scalars['GraphQLDateTime']>,
-  task: PersistentTask,
   levelId: Scalars['String'],
   level: Level,
+  submission: Submission,
 };
 
 export type PublishProgramInput = {
@@ -1513,16 +1506,9 @@ export type ProgramResolvers<ContextType = any, ParentType extends ResolversPare
 
 export type ProgramSubmissionResolvers<ContextType = any, ParentType extends ResolversParentTypes['ProgramSubmission'] = ResolversParentTypes['ProgramSubmission']> = {
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
-  creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>,
-  persistentTaskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  submission?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  status?: Resolver<ResolversTypes['SubmissionStatus'], ParentType, ContextType>,
-  statusChangedAt?: Resolver<Maybe<ResolversTypes['GraphQLDateTime']>, ParentType, ContextType>,
-  task?: Resolver<ResolversTypes['PersistentTask'], ParentType, ContextType>,
   levelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   level?: Resolver<ResolversTypes['Level'], ParentType, ContextType>,
+  submission?: Resolver<ResolversTypes['Submission'], ParentType, ContextType>,
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {

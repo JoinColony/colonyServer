@@ -200,14 +200,15 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   private static transformProgramSubmission({
+    _id,
     levelId,
-    ...doc
+    submission,
   }: ProgramSubmissionDoc): ProgramSubmission {
     return {
-      ...ColonyMongoDataSource.transformSubmission(doc),
-      __typename: 'ProgramSubmission',
-      levelId,
+      id: _id.toHexString(),
+      levelId: levelId.toHexString(),
       level: undefined,
+      submission: ColonyMongoDataSource.transformSubmission(submission),
     }
   }
 
@@ -441,7 +442,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       status: { $ne: LevelStatus.Deleted },
     }
     const docs = await this.collections.levels.collection.aggregate<
-      SubmissionDoc
+      ProgramSubmissionDoc
     >([
       // 1. Find all levels matching the above query
       { $match: query },
@@ -492,21 +493,22 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
                 },
               },
             },
-            {
-              $addFields: {
-                levelId: '$$levelId',
-              },
-            },
           ],
           as: 'submissions',
         },
       },
       // 7. Flatten all submissions arrays
       { $unwind: '$submissions' },
-      // 8. Replace the root documents with the submission docs (so we end up with SubmissionDocs)
-      { $replaceRoot: { newRoot: '$submissions' } },
+      // 8. Project to the final document shape
+      {
+        $project: {
+          _id: '$submissions._id',
+          levelId: 1,
+          submission: '$submissions',
+        },
+      },
     ])
-    const submissions = (await docs.toArray()) as ProgramSubmissionDoc[]
+    const submissions = await docs.toArray()
     return submissions.map(ColonyMongoDataSource.transformProgramSubmission)
   }
 
