@@ -9,7 +9,7 @@ export default gql`
 
   interface ColonyEvent {
     type: EventType!
-    colonyAddress: String!
+    colonyAddress: String
   }
 
   type AssignWorkerEvent implements TaskEvent {
@@ -35,7 +35,7 @@ export default gql`
   type CreateDomainEvent implements ColonyEvent {
     type: EventType!
     ethDomainId: Int!
-    colonyAddress: String!
+    colonyAddress: String
   }
 
   type CreateTaskEvent implements TaskEvent {

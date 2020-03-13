@@ -61,7 +61,7 @@ export type Colony = {
 
 export type ColonyEvent = {
   type: EventType,
-  colonyAddress: Scalars['String'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type CreateColonyInput = {
@@ -80,7 +80,7 @@ export type CreateDomainEvent = ColonyEvent & {
    __typename?: 'CreateDomainEvent',
   type: EventType,
   ethDomainId: Scalars['Int'],
-  colonyAddress: Scalars['String'],
+  colonyAddress?: Maybe<Scalars['String']>,
 };
 
 export type CreateDomainInput = {
@@ -1009,13 +1009,13 @@ export type ColonyResolvers<ContextType = any, ParentType extends ResolversParen
 export type ColonyEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['ColonyEvent'] = ResolversParentTypes['ColonyEvent']> = {
   __resolveType: TypeResolveFn<'CreateDomainEvent', ParentType, ContextType>,
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
-  colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type CreateDomainEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['CreateDomainEvent'] = ResolversParentTypes['CreateDomainEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
-  colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type CreateTaskEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['CreateTaskEvent'] = ResolversParentTypes['CreateTaskEvent']> = {
