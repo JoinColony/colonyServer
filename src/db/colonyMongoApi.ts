@@ -1190,6 +1190,7 @@ export class ColonyMongoApi {
     await this.tryGetPersistentTask(persistentTaskId)
 
     const existingSubmission = await this.submissions.findOne({
+      creatorAddress: initiator,
       persistentTaskId: new ObjectID(persistentTaskId),
       status: { $in: [SubmissionStatus.Accepted, SubmissionStatus.Open] },
     })
