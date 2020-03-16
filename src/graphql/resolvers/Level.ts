@@ -5,6 +5,9 @@ export const Level: LevelResolvers<ApolloContext> = {
   async steps({ id }, input, { dataSources: { data } }) {
     return data.getLevelTasks(id)
   },
+  async program({ programId }, input, { dataSources: { data } }) {
+    return data.getProgramById(programId);
+  },
   async unlocked(
     { id, programId },
     input,

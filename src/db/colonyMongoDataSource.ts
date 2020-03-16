@@ -229,6 +229,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       id: _id.toHexString(),
       createdAt: _id.getTimestamp(),
       programId: programId.toHexString(),
+      program: undefined,
       steps: undefined,
       unlocked: undefined,
     }
