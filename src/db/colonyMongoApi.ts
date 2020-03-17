@@ -1171,7 +1171,9 @@ export class ColonyMongoApi {
     const { creatorAddress: programCreator } = await this.tryGetProgram(
       programId.toString(),
     )
-    await this.tryGetPersistentTask(persistentTaskId)
+    const { creatorAddress: taskCreator } = await this.tryGetPersistentTask(
+      persistentTaskId,
+    )
 
     const existingSubmission = await this.submissions.findOne({
       creatorAddress: initiator,
@@ -1201,7 +1203,7 @@ export class ColonyMongoApi {
         submissionId,
       },
     )
-    await this.createNotification(eventId, [programCreator, levelCreator])
+    await this.createNotification(eventId, [programCreator, levelCreator, taskCreator])
 
     return submissionId
   }
