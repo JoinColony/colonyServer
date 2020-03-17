@@ -242,10 +242,13 @@ export class ColonyMongoApi {
     // No point in creating a notification for no users
     if (users.length === 0) return null
 
+    const uniqueUsers = Array.from(new Set(users))
+
     const doc = {
       eventId,
-      users: users.map(address => ({ address, read: false })),
+      users: uniqueUsers.map(address => ({ address, read: false })),
     }
+
     return this.notifications.updateOne(
       doc,
       {
