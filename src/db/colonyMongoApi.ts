@@ -481,16 +481,21 @@ export class ColonyMongoApi {
     await this.createEvent(initiator, EventType.SetTaskDomain, {
       taskId,
       ethDomainId,
+      colonyAddress,
     })
     return this.updateTask(taskId, {}, { $set: { ethDomainId } })
   }
 
   async setTaskTitle(initiator: string, taskId: string, title: string) {
     await this.tryGetUser(initiator)
-    await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
-    await this.createEvent(initiator, EventType.SetTaskTitle, { taskId, title })
+    await this.createEvent(initiator, EventType.SetTaskTitle, {
+      taskId,
+      title,
+      colonyAddress,
+    })
     return this.updateTask(taskId, {}, { $set: { title } })
   }
 
@@ -500,12 +505,13 @@ export class ColonyMongoApi {
     description: string,
   ) {
     await this.tryGetUser(initiator)
-    await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskDescription, {
       taskId,
       description,
+      colonyAddress,
     })
     return this.updateTask(taskId, {}, { $set: { description } })
   }
@@ -516,12 +522,13 @@ export class ColonyMongoApi {
     dueDate: string | null,
   ) {
     await this.tryGetUser(initiator)
-    await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskDueDate, {
       taskId,
       dueDate,
+      colonyAddress,
     })
     return this.updateTask(
       taskId,
@@ -534,33 +541,34 @@ export class ColonyMongoApi {
 
   async setTaskSkill(initiator: string, taskId: string, ethSkillId: number) {
     await this.tryGetUser(initiator)
-    await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskSkill, {
       taskId,
       ethSkillId,
+      colonyAddress,
     })
     return this.updateTask(taskId, {}, { $set: { ethSkillId } })
   }
 
   async removeTaskSkill(initiator: string, taskId: string, ethSkillId: number) {
     await this.tryGetUser(initiator)
-    await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.RemoveTaskSkill, {
       taskId,
       ethSkillId,
+      colonyAddress,
     })
     return this.updateTask(taskId, {}, { $unset: { ethSkillId: '' } })
   }
 
   async createWorkRequest(initiator: string, taskId: string) {
     await this.tryGetUser(initiator)
-    const { workRequestAddresses = [], creatorAddress } = await this.tryGetTask(
-      taskId,
-    )
+    const { workRequestAddresses = [], creatorAddress, colonyAddress } =
+      await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
 
@@ -573,7 +581,10 @@ export class ColonyMongoApi {
     const eventId = await this.createEvent(
       initiator,
       EventType.CreateWorkRequest,
-      { taskId },
+      {
+        taskId,
+        colonyAddress,
+      },
     )
     await this.createNotification(eventId, [creatorAddress])
 
@@ -590,7 +601,9 @@ export class ColonyMongoApi {
     workerAddress: string,
   ) {
     await this.tryGetUser(initiator)
-    const { workInviteAddresses = [] } = await this.tryGetTask(taskId)
+    const { workInviteAddresses = [], colonyAddress } = await this.tryGetTask(
+      taskId
+    )
 
     await this.subscribeToTask(initiator, taskId)
 
@@ -603,7 +616,11 @@ export class ColonyMongoApi {
     const eventId = await this.createEvent(
       initiator,
       EventType.SendWorkInvite,
-      { taskId, workerAddress },
+      {
+        taskId,
+        workerAddress,
+        colonyAddress,
+      },
     )
     await this.createNotification(eventId, [workerAddress])
 
@@ -621,7 +638,7 @@ export class ColonyMongoApi {
     tokenAddress: string,
   ) {
     await this.tryGetUser(initiator)
-    await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
     const payout = { amount, tokenAddress }
@@ -629,6 +646,7 @@ export class ColonyMongoApi {
       taskId,
       amount,
       tokenAddress,
+      colonyAddress,
     })
     await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(taskId, {}, { $push: { payouts: payout } })
@@ -641,7 +659,7 @@ export class ColonyMongoApi {
     tokenAddress: string,
   ) {
     await this.tryGetUser(initiator)
-    await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
     const payout = { amount, tokenAddress }
@@ -652,6 +670,7 @@ export class ColonyMongoApi {
         taskId,
         amount,
         tokenAddress,
+        colonyAddress,
       },
     )
     await this.createTaskNotification(initiator, eventId, taskId)
@@ -660,12 +679,13 @@ export class ColonyMongoApi {
 
   async assignWorker(initiator: string, taskId: string, workerAddress: string) {
     await this.tryGetUser(initiator)
-    await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
     const eventId = await this.createEvent(initiator, EventType.AssignWorker, {
       taskId,
       workerAddress,
+      colonyAddress,
     })
     await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(
@@ -682,7 +702,7 @@ export class ColonyMongoApi {
   ) {
     await this.tryGetUser(initiator)
     await this.tryGetUser(workerAddress)
-    await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
     const eventId = await this.createEvent(
@@ -691,6 +711,7 @@ export class ColonyMongoApi {
       {
         taskId,
         workerAddress,
+        colonyAddress,
       },
     )
     await this.createTaskNotification(initiator, eventId, taskId)
@@ -707,6 +728,7 @@ export class ColonyMongoApi {
   ) {
     await this.tryGetUser(initiator)
     const task = await this.tryGetTask(taskId)
+    const { colonyAddress } = task;
 
     if (
       !(task.payouts && task.payouts.length > 0) ||
@@ -720,6 +742,7 @@ export class ColonyMongoApi {
     await this.subscribeToTask(initiator, taskId)
     const eventId = await this.createEvent(initiator, EventType.FinalizeTask, {
       taskId,
+      colonyAddress,
     })
     await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(
@@ -731,11 +754,12 @@ export class ColonyMongoApi {
 
   async cancelTask(initiator: string, taskId: string) {
     await this.tryGetUser(initiator)
-    await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
     const eventId = await this.createEvent(initiator, EventType.CancelTask, {
       taskId,
+      colonyAddress,
     })
     await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(taskId, {}, { $set: { cancelledAt: new Date() } })
@@ -847,12 +871,13 @@ export class ColonyMongoApi {
 
   async sendTaskMessage(initiator: string, taskId: string, message: string) {
     await this.tryGetUser(initiator)
-    await this.tryGetTask(taskId)
+    const { colonyAddress } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
     const eventId = await this.createEvent(initiator, EventType.TaskMessage, {
       taskId,
       message,
+      colonyAddress,
     })
 
     const { username: currentUsername } = await this.tryGetUser(initiator)
