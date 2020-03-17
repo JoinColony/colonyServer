@@ -8,12 +8,13 @@ import {
 } from 'mongodb'
 import { toChecksumAddress } from 'web3-utils'
 
-import { EventType, ROOT_DOMAIN, AUTO_SUBSCRIBED_COLONIES } from '../constants'
+import { ROOT_DOMAIN, AUTO_SUBSCRIBED_COLONIES } from '../constants'
 import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
 import {
   EditPersistentTaskInput,
   EditSubmissionInput,
+  EventType,
   LevelStatus,
   PersistentTaskStatus,
   ProgramStatus,
@@ -1186,7 +1187,12 @@ export class ColonyMongoApi {
     levelId: string,
     submission: string,
   ) {
-    await this.tryGetLevel(levelId)
+    const { programId, creatorAddress: levelCreator } = await this.tryGetLevel(
+      levelId,
+    )
+    const { creatorAddress: programCreator } = await this.tryGetProgram(
+      programId.toString(),
+    )
     await this.tryGetPersistentTask(persistentTaskId)
 
     const existingSubmission = await this.submissions.findOne({
@@ -1207,6 +1213,18 @@ export class ColonyMongoApi {
       submission,
     )
 
+    const eventId = await this.createEvent(
+      initiator,
+      EventType.CreateLevelTaskSubmission,
+      {
+        programId: programId.toString(),
+        persistentTaskId,
+        levelId,
+        submissionId,
+      },
+    )
+    await this.createNotification(eventId, [programCreator, levelCreator])
+
     return submissionId
   }
 
@@ -1216,7 +1234,9 @@ export class ColonyMongoApi {
     levelId: string,
   ) {
     await this.tryGetUser(initiator)
-    const { stepIds, numRequiredSteps } = await this.tryGetLevel(levelId)
+    const { stepIds, numRequiredSteps, programId } = await this.tryGetLevel(
+      levelId,
+    )
     const { creatorAddress, persistentTaskId } = await this.tryGetSubmission(
       submissionId,
     )
@@ -1229,16 +1249,46 @@ export class ColonyMongoApi {
       status: SubmissionStatus.Accepted,
     })
 
+    const eventId = await this.createEvent(
+      initiator,
+      EventType.AcceptLevelTaskSubmission,
+      {
+        acceptedBy: initiator,
+        levelId,
+        persistentTaskId,
+        programId: programId.toString(),
+        submissionId,
+      },
+    )
+    await this.createNotification(eventId, [creatorAddress])
+
     const numAcceptedSteps = await this.countAcceptedLevelSubmissions(
       stepIds,
       creatorAddress,
     )
 
+    // User has completed a level
     if (numAcceptedSteps === numRequiredSteps) {
       await this.levels.updateOne(
         { _id: new ObjectID(levelId) },
         { $push: { completedBy: creatorAddress } },
       )
+      const { levelIds } = await this.tryGetProgram(programId.toString())
+      const levelIdx = levelIds.findIndex(id => id === levelId)
+      const nextLevelId = levelIdx ? levelIds[levelIdx + 1] || null : null
+
+      const eventId = await this.createEvent(
+        initiator,
+        EventType.UnlockNextLevel,
+        {
+          levelId,
+          nextLevelId,
+          persistentTaskId: persistentTaskId.toString(),
+          programId: programId.toString(),
+          submissionId,
+        },
+      )
+      await this.createNotification(eventId, [creatorAddress])
     }
   }
 
@@ -1295,7 +1345,16 @@ export class ColonyMongoApi {
 
   async enrollInProgram(initiator: string, id: string) {
     await this.tryGetUser(initiator)
-    await this.tryGetProgram(id)
+    const { creatorAddress } = await this.tryGetProgram(id)
+
+    const eventId = await this.createEvent(
+      initiator,
+      EventType.EnrollUserInProgram,
+      {
+        programId: id,
+      },
+    )
+    await this.createNotification(eventId, [creatorAddress])
 
     return this.programs.updateOne(
       {
