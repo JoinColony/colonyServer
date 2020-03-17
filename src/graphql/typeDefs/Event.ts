@@ -137,6 +137,8 @@ export default gql`
     type: EventType!
     acceptedBy: String!
     levelId: String!
+    payouts: [TaskPayout!]!
+    persistentTaskId: String!
     programId: String!
     submissionId: String!
   }

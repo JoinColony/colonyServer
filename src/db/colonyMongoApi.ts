@@ -676,8 +676,11 @@ export class ColonyMongoApi {
 
   async createWorkRequest(initiator: string, taskId: string) {
     await this.tryGetUser(initiator)
-    const { workRequestAddresses = [], creatorAddress, colonyAddress } =
-      await this.tryGetTask(taskId)
+    const {
+      workRequestAddresses = [],
+      creatorAddress,
+      colonyAddress,
+    } = await this.tryGetTask(taskId)
 
     await this.subscribeToTask(initiator, taskId)
 
@@ -711,7 +714,7 @@ export class ColonyMongoApi {
   ) {
     await this.tryGetUser(initiator)
     const { workInviteAddresses = [], colonyAddress } = await this.tryGetTask(
-      taskId
+      taskId,
     )
 
     await this.subscribeToTask(initiator, taskId)
@@ -837,7 +840,7 @@ export class ColonyMongoApi {
   ) {
     await this.tryGetUser(initiator)
     const task = await this.tryGetTask(taskId)
-    const { colonyAddress } = task;
+    const { colonyAddress } = task
 
     if (
       !(task.payouts && task.payouts.length > 0) ||
@@ -1228,7 +1231,11 @@ export class ColonyMongoApi {
         submissionId,
       },
     )
-    await this.createNotification(eventId, [programCreator, levelCreator, taskCreator])
+    await this.createNotification(eventId, [
+      programCreator,
+      levelCreator,
+      taskCreator,
+    ])
 
     return submissionId
   }
@@ -1245,6 +1252,9 @@ export class ColonyMongoApi {
     const { creatorAddress, persistentTaskId } = await this.tryGetSubmission(
       submissionId,
     )
+    const { payouts } = await this.tryGetPersistentTask(
+      persistentTaskId.toString(),
+    )
 
     if (!stepIds.includes(persistentTaskId.toString())) {
       throw new Error('Submission id not valid for this level')
@@ -1260,7 +1270,8 @@ export class ColonyMongoApi {
       {
         acceptedBy: initiator,
         levelId,
-        persistentTaskId,
+        payouts,
+        persistentTaskId: persistentTaskId.toString(),
         programId: programId.toString(),
         submissionId,
       },
