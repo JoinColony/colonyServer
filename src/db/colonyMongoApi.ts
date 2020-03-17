@@ -1201,18 +1201,13 @@ export class ColonyMongoApi {
       )
     }
 
-    const taskId = await this.createSubmission(
+    const submissionId = await this.createSubmission(
       initiator,
       persistentTaskId,
       submission,
     )
 
-    await this.levels.updateOne(
-      { _id: new ObjectID(levelId) },
-      { $addToSet: { stepIds: taskId } },
-    )
-
-    return taskId
+    return submissionId
   }
 
   async acceptLevelTaskSubmission(
