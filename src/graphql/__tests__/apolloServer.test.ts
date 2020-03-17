@@ -36,13 +36,13 @@ import {
   UserDoc,
 } from '../../db/types'
 import {
+  EventType,
   LevelStatus,
   PersistentTaskStatus,
   ProgramStatus,
   SubmissionStatus,
   SuggestionStatus,
 } from '../types'
-import { EventType } from '../../constants'
 import { CollectionNames } from '../../db/collections'
 
 jest.mock('../../network/colonyAuthDataSource')

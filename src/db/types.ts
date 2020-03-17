@@ -8,8 +8,8 @@ import {
   SetFields,
 } from 'mongodb'
 
-import { EventType } from '../constants'
 import {
+  EventType,
   LevelStatus,
   PersistentTaskStatus,
   ProgramStatus,

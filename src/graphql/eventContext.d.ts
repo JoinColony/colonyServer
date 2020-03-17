@@ -1,10 +1,13 @@
-import { EventType } from '../constants'
+import { EventType } from '../graphql/types'
 import {
+  AcceptLevelTaskSubmissionEvent,
   AssignWorkerEvent,
   CancelTaskEvent,
   CreateDomainEvent,
+  CreateLevelTaskSubmissionEvent,
   CreateTaskEvent,
   CreateWorkRequestEvent,
+  EnrollUserInProgramEvent,
   FinalizeTaskEvent,
   NewUserEvent,
   RemoveTaskPayoutEvent,
@@ -18,14 +21,18 @@ import {
   SetTaskTitleEvent,
   TaskMessageEvent,
   UnassignWorkerEvent,
+  UnlockNextLevelEvent,
 } from './types'
 
 interface EventContextMap {
+  [EventType.AcceptLevelTaskSubmission]: AcceptLevelTaskSubmissionEvent
   [EventType.AssignWorker]: AssignWorkerEvent
   [EventType.CancelTask]: CancelTaskEvent
   [EventType.CreateDomain]: CreateDomainEvent
+  [EventType.CreateLevelTaskSubmission]: CreateLevelTaskSubmissionEvent
   [EventType.CreateTask]: CreateTaskEvent
   [EventType.CreateWorkRequest]: CreateWorkRequestEvent
+  [EventType.EnrollUserInProgram]: EnrollUserInProgramEvent
   [EventType.FinalizeTask]: FinalizeTaskEvent
   [EventType.RemoveTaskPayout]: RemoveTaskPayoutEvent
   [EventType.SendWorkInvite]: SendWorkInviteEvent
@@ -38,6 +45,7 @@ interface EventContextMap {
   [EventType.SetTaskTitle]: SetTaskTitleEvent
   [EventType.TaskMessage]: TaskMessageEvent
   [EventType.UnassignWorker]: UnassignWorkerEvent
+  [EventType.UnlockNextLevel]: UnlockNextLevelEvent
   [EventType.NewUser]: NewUserEvent
 }
 

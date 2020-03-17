@@ -3,12 +3,12 @@ import { CachedCollection } from 'apollo-datasource-mongo'
 
 import { ColonyMongoDataSource } from '../colonyMongoDataSource'
 import {
+  EventType,
   LevelStatus,
   PersistentTaskStatus,
   ProgramStatus,
   SubmissionStatus
 } from '../../graphql/types'
-import { EventType } from '../../constants'
 
 describe('ColonyMongoDataSource', () => {
   let connection

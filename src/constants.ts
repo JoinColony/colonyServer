@@ -2,27 +2,6 @@ export const ROOT_DOMAIN = 1
 
 export const ETH_ADDRESS = '0x0000000000000000000000000000000000000000'
 
-export enum EventType {
-  AssignWorker = 'AssignWorker',
-  CancelTask = 'CancelTask',
-  CreateDomain = 'CreateDomain',
-  CreateTask = 'CreateTask',
-  CreateWorkRequest = 'CreateWorkRequest',
-  FinalizeTask = 'FinalizeTask',
-  RemoveTaskPayout = 'RemoveTaskPayout',
-  SendWorkInvite = 'SendWorkInvite',
-  SetTaskDescription = 'SetTaskDescription',
-  SetTaskDomain = 'SetTaskDomain',
-  SetTaskDueDate = 'SetTaskDueDate',
-  SetTaskPayout = 'SetTaskPayout',
-  SetTaskSkill = 'SetTaskSkill',
-  RemoveTaskSkill = 'RemoveTaskSkill',
-  SetTaskTitle = 'SetTaskTitle',
-  NewUser = 'NewUser',
-  TaskMessage = 'TaskMessage',
-  UnassignWorker = 'UnassignWorker',
-}
-
 /*
  * Colonies that newly created users on mainnet are automatically subscribed to
  *

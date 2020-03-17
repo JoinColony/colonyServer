@@ -4,11 +4,14 @@ export default gql`
   scalar GraphQLDateTime
 
   enum EventType {
+    AcceptLevelTaskSubmission
     AssignWorker
     CancelTask
     CreateDomain
+    CreateLevelTaskSubmission
     CreateTask
     CreateWorkRequest
+    EnrollUserInProgram
     FinalizeTask
     NewUser
     RemoveTaskPayout
@@ -22,5 +25,6 @@ export default gql`
     SetTaskTitle
     TaskMessage
     UnassignWorker
+    UnlockNextLevel
   }
 `
