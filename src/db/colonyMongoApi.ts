@@ -834,6 +834,18 @@ export class ColonyMongoApi {
     )
   }
 
+  async setTaskPending(
+    initiator: string,
+    { taskId, txHash }: { taskId: string; txHash: string },
+  ) {
+    await this.tryGetUser(initiator)
+    const task = await this.tryGetTask(taskId)
+    if (task.txHash) {
+      throw new Error(`Task with ID ${taskId} is already being finalized`)
+    }
+    return this.updateTask(taskId, {}, { $set: { txHash } })
+  }
+
   async finalizeTask(
     initiator: string,
     { taskId, ethPotId }: { taskId: string; ethPotId: number },

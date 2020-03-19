@@ -95,6 +95,11 @@ export default gql`
     id: String!
   }
 
+  input SetTaskPendingInput {
+    id: String!
+    txHash: String!
+  }
+
   input FinalizeTaskInput {
     id: String!
     ethPotId: Int!
@@ -291,6 +296,7 @@ export default gql`
     setTaskDescription(input: SetTaskDescriptionInput!): Task
     setTaskDueDate(input: SetTaskDueDateInput!): Task
     setTaskPayout(input: SetTaskPayoutInput!): Task
+    setTaskPending(input: SetTaskPendingInput!): Task
     setTaskSkill(input: SetTaskSkillInput!): Task
     removeTaskSkill(input: RemoveTaskSkillInput!): Task
     setTaskTitle(input: SetTaskTitleInput!): Task

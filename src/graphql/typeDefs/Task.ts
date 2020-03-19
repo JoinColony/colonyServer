@@ -30,5 +30,6 @@ export default gql`
     workRequestAddresses: [String!]!
     events: [Event!]!
     payouts: [TaskPayout!]!
+    txHash: String
   }
 `

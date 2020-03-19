@@ -356,6 +356,7 @@ export type Mutation = {
   setTaskDescription?: Maybe<Task>,
   setTaskDueDate?: Maybe<Task>,
   setTaskPayout?: Maybe<Task>,
+  setTaskPending?: Maybe<Task>,
   setTaskSkill?: Maybe<Task>,
   removeTaskSkill?: Maybe<Task>,
   setTaskTitle?: Maybe<Task>,
@@ -501,6 +502,11 @@ export type MutationSetTaskDueDateArgs = {
 
 export type MutationSetTaskPayoutArgs = {
   input: SetTaskPayoutInput
+};
+
+
+export type MutationSetTaskPendingArgs = {
+  input: SetTaskPendingInput
 };
 
 
@@ -887,6 +893,11 @@ export type SetTaskPayoutInput = {
   tokenAddress: Scalars['String'],
 };
 
+export type SetTaskPendingInput = {
+  id: Scalars['String'],
+  txHash: Scalars['String'],
+};
+
 export type SetTaskSkillEvent = TaskEvent & {
    __typename?: 'SetTaskSkillEvent',
   type: EventType,
@@ -992,6 +1003,7 @@ export type Task = {
   workRequestAddresses: Array<Scalars['String']>,
   events: Array<Event>,
   payouts: Array<TaskPayout>,
+  txHash?: Maybe<Scalars['String']>,
 };
 
 export type TaskEvent = {
@@ -1233,6 +1245,7 @@ export type ResolversTypes = {
   SetTaskDescriptionInput: SetTaskDescriptionInput,
   SetTaskDueDateInput: SetTaskDueDateInput,
   SetTaskPayoutInput: SetTaskPayoutInput,
+  SetTaskPendingInput: SetTaskPendingInput,
   SetTaskSkillInput: SetTaskSkillInput,
   RemoveTaskSkillInput: RemoveTaskSkillInput,
   SetTaskTitleInput: SetTaskTitleInput,
@@ -1339,6 +1352,7 @@ export type ResolversParentTypes = {
   SetTaskDescriptionInput: SetTaskDescriptionInput,
   SetTaskDueDateInput: SetTaskDueDateInput,
   SetTaskPayoutInput: SetTaskPayoutInput,
+  SetTaskPendingInput: SetTaskPendingInput,
   SetTaskSkillInput: SetTaskSkillInput,
   RemoveTaskSkillInput: RemoveTaskSkillInput,
   SetTaskTitleInput: SetTaskTitleInput,
@@ -1529,6 +1543,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   setTaskDescription?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationSetTaskDescriptionArgs, 'input'>>,
   setTaskDueDate?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationSetTaskDueDateArgs, 'input'>>,
   setTaskPayout?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationSetTaskPayoutArgs, 'input'>>,
+  setTaskPending?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationSetTaskPendingArgs, 'input'>>,
   setTaskSkill?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationSetTaskSkillArgs, 'input'>>,
   removeTaskSkill?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationRemoveTaskSkillArgs, 'input'>>,
   setTaskTitle?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationSetTaskTitleArgs, 'input'>>,
@@ -1733,6 +1748,7 @@ export type TaskResolvers<ContextType = any, ParentType extends ResolversParentT
   workRequestAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   events?: Resolver<Array<ResolversTypes['Event']>, ParentType, ContextType>,
   payouts?: Resolver<Array<ResolversTypes['TaskPayout']>, ParentType, ContextType>,
+  txHash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
 export type TaskEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['TaskEvent'] = ResolversParentTypes['TaskEvent']> = {
