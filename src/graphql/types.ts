@@ -12,6 +12,22 @@ export type Scalars = {
   GraphQLDateTime: any,
 };
 
+export type AcceptLevelTaskSubmissionEvent = {
+   __typename?: 'AcceptLevelTaskSubmissionEvent',
+  type: EventType,
+  acceptedBy: Scalars['String'],
+  levelId: Scalars['String'],
+  payouts: Array<TaskPayout>,
+  persistentTaskId: Scalars['String'],
+  programId: Scalars['String'],
+  submissionId: Scalars['String'],
+};
+
+export type AcceptLevelTaskSubmissionInput = {
+  levelId: Scalars['String'],
+  submissionId: Scalars['String'],
+};
+
 export type AddUpvoteToSuggestionInput = {
   id: Scalars['String'],
 };
@@ -54,6 +70,7 @@ export type Colony = {
   founder?: Maybe<User>,
   isNativeTokenExternal: Scalars['Boolean'],
   nativeTokenAddress: Scalars['String'],
+  programs: Array<Program>,
   subscribedUsers: Array<User>,
   suggestions: Array<Suggestion>,
   tokenAddresses: Array<Scalars['String']>,
@@ -88,6 +105,33 @@ export type CreateDomainInput = {
   ethDomainId: Scalars['Int'],
   ethParentDomainId?: Maybe<Scalars['Int']>,
   name: Scalars['String'],
+};
+
+export type CreateLevelInput = {
+  programId: Scalars['String'],
+};
+
+export type CreateLevelTaskInput = {
+  levelId: Scalars['String'],
+};
+
+export type CreateLevelTaskSubmissionEvent = {
+   __typename?: 'CreateLevelTaskSubmissionEvent',
+  type: EventType,
+  programId: Scalars['String'],
+  persistentTaskId: Scalars['String'],
+  levelId: Scalars['String'],
+  submissionId: Scalars['String'],
+};
+
+export type CreateLevelTaskSubmissionInput = {
+  levelId: Scalars['String'],
+  persistentTaskId: Scalars['String'],
+  submission: Scalars['String'],
+};
+
+export type CreateProgramInput = {
+  colonyAddress: Scalars['String'],
 };
 
 export type CreateSuggestionInput = {
@@ -156,12 +200,50 @@ export type EditDomainNameInput = {
   name: Scalars['String'],
 };
 
+export type EditLevelInput = {
+  id: Scalars['String'],
+  title?: Maybe<Scalars['String']>,
+  description?: Maybe<Scalars['String']>,
+  achievement?: Maybe<Scalars['String']>,
+  numRequiredSteps?: Maybe<Scalars['Int']>,
+};
+
+export type EditPersistentTaskInput = {
+  id: Scalars['String'],
+  ethDomainId?: Maybe<Scalars['Int']>,
+  ethSkillId?: Maybe<Scalars['Int']>,
+  title?: Maybe<Scalars['String']>,
+  description?: Maybe<Scalars['String']>,
+  payouts?: Maybe<Array<Payout>>,
+};
+
+export type EditProgramInput = {
+  id: Scalars['String'],
+  title?: Maybe<Scalars['String']>,
+  description?: Maybe<Scalars['String']>,
+};
+
+export type EditSubmissionInput = {
+  id: Scalars['String'],
+  submission: Scalars['String'],
+};
+
 export type EditUserInput = {
   avatarHash?: Maybe<Scalars['String']>,
   bio?: Maybe<Scalars['String']>,
   displayName?: Maybe<Scalars['String']>,
   location?: Maybe<Scalars['String']>,
   website?: Maybe<Scalars['String']>,
+};
+
+export type EnrollInProgramInput = {
+  id: Scalars['String'],
+};
+
+export type EnrollUserInProgramEvent = {
+   __typename?: 'EnrollUserInProgramEvent',
+  type: EventType,
+  programId: Scalars['String'],
 };
 
 export type Event = {
@@ -176,14 +258,17 @@ export type Event = {
   context: EventContext,
 };
 
-export type EventContext = AssignWorkerEvent | CancelTaskEvent | CreateDomainEvent | CreateTaskEvent | CreateWorkRequestEvent | FinalizeTaskEvent | NewUserEvent | RemoveTaskPayoutEvent | SendWorkInviteEvent | SetTaskDescriptionEvent | SetTaskDomainEvent | SetTaskDueDateEvent | SetTaskPayoutEvent | SetTaskSkillEvent | RemoveTaskSkillEvent | SetTaskTitleEvent | TaskMessageEvent | UnassignWorkerEvent;
+export type EventContext = AcceptLevelTaskSubmissionEvent | AssignWorkerEvent | CancelTaskEvent | CreateDomainEvent | CreateTaskEvent | CreateLevelTaskSubmissionEvent | CreateWorkRequestEvent | EnrollUserInProgramEvent | FinalizeTaskEvent | NewUserEvent | RemoveTaskPayoutEvent | SendWorkInviteEvent | SetTaskDescriptionEvent | SetTaskDomainEvent | SetTaskDueDateEvent | SetTaskPayoutEvent | SetTaskSkillEvent | RemoveTaskSkillEvent | SetTaskTitleEvent | TaskMessageEvent | UnassignWorkerEvent | UnlockNextLevelEvent;
 
 export enum EventType {
+  AcceptLevelTaskSubmission = 'AcceptLevelTaskSubmission',
   AssignWorker = 'AssignWorker',
   CancelTask = 'CancelTask',
   CreateDomain = 'CreateDomain',
+  CreateLevelTaskSubmission = 'CreateLevelTaskSubmission',
   CreateTask = 'CreateTask',
   CreateWorkRequest = 'CreateWorkRequest',
+  EnrollUserInProgram = 'EnrollUserInProgram',
   FinalizeTask = 'FinalizeTask',
   NewUser = 'NewUser',
   RemoveTaskPayout = 'RemoveTaskPayout',
@@ -196,7 +281,8 @@ export enum EventType {
   RemoveTaskSkill = 'RemoveTaskSkill',
   SetTaskTitle = 'SetTaskTitle',
   TaskMessage = 'TaskMessage',
-  UnassignWorker = 'UnassignWorker'
+  UnassignWorker = 'UnassignWorker',
+  UnlockNextLevel = 'UnlockNextLevel'
 }
 
 export type FinalizeTaskEvent = TaskEvent & {
@@ -211,6 +297,28 @@ export type FinalizeTaskInput = {
   ethPotId: Scalars['Int'],
 };
 
+
+export type Level = {
+   __typename?: 'Level',
+  id: Scalars['String'],
+  createdAt: Scalars['GraphQLDateTime'],
+  creatorAddress: Scalars['String'],
+  title?: Maybe<Scalars['String']>,
+  description?: Maybe<Scalars['String']>,
+  achievement?: Maybe<Scalars['String']>,
+  numRequiredSteps?: Maybe<Scalars['Int']>,
+  programId: Scalars['String'],
+  program: Program,
+  stepIds: Array<Scalars['String']>,
+  steps: Array<PersistentTask>,
+  status: LevelStatus,
+  unlocked: Scalars['Boolean'],
+};
+
+export enum LevelStatus {
+  Active = 'Active',
+  Deleted = 'Deleted'
+}
 
 export type MarkNotificationAsReadInput = {
   id: Scalars['String'],
@@ -258,6 +366,26 @@ export type Mutation = {
   subscribeToColony?: Maybe<User>,
   unsubscribeFromColony?: Maybe<User>,
   setUserTokens?: Maybe<User>,
+  /** Submissions */
+  createLevelTaskSubmission?: Maybe<Submission>,
+  acceptLevelTaskSubmission?: Maybe<Submission>,
+  editSubmission?: Maybe<Submission>,
+  /** PersistentTasks */
+  createLevelTask?: Maybe<PersistentTask>,
+  removeLevelTask?: Maybe<PersistentTask>,
+  editPersistentTask?: Maybe<PersistentTask>,
+  /** Levels */
+  createLevel?: Maybe<Level>,
+  editLevel?: Maybe<Level>,
+  reorderLevelSteps?: Maybe<Level>,
+  removeLevel?: Maybe<Level>,
+  /** Programs */
+  createProgram?: Maybe<Program>,
+  enrollInProgram?: Maybe<Program>,
+  editProgram?: Maybe<Program>,
+  reorderProgramLevels?: Maybe<Program>,
+  publishProgram?: Maybe<Program>,
+  removeProgram?: Maybe<Program>,
 };
 
 
@@ -420,6 +548,86 @@ export type MutationSetUserTokensArgs = {
   input: SetUserTokensInput
 };
 
+
+export type MutationCreateLevelTaskSubmissionArgs = {
+  input: CreateLevelTaskSubmissionInput
+};
+
+
+export type MutationAcceptLevelTaskSubmissionArgs = {
+  input: AcceptLevelTaskSubmissionInput
+};
+
+
+export type MutationEditSubmissionArgs = {
+  input: EditSubmissionInput
+};
+
+
+export type MutationCreateLevelTaskArgs = {
+  input: CreateLevelTaskInput
+};
+
+
+export type MutationRemoveLevelTaskArgs = {
+  input: RemoveLevelTaskInput
+};
+
+
+export type MutationEditPersistentTaskArgs = {
+  input: EditPersistentTaskInput
+};
+
+
+export type MutationCreateLevelArgs = {
+  input: CreateLevelInput
+};
+
+
+export type MutationEditLevelArgs = {
+  input: EditLevelInput
+};
+
+
+export type MutationReorderLevelStepsArgs = {
+  input: ReorderLevelStepsInput
+};
+
+
+export type MutationRemoveLevelArgs = {
+  input: RemoveLevelInput
+};
+
+
+export type MutationCreateProgramArgs = {
+  input: CreateProgramInput
+};
+
+
+export type MutationEnrollInProgramArgs = {
+  input: EnrollInProgramInput
+};
+
+
+export type MutationEditProgramArgs = {
+  input: EditProgramInput
+};
+
+
+export type MutationReorderProgramLevelsArgs = {
+  input: ReorderProgramLevelsInput
+};
+
+
+export type MutationPublishProgramArgs = {
+  input: PublishProgramInput
+};
+
+
+export type MutationRemoveProgramArgs = {
+  input: RemoveProgramInput
+};
+
 export type NewUserEvent = {
    __typename?: 'NewUserEvent',
   type: EventType,
@@ -432,11 +640,75 @@ export type Notification = {
   read: Scalars['Boolean'],
 };
 
+export type Payout = {
+  amount: Scalars['String'],
+  tokenAddress: Scalars['String'],
+};
+
+export type PersistentTask = {
+   __typename?: 'PersistentTask',
+  id: Scalars['String'],
+  createdAt: Scalars['GraphQLDateTime'],
+  colonyAddress: Scalars['String'],
+  creatorAddress: Scalars['String'],
+  ethDomainId?: Maybe<Scalars['Int']>,
+  domain?: Maybe<Domain>,
+  ethSkillId?: Maybe<Scalars['Int']>,
+  title?: Maybe<Scalars['String']>,
+  description?: Maybe<Scalars['String']>,
+  payouts: Array<TaskPayout>,
+  submissions: Array<Submission>,
+  status: PersistentTaskStatus,
+  currentUserSubmission?: Maybe<Submission>,
+};
+
+export enum PersistentTaskStatus {
+  Active = 'Active',
+  Closed = 'Closed',
+  Deleted = 'Deleted'
+}
+
+export type Program = {
+   __typename?: 'Program',
+  id: Scalars['String'],
+  createdAt: Scalars['GraphQLDateTime'],
+  creatorAddress: Scalars['String'],
+  colonyAddress: Scalars['String'],
+  title?: Maybe<Scalars['String']>,
+  description?: Maybe<Scalars['String']>,
+  levelIds: Array<Scalars['String']>,
+  levels: Array<Level>,
+  enrolledUserAddresses: Array<Scalars['String']>,
+  enrolled: Scalars['Boolean'],
+  status: ProgramStatus,
+  submissions: Array<ProgramSubmission>,
+};
+
+export enum ProgramStatus {
+  Draft = 'Draft',
+  Active = 'Active',
+  Deleted = 'Deleted'
+}
+
+export type ProgramSubmission = {
+   __typename?: 'ProgramSubmission',
+  id: Scalars['String'],
+  levelId: Scalars['String'],
+  level: Level,
+  submission: Submission,
+};
+
+export type PublishProgramInput = {
+  id: Scalars['String'],
+};
+
 export type Query = {
    __typename?: 'Query',
   user: User,
   colony: Colony,
   domain: Domain,
+  level: Level,
+  program: Program,
   task: Task,
   tokenInfo: TokenInfo,
   systemInfo: SystemInfo,
@@ -459,6 +731,16 @@ export type QueryDomainArgs = {
 };
 
 
+export type QueryLevelArgs = {
+  id: Scalars['String']
+};
+
+
+export type QueryProgramArgs = {
+  id: Scalars['String']
+};
+
+
 export type QueryTaskArgs = {
   id: Scalars['String']
 };
@@ -466,6 +748,19 @@ export type QueryTaskArgs = {
 
 export type QueryTokenInfoArgs = {
   address: Scalars['String']
+};
+
+export type RemoveLevelInput = {
+  id: Scalars['String'],
+};
+
+export type RemoveLevelTaskInput = {
+  id: Scalars['String'],
+  levelId: Scalars['String'],
+};
+
+export type RemoveProgramInput = {
+  id: Scalars['String'],
 };
 
 export type RemoveTaskPayoutEvent = TaskEvent & {
@@ -498,6 +793,16 @@ export type RemoveTaskSkillInput = {
 
 export type RemoveUpvoteFromSuggestionInput = {
   id: Scalars['String'],
+};
+
+export type ReorderLevelStepsInput = {
+  id: Scalars['String'],
+  stepIds: Array<Scalars['String']>,
+};
+
+export type ReorderProgramLevelsInput = {
+  id: Scalars['String'],
+  levelIds: Array<Scalars['String']>,
 };
 
 export type SendTaskMessageInput = {
@@ -612,6 +917,26 @@ export type SetUserTokensInput = {
   tokenAddresses: Array<Scalars['String']>,
 };
 
+export type Submission = {
+   __typename?: 'Submission',
+  id: Scalars['String'],
+  createdAt: Scalars['GraphQLDateTime'],
+  creatorAddress: Scalars['String'],
+  creator: User,
+  persistentTaskId: Scalars['String'],
+  submission: Scalars['String'],
+  status: SubmissionStatus,
+  statusChangedAt?: Maybe<Scalars['GraphQLDateTime']>,
+  task: PersistentTask,
+};
+
+export enum SubmissionStatus {
+  Open = 'Open',
+  Accepted = 'Accepted',
+  Rejected = 'Rejected',
+  Deleted = 'Deleted'
+}
+
 export type SubscribeToColonyInput = {
   colonyAddress: Scalars['String'],
 };
@@ -717,6 +1042,16 @@ export type UnassignWorkerInput = {
   workerAddress: Scalars['String'],
 };
 
+export type UnlockNextLevelEvent = {
+   __typename?: 'UnlockNextLevelEvent',
+  type: EventType,
+  levelId: Scalars['String'],
+  nextLevelId?: Maybe<Scalars['String']>,
+  persistentTaskId: Scalars['String'],
+  programId: Scalars['String'],
+  submissionId: Scalars['String'],
+};
+
 export type UnsubscribeFromColonyInput = {
   colonyAddress: Scalars['String'],
 };
@@ -732,6 +1067,7 @@ export type User = {
   taskIds: Array<Scalars['String']>,
   tokenAddresses: Array<Scalars['String']>,
   notifications: Array<Notification>,
+  completedLevels: Array<Level>,
 };
 
 
@@ -832,14 +1168,18 @@ export type ResolversTypes = {
   Domain: ResolverTypeWrapper<Domain>,
   Event: ResolverTypeWrapper<Omit<Event, 'context'> & { context: ResolversTypes['EventContext'] }>,
   EventType: EventType,
-  EventContext: ResolversTypes['AssignWorkerEvent'] | ResolversTypes['CancelTaskEvent'] | ResolversTypes['CreateDomainEvent'] | ResolversTypes['CreateTaskEvent'] | ResolversTypes['CreateWorkRequestEvent'] | ResolversTypes['FinalizeTaskEvent'] | ResolversTypes['NewUserEvent'] | ResolversTypes['RemoveTaskPayoutEvent'] | ResolversTypes['SendWorkInviteEvent'] | ResolversTypes['SetTaskDescriptionEvent'] | ResolversTypes['SetTaskDomainEvent'] | ResolversTypes['SetTaskDueDateEvent'] | ResolversTypes['SetTaskPayoutEvent'] | ResolversTypes['SetTaskSkillEvent'] | ResolversTypes['RemoveTaskSkillEvent'] | ResolversTypes['SetTaskTitleEvent'] | ResolversTypes['TaskMessageEvent'] | ResolversTypes['UnassignWorkerEvent'],
+  EventContext: ResolversTypes['AcceptLevelTaskSubmissionEvent'] | ResolversTypes['AssignWorkerEvent'] | ResolversTypes['CancelTaskEvent'] | ResolversTypes['CreateDomainEvent'] | ResolversTypes['CreateTaskEvent'] | ResolversTypes['CreateLevelTaskSubmissionEvent'] | ResolversTypes['CreateWorkRequestEvent'] | ResolversTypes['EnrollUserInProgramEvent'] | ResolversTypes['FinalizeTaskEvent'] | ResolversTypes['NewUserEvent'] | ResolversTypes['RemoveTaskPayoutEvent'] | ResolversTypes['SendWorkInviteEvent'] | ResolversTypes['SetTaskDescriptionEvent'] | ResolversTypes['SetTaskDomainEvent'] | ResolversTypes['SetTaskDueDateEvent'] | ResolversTypes['SetTaskPayoutEvent'] | ResolversTypes['SetTaskSkillEvent'] | ResolversTypes['RemoveTaskSkillEvent'] | ResolversTypes['SetTaskTitleEvent'] | ResolversTypes['TaskMessageEvent'] | ResolversTypes['UnassignWorkerEvent'] | ResolversTypes['UnlockNextLevelEvent'],
+  AcceptLevelTaskSubmissionEvent: ResolverTypeWrapper<AcceptLevelTaskSubmissionEvent>,
+  TaskPayout: ResolverTypeWrapper<TaskPayout>,
   AssignWorkerEvent: ResolverTypeWrapper<AssignWorkerEvent>,
   TaskEvent: ResolverTypeWrapper<TaskEvent>,
   CancelTaskEvent: ResolverTypeWrapper<CancelTaskEvent>,
   CreateDomainEvent: ResolverTypeWrapper<CreateDomainEvent>,
   ColonyEvent: ResolverTypeWrapper<ColonyEvent>,
   CreateTaskEvent: ResolverTypeWrapper<CreateTaskEvent>,
+  CreateLevelTaskSubmissionEvent: ResolverTypeWrapper<CreateLevelTaskSubmissionEvent>,
   CreateWorkRequestEvent: ResolverTypeWrapper<CreateWorkRequestEvent>,
+  EnrollUserInProgramEvent: ResolverTypeWrapper<EnrollUserInProgramEvent>,
   FinalizeTaskEvent: ResolverTypeWrapper<FinalizeTaskEvent>,
   NewUserEvent: ResolverTypeWrapper<NewUserEvent>,
   RemoveTaskPayoutEvent: ResolverTypeWrapper<RemoveTaskPayoutEvent>,
@@ -853,8 +1193,17 @@ export type ResolversTypes = {
   SetTaskTitleEvent: ResolverTypeWrapper<SetTaskTitleEvent>,
   TaskMessageEvent: ResolverTypeWrapper<TaskMessageEvent>,
   UnassignWorkerEvent: ResolverTypeWrapper<UnassignWorkerEvent>,
-  TaskPayout: ResolverTypeWrapper<TaskPayout>,
+  UnlockNextLevelEvent: ResolverTypeWrapper<UnlockNextLevelEvent>,
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>,
+  Program: ResolverTypeWrapper<Program>,
+  Level: ResolverTypeWrapper<Level>,
+  PersistentTask: ResolverTypeWrapper<PersistentTask>,
+  Submission: ResolverTypeWrapper<Submission>,
+  SubmissionStatus: SubmissionStatus,
+  PersistentTaskStatus: PersistentTaskStatus,
+  LevelStatus: LevelStatus,
+  ProgramStatus: ProgramStatus,
+  ProgramSubmission: ResolverTypeWrapper<ProgramSubmission>,
   Suggestion: ResolverTypeWrapper<Suggestion>,
   SuggestionStatus: SuggestionStatus,
   Notification: ResolverTypeWrapper<Notification>,
@@ -893,6 +1242,23 @@ export type ResolversTypes = {
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
   SetUserTokensInput: SetUserTokensInput,
+  CreateLevelTaskSubmissionInput: CreateLevelTaskSubmissionInput,
+  AcceptLevelTaskSubmissionInput: AcceptLevelTaskSubmissionInput,
+  EditSubmissionInput: EditSubmissionInput,
+  CreateLevelTaskInput: CreateLevelTaskInput,
+  RemoveLevelTaskInput: RemoveLevelTaskInput,
+  EditPersistentTaskInput: EditPersistentTaskInput,
+  Payout: Payout,
+  CreateLevelInput: CreateLevelInput,
+  EditLevelInput: EditLevelInput,
+  ReorderLevelStepsInput: ReorderLevelStepsInput,
+  RemoveLevelInput: RemoveLevelInput,
+  CreateProgramInput: CreateProgramInput,
+  EnrollInProgramInput: EnrollInProgramInput,
+  EditProgramInput: EditProgramInput,
+  ReorderProgramLevelsInput: ReorderProgramLevelsInput,
+  PublishProgramInput: PublishProgramInput,
+  RemoveProgramInput: RemoveProgramInput,
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -908,14 +1274,18 @@ export type ResolversParentTypes = {
   Domain: Domain,
   Event: Omit<Event, 'context'> & { context: ResolversParentTypes['EventContext'] },
   EventType: EventType,
-  EventContext: ResolversParentTypes['AssignWorkerEvent'] | ResolversParentTypes['CancelTaskEvent'] | ResolversParentTypes['CreateDomainEvent'] | ResolversParentTypes['CreateTaskEvent'] | ResolversParentTypes['CreateWorkRequestEvent'] | ResolversParentTypes['FinalizeTaskEvent'] | ResolversParentTypes['NewUserEvent'] | ResolversParentTypes['RemoveTaskPayoutEvent'] | ResolversParentTypes['SendWorkInviteEvent'] | ResolversParentTypes['SetTaskDescriptionEvent'] | ResolversParentTypes['SetTaskDomainEvent'] | ResolversParentTypes['SetTaskDueDateEvent'] | ResolversParentTypes['SetTaskPayoutEvent'] | ResolversParentTypes['SetTaskSkillEvent'] | ResolversParentTypes['RemoveTaskSkillEvent'] | ResolversParentTypes['SetTaskTitleEvent'] | ResolversParentTypes['TaskMessageEvent'] | ResolversParentTypes['UnassignWorkerEvent'],
+  EventContext: ResolversParentTypes['AcceptLevelTaskSubmissionEvent'] | ResolversParentTypes['AssignWorkerEvent'] | ResolversParentTypes['CancelTaskEvent'] | ResolversParentTypes['CreateDomainEvent'] | ResolversParentTypes['CreateTaskEvent'] | ResolversParentTypes['CreateLevelTaskSubmissionEvent'] | ResolversParentTypes['CreateWorkRequestEvent'] | ResolversParentTypes['EnrollUserInProgramEvent'] | ResolversParentTypes['FinalizeTaskEvent'] | ResolversParentTypes['NewUserEvent'] | ResolversParentTypes['RemoveTaskPayoutEvent'] | ResolversParentTypes['SendWorkInviteEvent'] | ResolversParentTypes['SetTaskDescriptionEvent'] | ResolversParentTypes['SetTaskDomainEvent'] | ResolversParentTypes['SetTaskDueDateEvent'] | ResolversParentTypes['SetTaskPayoutEvent'] | ResolversParentTypes['SetTaskSkillEvent'] | ResolversParentTypes['RemoveTaskSkillEvent'] | ResolversParentTypes['SetTaskTitleEvent'] | ResolversParentTypes['TaskMessageEvent'] | ResolversParentTypes['UnassignWorkerEvent'] | ResolversParentTypes['UnlockNextLevelEvent'],
+  AcceptLevelTaskSubmissionEvent: AcceptLevelTaskSubmissionEvent,
+  TaskPayout: TaskPayout,
   AssignWorkerEvent: AssignWorkerEvent,
   TaskEvent: TaskEvent,
   CancelTaskEvent: CancelTaskEvent,
   CreateDomainEvent: CreateDomainEvent,
   ColonyEvent: ColonyEvent,
   CreateTaskEvent: CreateTaskEvent,
+  CreateLevelTaskSubmissionEvent: CreateLevelTaskSubmissionEvent,
   CreateWorkRequestEvent: CreateWorkRequestEvent,
+  EnrollUserInProgramEvent: EnrollUserInProgramEvent,
   FinalizeTaskEvent: FinalizeTaskEvent,
   NewUserEvent: NewUserEvent,
   RemoveTaskPayoutEvent: RemoveTaskPayoutEvent,
@@ -929,8 +1299,17 @@ export type ResolversParentTypes = {
   SetTaskTitleEvent: SetTaskTitleEvent,
   TaskMessageEvent: TaskMessageEvent,
   UnassignWorkerEvent: UnassignWorkerEvent,
-  TaskPayout: TaskPayout,
+  UnlockNextLevelEvent: UnlockNextLevelEvent,
   Boolean: Scalars['Boolean'],
+  Program: Program,
+  Level: Level,
+  PersistentTask: PersistentTask,
+  Submission: Submission,
+  SubmissionStatus: SubmissionStatus,
+  PersistentTaskStatus: PersistentTaskStatus,
+  LevelStatus: LevelStatus,
+  ProgramStatus: ProgramStatus,
+  ProgramSubmission: ProgramSubmission,
   Suggestion: Suggestion,
   SuggestionStatus: SuggestionStatus,
   Notification: Notification,
@@ -969,6 +1348,33 @@ export type ResolversParentTypes = {
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
   SetUserTokensInput: SetUserTokensInput,
+  CreateLevelTaskSubmissionInput: CreateLevelTaskSubmissionInput,
+  AcceptLevelTaskSubmissionInput: AcceptLevelTaskSubmissionInput,
+  EditSubmissionInput: EditSubmissionInput,
+  CreateLevelTaskInput: CreateLevelTaskInput,
+  RemoveLevelTaskInput: RemoveLevelTaskInput,
+  EditPersistentTaskInput: EditPersistentTaskInput,
+  Payout: Payout,
+  CreateLevelInput: CreateLevelInput,
+  EditLevelInput: EditLevelInput,
+  ReorderLevelStepsInput: ReorderLevelStepsInput,
+  RemoveLevelInput: RemoveLevelInput,
+  CreateProgramInput: CreateProgramInput,
+  EnrollInProgramInput: EnrollInProgramInput,
+  EditProgramInput: EditProgramInput,
+  ReorderProgramLevelsInput: ReorderProgramLevelsInput,
+  PublishProgramInput: PublishProgramInput,
+  RemoveProgramInput: RemoveProgramInput,
+};
+
+export type AcceptLevelTaskSubmissionEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['AcceptLevelTaskSubmissionEvent'] = ResolversParentTypes['AcceptLevelTaskSubmissionEvent']> = {
+  type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
+  acceptedBy?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  levelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  payouts?: Resolver<Array<ResolversTypes['TaskPayout']>, ParentType, ContextType>,
+  persistentTaskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  programId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  submissionId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
 };
 
 export type AssignWorkerEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['AssignWorkerEvent'] = ResolversParentTypes['AssignWorkerEvent']> = {
@@ -1001,6 +1407,7 @@ export type ColonyResolvers<ContextType = any, ParentType extends ResolversParen
   founder?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>,
   isNativeTokenExternal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
   nativeTokenAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  programs?: Resolver<Array<ResolversTypes['Program']>, ParentType, ContextType>,
   subscribedUsers?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>,
   suggestions?: Resolver<Array<ResolversTypes['Suggestion']>, ParentType, ContextType>,
   tokenAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
@@ -1016,6 +1423,14 @@ export type CreateDomainEventResolvers<ContextType = any, ParentType extends Res
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
   colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+};
+
+export type CreateLevelTaskSubmissionEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['CreateLevelTaskSubmissionEvent'] = ResolversParentTypes['CreateLevelTaskSubmissionEvent']> = {
+  type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
+  programId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  persistentTaskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  levelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  submissionId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
 };
 
 export type CreateTaskEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['CreateTaskEvent'] = ResolversParentTypes['CreateTaskEvent']> = {
@@ -1043,6 +1458,11 @@ export type DomainResolvers<ContextType = any, ParentType extends ResolversParen
   tasks?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType>,
 };
 
+export type EnrollUserInProgramEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['EnrollUserInProgramEvent'] = ResolversParentTypes['EnrollUserInProgramEvent']> = {
+  type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
+  programId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+};
+
 export type EventResolvers<ContextType = any, ParentType extends ResolversParentTypes['Event'] = ResolversParentTypes['Event']> = {
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
@@ -1055,7 +1475,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
 };
 
 export type EventContextResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventContext'] = ResolversParentTypes['EventContext']> = {
-  __resolveType: TypeResolveFn<'AssignWorkerEvent' | 'CancelTaskEvent' | 'CreateDomainEvent' | 'CreateTaskEvent' | 'CreateWorkRequestEvent' | 'FinalizeTaskEvent' | 'NewUserEvent' | 'RemoveTaskPayoutEvent' | 'SendWorkInviteEvent' | 'SetTaskDescriptionEvent' | 'SetTaskDomainEvent' | 'SetTaskDueDateEvent' | 'SetTaskPayoutEvent' | 'SetTaskSkillEvent' | 'RemoveTaskSkillEvent' | 'SetTaskTitleEvent' | 'TaskMessageEvent' | 'UnassignWorkerEvent', ParentType, ContextType>
+  __resolveType: TypeResolveFn<'AcceptLevelTaskSubmissionEvent' | 'AssignWorkerEvent' | 'CancelTaskEvent' | 'CreateDomainEvent' | 'CreateTaskEvent' | 'CreateLevelTaskSubmissionEvent' | 'CreateWorkRequestEvent' | 'EnrollUserInProgramEvent' | 'FinalizeTaskEvent' | 'NewUserEvent' | 'RemoveTaskPayoutEvent' | 'SendWorkInviteEvent' | 'SetTaskDescriptionEvent' | 'SetTaskDomainEvent' | 'SetTaskDueDateEvent' | 'SetTaskPayoutEvent' | 'SetTaskSkillEvent' | 'RemoveTaskSkillEvent' | 'SetTaskTitleEvent' | 'TaskMessageEvent' | 'UnassignWorkerEvent' | 'UnlockNextLevelEvent', ParentType, ContextType>
 };
 
 export type FinalizeTaskEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['FinalizeTaskEvent'] = ResolversParentTypes['FinalizeTaskEvent']> = {
@@ -1067,6 +1487,22 @@ export type FinalizeTaskEventResolvers<ContextType = any, ParentType extends Res
 export interface GraphQlDateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['GraphQLDateTime'], any> {
   name: 'GraphQLDateTime'
 }
+
+export type LevelResolvers<ContextType = any, ParentType extends ResolversParentTypes['Level'] = ResolversParentTypes['Level']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
+  creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  achievement?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  numRequiredSteps?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
+  programId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  program?: Resolver<ResolversTypes['Program'], ParentType, ContextType>,
+  stepIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
+  steps?: Resolver<Array<ResolversTypes['PersistentTask']>, ParentType, ContextType>,
+  status?: Resolver<ResolversTypes['LevelStatus'], ParentType, ContextType>,
+  unlocked?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
+};
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   createColony?: Resolver<Maybe<ResolversTypes['Colony']>, ParentType, ContextType, RequireFields<MutationCreateColonyArgs, 'input'>>,
@@ -1102,6 +1538,22 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   subscribeToColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSubscribeToColonyArgs, 'input'>>,
   unsubscribeFromColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUnsubscribeFromColonyArgs, 'input'>>,
   setUserTokens?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSetUserTokensArgs, 'input'>>,
+  createLevelTaskSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationCreateLevelTaskSubmissionArgs, 'input'>>,
+  acceptLevelTaskSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationAcceptLevelTaskSubmissionArgs, 'input'>>,
+  editSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationEditSubmissionArgs, 'input'>>,
+  createLevelTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationCreateLevelTaskArgs, 'input'>>,
+  removeLevelTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationRemoveLevelTaskArgs, 'input'>>,
+  editPersistentTask?: Resolver<Maybe<ResolversTypes['PersistentTask']>, ParentType, ContextType, RequireFields<MutationEditPersistentTaskArgs, 'input'>>,
+  createLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationCreateLevelArgs, 'input'>>,
+  editLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationEditLevelArgs, 'input'>>,
+  reorderLevelSteps?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationReorderLevelStepsArgs, 'input'>>,
+  removeLevel?: Resolver<Maybe<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<MutationRemoveLevelArgs, 'input'>>,
+  createProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationCreateProgramArgs, 'input'>>,
+  enrollInProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationEnrollInProgramArgs, 'input'>>,
+  editProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationEditProgramArgs, 'input'>>,
+  reorderProgramLevels?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationReorderProgramLevelsArgs, 'input'>>,
+  publishProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationPublishProgramArgs, 'input'>>,
+  removeProgram?: Resolver<Maybe<ResolversTypes['Program']>, ParentType, ContextType, RequireFields<MutationRemoveProgramArgs, 'input'>>,
 };
 
 export type NewUserEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['NewUserEvent'] = ResolversParentTypes['NewUserEvent']> = {
@@ -1114,10 +1566,50 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
   read?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
 };
 
+export type PersistentTaskResolvers<ContextType = any, ParentType extends ResolversParentTypes['PersistentTask'] = ResolversParentTypes['PersistentTask']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
+  colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  ethDomainId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
+  domain?: Resolver<Maybe<ResolversTypes['Domain']>, ParentType, ContextType>,
+  ethSkillId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
+  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  payouts?: Resolver<Array<ResolversTypes['TaskPayout']>, ParentType, ContextType>,
+  submissions?: Resolver<Array<ResolversTypes['Submission']>, ParentType, ContextType>,
+  status?: Resolver<ResolversTypes['PersistentTaskStatus'], ParentType, ContextType>,
+  currentUserSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType>,
+};
+
+export type ProgramResolvers<ContextType = any, ParentType extends ResolversParentTypes['Program'] = ResolversParentTypes['Program']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
+  creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  levelIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
+  levels?: Resolver<Array<ResolversTypes['Level']>, ParentType, ContextType>,
+  enrolledUserAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
+  enrolled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
+  status?: Resolver<ResolversTypes['ProgramStatus'], ParentType, ContextType>,
+  submissions?: Resolver<Array<ResolversTypes['ProgramSubmission']>, ParentType, ContextType>,
+};
+
+export type ProgramSubmissionResolvers<ContextType = any, ParentType extends ResolversParentTypes['ProgramSubmission'] = ResolversParentTypes['ProgramSubmission']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  levelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  level?: Resolver<ResolversTypes['Level'], ParentType, ContextType>,
+  submission?: Resolver<ResolversTypes['Submission'], ParentType, ContextType>,
+};
+
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'address'>>,
   colony?: Resolver<ResolversTypes['Colony'], ParentType, ContextType, RequireFields<QueryColonyArgs, 'address'>>,
   domain?: Resolver<ResolversTypes['Domain'], ParentType, ContextType, RequireFields<QueryDomainArgs, 'colonyAddress' | 'ethDomainId'>>,
+  level?: Resolver<ResolversTypes['Level'], ParentType, ContextType, RequireFields<QueryLevelArgs, 'id'>>,
+  program?: Resolver<ResolversTypes['Program'], ParentType, ContextType, RequireFields<QueryProgramArgs, 'id'>>,
   task?: Resolver<ResolversTypes['Task'], ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>,
   tokenInfo?: Resolver<ResolversTypes['TokenInfo'], ParentType, ContextType, RequireFields<QueryTokenInfoArgs, 'address'>>,
   systemInfo?: Resolver<ResolversTypes['SystemInfo'], ParentType, ContextType>,
@@ -1186,6 +1678,18 @@ export type SetTaskTitleEventResolvers<ContextType = any, ParentType extends Res
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+};
+
+export type SubmissionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Submission'] = ResolversParentTypes['Submission']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
+  creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>,
+  persistentTaskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  submission?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  status?: Resolver<ResolversTypes['SubmissionStatus'], ParentType, ContextType>,
+  statusChangedAt?: Resolver<Maybe<ResolversTypes['GraphQLDateTime']>, ParentType, ContextType>,
+  task?: Resolver<ResolversTypes['PersistentTask'], ParentType, ContextType>,
 };
 
 export type SuggestionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Suggestion'] = ResolversParentTypes['Suggestion']> = {
@@ -1267,6 +1771,15 @@ export type UnassignWorkerEventResolvers<ContextType = any, ParentType extends R
   colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
+export type UnlockNextLevelEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['UnlockNextLevelEvent'] = ResolversParentTypes['UnlockNextLevelEvent']> = {
+  type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
+  levelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  nextLevelId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  persistentTaskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  programId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  submissionId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+};
+
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
@@ -1277,6 +1790,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   taskIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   tokenAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType, UserNotificationsArgs>,
+  completedLevels?: Resolver<Array<ResolversTypes['Level']>, ParentType, ContextType>,
 };
 
 export type UserProfileResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserProfile'] = ResolversParentTypes['UserProfile']> = {
@@ -1290,21 +1804,28 @@ export type UserProfileResolvers<ContextType = any, ParentType extends Resolvers
 };
 
 export type Resolvers<ContextType = any> = {
+  AcceptLevelTaskSubmissionEvent?: AcceptLevelTaskSubmissionEventResolvers<ContextType>,
   AssignWorkerEvent?: AssignWorkerEventResolvers<ContextType>,
   CancelTaskEvent?: CancelTaskEventResolvers<ContextType>,
   Colony?: ColonyResolvers<ContextType>,
   ColonyEvent?: ColonyEventResolvers,
   CreateDomainEvent?: CreateDomainEventResolvers<ContextType>,
+  CreateLevelTaskSubmissionEvent?: CreateLevelTaskSubmissionEventResolvers<ContextType>,
   CreateTaskEvent?: CreateTaskEventResolvers<ContextType>,
   CreateWorkRequestEvent?: CreateWorkRequestEventResolvers<ContextType>,
   Domain?: DomainResolvers<ContextType>,
+  EnrollUserInProgramEvent?: EnrollUserInProgramEventResolvers<ContextType>,
   Event?: EventResolvers<ContextType>,
   EventContext?: EventContextResolvers,
   FinalizeTaskEvent?: FinalizeTaskEventResolvers<ContextType>,
   GraphQLDateTime?: GraphQLScalarType,
+  Level?: LevelResolvers<ContextType>,
   Mutation?: MutationResolvers<ContextType>,
   NewUserEvent?: NewUserEventResolvers<ContextType>,
   Notification?: NotificationResolvers<ContextType>,
+  PersistentTask?: PersistentTaskResolvers<ContextType>,
+  Program?: ProgramResolvers<ContextType>,
+  ProgramSubmission?: ProgramSubmissionResolvers<ContextType>,
   Query?: QueryResolvers<ContextType>,
   RemoveTaskPayoutEvent?: RemoveTaskPayoutEventResolvers<ContextType>,
   RemoveTaskSkillEvent?: RemoveTaskSkillEventResolvers<ContextType>,
@@ -1315,6 +1836,7 @@ export type Resolvers<ContextType = any> = {
   SetTaskPayoutEvent?: SetTaskPayoutEventResolvers<ContextType>,
   SetTaskSkillEvent?: SetTaskSkillEventResolvers<ContextType>,
   SetTaskTitleEvent?: SetTaskTitleEventResolvers<ContextType>,
+  Submission?: SubmissionResolvers<ContextType>,
   Suggestion?: SuggestionResolvers<ContextType>,
   SystemInfo?: SystemInfoResolvers<ContextType>,
   Task?: TaskResolvers<ContextType>,
@@ -1323,6 +1845,7 @@ export type Resolvers<ContextType = any> = {
   TaskPayout?: TaskPayoutResolvers<ContextType>,
   TokenInfo?: TokenInfoResolvers<ContextType>,
   UnassignWorkerEvent?: UnassignWorkerEventResolvers<ContextType>,
+  UnlockNextLevelEvent?: UnlockNextLevelEventResolvers<ContextType>,
   User?: UserResolvers<ContextType>,
   UserProfile?: UserProfileResolvers<ContextType>,
 };

@@ -133,12 +133,47 @@ export default gql`
     type: EventType!
   }
 
+  type AcceptLevelTaskSubmissionEvent {
+    type: EventType!
+    acceptedBy: String!
+    levelId: String!
+    payouts: [TaskPayout!]!
+    persistentTaskId: String!
+    programId: String!
+    submissionId: String!
+  }
+
+  type CreateLevelTaskSubmissionEvent {
+    type: EventType!
+    programId: String!
+    persistentTaskId: String!
+    levelId: String!
+    submissionId: String!
+  }
+
+  type EnrollUserInProgramEvent {
+    type: EventType!
+    programId: String!
+  }
+
+  type UnlockNextLevelEvent {
+    type: EventType!
+    levelId: String!
+    nextLevelId: String
+    persistentTaskId: String!
+    programId: String!
+    submissionId: String!
+  }
+
   union EventContext =
-      AssignWorkerEvent
+      AcceptLevelTaskSubmissionEvent
+    | AssignWorkerEvent
     | CancelTaskEvent
     | CreateDomainEvent
     | CreateTaskEvent
+    | CreateLevelTaskSubmissionEvent
     | CreateWorkRequestEvent
+    | EnrollUserInProgramEvent
     | FinalizeTaskEvent
     | NewUserEvent
     | RemoveTaskPayoutEvent
@@ -152,6 +187,7 @@ export default gql`
     | SetTaskTitleEvent
     | TaskMessageEvent
     | UnassignWorkerEvent
+    | UnlockNextLevelEvent
 
   type Event {
     id: String!

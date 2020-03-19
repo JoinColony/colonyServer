@@ -8,8 +8,15 @@ import {
   SetFields,
 } from 'mongodb'
 
-import { EventType } from '../constants'
-import { SuggestionStatus } from '../graphql/types';
+import {
+  EventType,
+  LevelStatus,
+  PersistentTaskStatus,
+  ProgramStatus,
+  SubmissionStatus,
+  SuggestionStatus,
+  TaskPayout,
+} from '../graphql/types'
 
 // Stricter than RootQuerySelector (only allows fields from T),
 // but doesn't allow dot-notation fields.
@@ -78,6 +85,52 @@ export interface EventDoc<C extends object> extends MongoDoc {
   context: C
 }
 
+export interface ProgramDoc extends MongoDoc {
+  colonyAddress: string
+  creatorAddress: string
+  title?: string
+  description?: string
+  levelIds: string[]
+  enrolledUserAddresses: string[]
+  status: ProgramStatus
+}
+
+export interface LevelDoc extends MongoDoc {
+  creatorAddress: string
+  programId: ObjectID
+  title?: string
+  description?: string
+  achievement?: string
+  numRequiredSteps?: number
+  stepIds: string[]
+  completedBy: string[]
+  status: LevelStatus
+}
+
+export interface PersistentTaskDoc extends MongoDoc {
+  colonyAddress: string
+  creatorAddress: string
+  ethDomainId?: number
+  ethSkillId?: number
+  title?: string
+  description?: string
+  payouts: TaskPayout[]
+  status: PersistentTaskStatus
+}
+
+export interface SubmissionDoc extends MongoDoc {
+  creatorAddress: string
+  persistentTaskId: ObjectID
+  submission: string
+  status: SubmissionStatus
+  statusChangedAt: Date
+}
+
+export interface ProgramSubmissionDoc extends MongoDoc {
+  levelId: ObjectID
+  submission: SubmissionDoc
+}
+
 export interface SuggestionDoc extends MongoDoc {
   colonyAddress: string
   creatorAddress: string
@@ -99,7 +152,7 @@ export interface TaskDoc extends MongoDoc {
   dueDate?: Date
   ethSkillId?: number
   finalizedAt?: Date
-  payouts: { tokenAddress: string; amount: string }[]
+  payouts: TaskPayout[]
   title?: string
   workInviteAddresses: string[]
   workRequestAddresses: string[]

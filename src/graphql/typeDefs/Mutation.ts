@@ -171,6 +171,93 @@ export default gql`
     id: String!
   }
 
+  input CreateLevelTaskSubmissionInput {
+    levelId: String!
+    persistentTaskId: String!
+    submission: String!
+  }
+
+  input EditSubmissionInput {
+    id: String!
+    submission: String!
+  }
+
+  input AcceptLevelTaskSubmissionInput {
+    levelId: String!
+    submissionId: String!
+  }
+
+  input CreateLevelTaskInput {
+    levelId: String!
+  }
+
+  input RemoveLevelTaskInput {
+    id: String!
+    levelId: String!
+  }
+
+  input Payout {
+    amount: String!
+    tokenAddress: String!
+  }
+
+  input EditPersistentTaskInput {
+    id: String!
+    ethDomainId: Int
+    ethSkillId: Int
+    title: String
+    description: String
+    payouts: [Payout!]
+  }
+
+  input CreateLevelInput {
+    programId: String!
+  }
+
+  input EditLevelInput {
+    id: String!
+    title: String
+    description: String
+    achievement: String
+    numRequiredSteps: Int
+  }
+
+  input ReorderLevelStepsInput {
+    id: String!
+    stepIds: [String!]!
+  }
+
+  input RemoveLevelInput {
+    id: String!
+  }
+
+  input CreateProgramInput {
+    colonyAddress: String!
+  }
+
+  input EnrollInProgramInput {
+    id: String!
+  }
+
+  input EditProgramInput {
+    id: String!
+    title: String
+    description: String
+  }
+
+  input ReorderProgramLevelsInput {
+    id: String!
+    levelIds: [String!]!
+  }
+
+  input PublishProgramInput {
+    id: String!
+  }
+
+  input RemoveProgramInput {
+    id: String!
+  }
+
   type Mutation {
     # Colonies
     createColony(input: CreateColonyInput!): Colony
@@ -188,7 +275,9 @@ export default gql`
     createSuggestion(input: CreateSuggestionInput!): Suggestion
     setSuggestionStatus(input: SetSuggestionStatusInput!): Suggestion
     addUpvoteToSuggestion(input: AddUpvoteToSuggestionInput!): Suggestion
-    removeUpvoteFromSuggestion(input: RemoveUpvoteFromSuggestionInput!): Suggestion
+    removeUpvoteFromSuggestion(
+      input: RemoveUpvoteFromSuggestionInput!
+    ): Suggestion
     # Tasks
     assignWorker(input: AssignWorkerInput!): Task
     cancelTask(input: TaskIdInput!): Task
@@ -212,5 +301,29 @@ export default gql`
     subscribeToColony(input: SubscribeToColonyInput!): User
     unsubscribeFromColony(input: UnsubscribeFromColonyInput!): User
     setUserTokens(input: SetUserTokensInput!): User
+    # Submissions
+    createLevelTaskSubmission(
+      input: CreateLevelTaskSubmissionInput!
+    ): Submission
+    acceptLevelTaskSubmission(
+      input: AcceptLevelTaskSubmissionInput!
+    ): Submission
+    editSubmission(input: EditSubmissionInput!): Submission
+    # PersistentTasks
+    createLevelTask(input: CreateLevelTaskInput!): PersistentTask
+    removeLevelTask(input: RemoveLevelTaskInput!): PersistentTask
+    editPersistentTask(input: EditPersistentTaskInput!): PersistentTask
+    # Levels
+    createLevel(input: CreateLevelInput!): Level
+    editLevel(input: EditLevelInput!): Level
+    reorderLevelSteps(input: ReorderLevelStepsInput!): Level
+    removeLevel(input: RemoveLevelInput!): Level
+    # Programs
+    createProgram(input: CreateProgramInput!): Program
+    enrollInProgram(input: EnrollInProgramInput!): Program
+    editProgram(input: EditProgramInput!): Program
+    reorderProgramLevels(input: ReorderProgramLevelsInput!): Program
+    publishProgram(input: PublishProgramInput!): Program
+    removeProgram(input: RemoveProgramInput!): Program
   }
 `

@@ -17,9 +17,13 @@ import { resolvers } from './resolvers'
 import Colony from './typeDefs/Colony'
 import Domain from './typeDefs/Domain'
 import Event from './typeDefs/Event'
+import Level from './typeDefs/Level'
 import Mutation from './typeDefs/Mutation'
+import PersistentTask from './typeDefs/PersistentTask'
+import Program from './typeDefs/Program'
 import Query from './typeDefs/Query'
 import Suggestion from './typeDefs/Suggestion'
+import Submission from './typeDefs/Submission'
 import Task from './typeDefs/Task'
 import TokenInfo from './typeDefs/TokenInfo'
 import SystemInfo from './typeDefs/SystemInfo'
@@ -63,8 +67,12 @@ export const createApolloServer = (db: Db, provider: Provider) => {
       Colony,
       Domain,
       Event,
+      Level,
       Mutation,
+      PersistentTask,
+      Program,
       Query,
+      Submission,
       Suggestion,
       Task,
       TokenInfo,
