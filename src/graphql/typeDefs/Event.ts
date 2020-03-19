@@ -89,7 +89,7 @@ export default gql`
   type SetTaskDueDateEvent implements TaskEvent {
     type: EventType!
     taskId: String!
-    dueDate: GraphQLDateTime!
+    dueDate: GraphQLDateTime
     colonyAddress: String
   }
 

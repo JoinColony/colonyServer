@@ -863,7 +863,7 @@ export type SetTaskDueDateEvent = TaskEvent & {
    __typename?: 'SetTaskDueDateEvent',
   type: EventType,
   taskId: Scalars['String'],
-  dueDate: Scalars['GraphQLDateTime'],
+  dueDate?: Maybe<Scalars['GraphQLDateTime']>,
   colonyAddress?: Maybe<Scalars['String']>,
 };
 
@@ -1654,7 +1654,7 @@ export type SetTaskDomainEventResolvers<ContextType = any, ParentType extends Re
 export type SetTaskDueDateEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetTaskDueDateEvent'] = ResolversParentTypes['SetTaskDueDateEvent']> = {
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   taskId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  dueDate?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
+  dueDate?: Resolver<Maybe<ResolversTypes['GraphQLDateTime']>, ParentType, ContextType>,
   colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
 };
 
