@@ -839,10 +839,16 @@ export class ColonyMongoApi {
     { taskId, txHash }: { taskId: string; txHash: string },
   ) {
     await this.tryGetUser(initiator)
-    const task = await this.tryGetTask(taskId)
-    if (task.txHash) {
+    const { colonyAddress, txHash: existingTxHash } = await this.tryGetTask(taskId)
+    if (existingTxHash) {
       throw new Error(`Task with ID ${taskId} is already being finalized`)
     }
+    const eventId = await this.createEvent(initiator, EventType.SetTaskPending, {
+      taskId,
+      colonyAddress,
+      txHash,
+    })
+    await this.createTaskNotification(initiator, eventId, taskId)
     return this.updateTask(taskId, {}, { $set: { txHash } })
   }
 

@@ -57,6 +57,13 @@ export default gql`
     colonyAddress: String
   }
 
+  type SetTaskPendingEvent implements TaskEvent {
+    type: EventType!
+    taskId: String!
+    txHash: String!
+    colonyAddress: String
+  }
+
   type RemoveTaskPayoutEvent implements TaskEvent {
     type: EventType!
     taskId: String!
@@ -182,6 +189,7 @@ export default gql`
     | SetTaskDomainEvent
     | SetTaskDueDateEvent
     | SetTaskPayoutEvent
+    | SetTaskPendingEvent
     | SetTaskSkillEvent
     | RemoveTaskSkillEvent
     | SetTaskTitleEvent

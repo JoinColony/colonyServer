@@ -20,6 +20,7 @@ export default gql`
     SetTaskDomain
     SetTaskDueDate
     SetTaskPayout
+    SetTaskPending
     SetTaskSkill
     RemoveTaskSkill
     SetTaskTitle
