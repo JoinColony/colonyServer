@@ -393,6 +393,22 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     await api.unassignWorker(userAddress, id, workerAddress)
     return data.getTaskById(id)
   },
+  async setTaskPending(
+    parent,
+    { input: { id, txHash } },
+    { userAddress, api, dataSources: { data, auth } },
+  ) {
+    const { colonyAddress, ethDomainId } = await data.getTaskById(id)
+    await tryAuth(
+      auth.assertCanFinalizeTask({
+        colonyAddress,
+        userAddress,
+        domainId: ethDomainId,
+      }),
+    )
+    await api.setTaskPending(userAddress, { taskId: id, txHash })
+    return data.getTaskById(id)
+  },
   async finalizeTask(
     parent,
     { input: { id, ethPotId } },
@@ -444,7 +460,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
   async sendTaskMessage(
     parent,
     { input: { id, message } },
-    { userAddress, api, dataSources: { data }},
+    { userAddress, api, dataSources: { data } },
   ) {
     // No auth call needed; anyone can do this (for now...?)
     await api.sendTaskMessage(userAddress, id, message)

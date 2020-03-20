@@ -268,6 +268,10 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
               cancelledAt: {
                 bsonType: 'date',
               },
+              txHash: {
+                bsonType: 'string',
+                maxLength: 100,
+              },
               workRequestAddresses: {
                 bsonType: 'array',
                 uniqueItems: true,

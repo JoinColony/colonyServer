@@ -154,6 +154,7 @@ export interface TaskDoc extends MongoDoc {
   finalizedAt?: Date
   payouts: TaskPayout[]
   title?: string
+  txHash?: string
   workInviteAddresses: string[]
   workRequestAddresses: string[]
 }
