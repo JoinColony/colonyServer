@@ -858,8 +858,6 @@ export class ColonyMongoApi {
         txHash,
       },
     )
-    await this.createTaskNotification(initiator, eventId, taskId)
-
     return this.updateTask(taskId, {}, { $set: { txHash } })
   }
 
