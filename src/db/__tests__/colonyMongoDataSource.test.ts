@@ -7,7 +7,7 @@ import {
   LevelStatus,
   PersistentTaskStatus,
   ProgramStatus,
-  SubmissionStatus
+  SubmissionStatus,
 } from '../../graphql/types'
 
 describe('ColonyMongoDataSource', () => {
@@ -84,6 +84,59 @@ describe('ColonyMongoDataSource', () => {
         username: 'first_user',
       },
     })
+  })
+
+  it('should get all achievements for a user in a colony', async () => {
+    const {
+      insertedIds: programIds,
+    } = await data.collections.programs.collection.insertMany([
+      {
+        colonyAddress: '0xdeadbeef',
+        creatorAddress: 'first',
+        levelIds: [],
+        enrolledUserAddresses: [],
+        status: ProgramStatus.Active,
+      },
+      {
+        colonyAddress: '0xbeefdead',
+        creatorAddress: 'first',
+        levelIds: [],
+        enrolledUserAddresses: [],
+        status: ProgramStatus.Active,
+      },
+    ])
+    const {
+      insertedIds: levelIds,
+    } = await data.collections.levels.collection.insertMany([
+      {
+        creatorAddress: 'first',
+        programId: programIds[0],
+        stepIds: [],
+        completedBy: ['first'],
+        status: LevelStatus.Active,
+      },
+      {
+        creatorAddress: 'first',
+        programId: programIds[0],
+        stepIds: [],
+        completedBy: ['first'],
+        status: LevelStatus.Active,
+      },
+      {
+        creatorAddress: 'first',
+        programId: programIds[1],
+        stepIds: [],
+        completedBy: ['first'],
+        status: LevelStatus.Active,
+      },
+    ])
+
+    const achievements = await data.getUserCompletedLevels(
+      'first',
+      '0xdeadbeef',
+    )
+
+    expect(achievements.length).toEqual(2)
   })
 
   it('should get all submissions for a program', async () => {

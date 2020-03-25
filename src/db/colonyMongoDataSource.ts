@@ -733,11 +733,30 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     })
   }
 
-  async getUserCompletedLevels(address: string, ttl?: number) {
+  async getUserCompletedLevels(
+    address: string,
+    colonyAddress: string,
+    ttl?: number,
+  ) {
     const query = { completedBy: address, status: { $ne: LevelStatus.Deleted } }
-    const levels = ttl
-      ? await this.collections.levels.findManyByQuery(query, { ttl })
-      : await this.collections.levels.collection.find(query).toArray()
+    const cursor = await this.collections.levels.collection.aggregate([
+      // 1. Find all levels matching the above query
+      { $match: query },
+      // 2. Look up the corresponding program
+      {
+        $lookup: {
+          from: this.collections.programs.collection.collectionName,
+          localField: 'programId',
+          foreignField: '_id',
+          as: 'program',
+        },
+      },
+      // 3. Filter the results by the given colonyAddress
+      { $match: { 'program.colonyAddress': colonyAddress } },
+      // 4. Remove the program field to get the levels as we know and like them
+      { $unset: 'program' },
+    ])
+    const levels = await cursor.toArray()
     return levels.map(ColonyMongoDataSource.transformLevel)
   }
 
