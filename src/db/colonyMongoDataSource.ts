@@ -736,7 +736,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   async getUserCompletedLevels(
     address: string,
     colonyAddress: string,
-    ttl?: number,
   ) {
     const query = { completedBy: address, status: { $ne: LevelStatus.Deleted } }
     const cursor = await this.collections.levels.collection.aggregate([
