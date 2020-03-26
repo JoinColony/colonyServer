@@ -653,6 +653,17 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return docs.map(ColonyMongoDataSource.transformSuggestion)
   }
 
+  async getUserByUsername(username: string, ttl?: number) {
+    const query = { username }
+    const [doc] = ttl
+      ? await this.collections.users.findManyByQuery(query, { ttl })
+      : [await this.collections.users.collection.findOne(query)]
+
+    if (!doc) throw new Error(`User with username '${username}' was not found`)
+
+    return ColonyMongoDataSource.transformUser(doc)
+  }
+
   async getUserByAddress(walletAddress: string, ttl?: number) {
     const query = { walletAddress }
     const [doc] = ttl
