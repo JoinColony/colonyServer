@@ -712,6 +712,7 @@ export type PublishProgramInput = {
 export type Query = {
    __typename?: 'Query',
   user: User,
+  userByName: User,
   colony: Colony,
   domain: Domain,
   level: Level,
@@ -724,6 +725,11 @@ export type Query = {
 
 export type QueryUserArgs = {
   address: Scalars['String']
+};
+
+
+export type QueryUserByNameArgs = {
+  name: Scalars['String']
 };
 
 
@@ -1637,6 +1643,7 @@ export type ProgramSubmissionResolvers<ContextType = any, ParentType extends Res
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'address'>>,
+  userByName?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserByNameArgs, 'name'>>,
   colony?: Resolver<ResolversTypes['Colony'], ParentType, ContextType, RequireFields<QueryColonyArgs, 'address'>>,
   domain?: Resolver<ResolversTypes['Domain'], ParentType, ContextType, RequireFields<QueryDomainArgs, 'colonyAddress' | 'ethDomainId'>>,
   level?: Resolver<ResolversTypes['Level'], ParentType, ContextType, RequireFields<QueryLevelArgs, 'id'>>,
