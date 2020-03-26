@@ -60,6 +60,11 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 description: 'must be a string and is required',
                 maxLength: 100,
               },
+              ensName: {
+                bsonType: 'string',
+                description: 'must be a string',
+                maxLength: 100,
+              },
               walletAddress: {
                 bsonType: 'string',
                 description: 'must be a string and is required',
