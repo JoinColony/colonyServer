@@ -30,7 +30,7 @@
   "license": "ISC",
   "dependencies": {
     "apollo-datasource-mongo": "git://github.com/jameslefrere/apollo-datasource-mongodb.git#12f6b7977d7a6a874f8c5473e4a70239ce7ee5b1",
-    "apollo-datasource-rest": "^0.6.11",
+    "apollo-datasource-rest": "^0.8.0",
     "apollo-server-express": "^2.9.12",
     "async-retry": "^1.2.3",
     "body-parser": "^1.19.0",
@@ -56,7 +56,7 @@
     "@types/jest": "24.9.1",
     "@types/mongodb": "3.3.11",
     "@types/node": "12.12.14",
-    "apollo-datasource": "0.6.3",
+    "apollo-datasource": "0.7.0",
     "apollo-server-testing": "2.11.0",
     "jest": "24.9.0",
     "jest-extended": "0.11.5",
