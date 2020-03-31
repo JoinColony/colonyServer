@@ -29,7 +29,7 @@ export const User: UserResolvers<ApolloContext> = {
       return data.getAllUserNotifications(userAddress)
     }
   },
-  completedLevels({ id }, input, { dataSources: { data } }) {
-    return data.getUserCompletedLevels(id);
+  completedLevels({ id }, { colonyAddress }, { dataSources: { data } }) {
+    return data.getUserCompletedLevels(id, colonyAddress);
   },
 }

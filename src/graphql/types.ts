@@ -1096,6 +1096,11 @@ export type UserNotificationsArgs = {
   read?: Maybe<Scalars['Boolean']>
 };
 
+
+export type UserCompletedLevelsArgs = {
+  colonyAddress: Scalars['String']
+};
+
 export type UserProfile = {
    __typename?: 'UserProfile',
   username?: Maybe<Scalars['String']>,
@@ -1824,7 +1829,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   taskIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   tokenAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType, UserNotificationsArgs>,
-  completedLevels?: Resolver<Array<ResolversTypes['Level']>, ParentType, ContextType>,
+  completedLevels?: Resolver<Array<ResolversTypes['Level']>, ParentType, ContextType, RequireFields<UserCompletedLevelsArgs, 'colonyAddress'>>,
 };
 
 export type UserProfileResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserProfile'] = ResolversParentTypes['UserProfile']> = {
