@@ -102,7 +102,7 @@ export default gql`
 
   input FinalizeTaskInput {
     id: String!
-    ethPotId: Int!
+    ethPotId: Int
   }
 
   input EditColonyProfileInput {

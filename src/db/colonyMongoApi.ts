@@ -863,18 +863,17 @@ export class ColonyMongoApi {
 
   async finalizeTask(
     initiator: string,
-    { taskId, ethPotId }: { taskId: string; ethPotId: number },
+    { taskId, ethPotId }: { taskId: string; ethPotId?: number },
   ) {
     await this.tryGetUser(initiator)
     const task = await this.tryGetTask(taskId)
     const { colonyAddress } = task
 
     if (
-      !(task.payouts && task.payouts.length > 0) ||
       !task.assignedWorkerAddress
     ) {
       throw new Error(
-        `Unable to finalize task with ID '${taskId}: assigned worker and payout required'`,
+        `Unable to finalize task with ID '${taskId}: assigned worker required'`,
       )
     }
 
@@ -884,10 +883,16 @@ export class ColonyMongoApi {
       colonyAddress,
     })
     await this.createTaskNotification(initiator, eventId, taskId)
+
+    const update = { finalizedAt: new Date() }
+    if (ethPotId) {
+      update['ethPotId'] = ethPotId
+    }
+
     return this.updateTask(
       taskId,
       {},
-      { $set: { finalizedAt: new Date(), ethPotId } },
+      { $set: update },
     )
   }
 

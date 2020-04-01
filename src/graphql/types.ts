@@ -295,7 +295,7 @@ export type FinalizeTaskEvent = TaskEvent & {
 
 export type FinalizeTaskInput = {
   id: Scalars['String'],
-  ethPotId: Scalars['Int'],
+  ethPotId?: Maybe<Scalars['Int']>,
 };
 
 
