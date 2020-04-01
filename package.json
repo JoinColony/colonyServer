@@ -64,7 +64,7 @@
     "ts-node": "8.5.4",
     "ts-node-dev": "1.0.0-pre.44",
     "typechain": "1.0.5",
-    "typechain-target-ethers": "1.0.3",
+    "typechain-target-ethers": "1.0.4",
     "typescript": "3.8.3"
   }
 }
