@@ -810,7 +810,7 @@ export class ColonyMongoApi {
       workerAddress,
       colonyAddress,
     })
-    await this.createTaskNotification(initiator, eventId, taskId)
+    await this.createSpecificTaskNotification(workerAddress, eventId)
     return this.updateTask(
       taskId,
       {},
@@ -843,7 +843,7 @@ export class ColonyMongoApi {
         colonyAddress,
       },
     )
-    await this.createTaskNotification(initiator, eventId, taskId)
+    await this.createSpecificTaskNotification(workerAddress, eventId)
     return this.updateTask(
       taskId,
       { assignedWorkerAddress: workerAddress },
