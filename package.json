@@ -39,7 +39,7 @@
     "etherpass": "^1.0.2",
     "ethers": "^4.0.40",
     "express": "^4.17.1",
-    "graphql": "^14.5.8",
+    "graphql": "^15.0.0",
     "graphql-iso-date": "^3.6.1",
     "jose": "^1.12.1",
     "linkify-it": "^2.2.0",
