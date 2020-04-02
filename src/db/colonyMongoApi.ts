@@ -270,6 +270,13 @@ export class ColonyMongoApi {
     )
   }
 
+  private async createSpecificTaskNotification(
+    notifiedUserAddress: string,
+    eventId: ObjectID,
+  ) {
+    return this.createNotification(eventId, [notifiedUserAddress])
+  }
+
   private async createColonyNotification(
     initiator: string,
     eventId: ObjectID,
