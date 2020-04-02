@@ -13,7 +13,6 @@ import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
 import {
   EditPersistentTaskInput,
-  EditSubmissionInput,
   EventType,
   LevelStatus,
   PersistentTaskStatus,
@@ -34,7 +33,6 @@ import {
   SubmissionDoc,
   SuggestionDoc,
   TaskDoc,
-  TokenDoc,
   UserDoc,
 } from './types'
 import { CollectionNames } from './collections'
@@ -793,7 +791,13 @@ export class ColonyMongoApi {
     await this.tryGetUser(initiator)
     const { colonyAddress } = await this.tryGetTask(taskId)
 
+    /*
+     * @NOTE Subscribe both the intiator (Ie: user with admin role) and the assigned worker to the task.
+     * This way we ensure that the asignee always gets notified
+     */
     await this.subscribeToTask(initiator, taskId)
+    await this.subscribeToTask(workerAddress, taskId)
+
     const eventId = await this.createEvent(initiator, EventType.AssignWorker, {
       taskId,
       workerAddress,
@@ -816,7 +820,13 @@ export class ColonyMongoApi {
     await this.tryGetUser(workerAddress)
     const { colonyAddress } = await this.tryGetTask(taskId)
 
+    /*
+     * @NOTE Only attempt to subscribe the initiator to the task
+     * This is is because the assignee is already asigned to this task, but the
+     * initiator (ie: user with admin role) might not be
+     */
     await this.subscribeToTask(initiator, taskId)
+
     const eventId = await this.createEvent(
       initiator,
       EventType.UnassignWorker,
@@ -849,7 +859,7 @@ export class ColonyMongoApi {
       throw new Error(`Task with ID ${taskId} is already (being) finalized`)
     }
 
-    const eventId = await this.createEvent(
+    await this.createEvent(
       initiator,
       EventType.SetTaskPending,
       {
