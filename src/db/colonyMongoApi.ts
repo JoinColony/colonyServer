@@ -270,13 +270,6 @@ export class ColonyMongoApi {
     )
   }
 
-  private async createSpecificTaskNotification(
-    notifiedUserAddress: string,
-    eventId: ObjectID,
-  ) {
-    return this.createNotification(eventId, [notifiedUserAddress])
-  }
-
   private async createColonyNotification(
     initiator: string,
     eventId: ObjectID,
@@ -810,7 +803,7 @@ export class ColonyMongoApi {
       workerAddress,
       colonyAddress,
     })
-    await this.createSpecificTaskNotification(workerAddress, eventId)
+    await this.createNotification(eventId, [workerAddress])
     return this.updateTask(
       taskId,
       {},
@@ -843,7 +836,7 @@ export class ColonyMongoApi {
         colonyAddress,
       },
     )
-    await this.createSpecificTaskNotification(workerAddress, eventId)
+    await this.createNotification(eventId, [workerAddress])
     return this.updateTask(
       taskId,
       { assignedWorkerAddress: workerAddress },
