@@ -7,6 +7,7 @@ import {
   EthplorerTokenInfo,
 } from '../../external/ethplorerDataSource'
 import { SystemDataSource } from '../../external/systemDataSource'
+import { getTokenDecimalsWithFallback } from '../../utils'
 
 export const Query: QueryResolvers<ApolloContext> = {
   async user(parent, { address }, { dataSources: { data } }) {
@@ -70,7 +71,10 @@ export const Query: QueryResolvers<ApolloContext> = {
     return {
       id: checksummedTokenAddress,
       address: checksummedTokenAddress,
-      decimals: ethplorerTokenInfo.decimals || databaseTokenInfo.decimals || 18,
+      decimals: getTokenDecimalsWithFallback(
+        ethplorerTokenInfo.decimals,
+        databaseTokenInfo.decimals,
+      ),
       iconHash: databaseTokenInfo.iconHash,
       name:
         ethplorerTokenInfo.name || databaseTokenInfo.name || 'Unknown token',
