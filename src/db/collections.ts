@@ -1,6 +1,7 @@
 import { CollectionCreateOptions, IndexOptions } from 'mongodb'
 import {
   ColonyDoc,
+  ChainEventDoc,
   DomainDoc,
   EventDoc,
   LevelDoc,
@@ -17,6 +18,7 @@ import { ETH_ADDRESS } from '../constants'
 
 export enum CollectionNames {
   Colonies = 'colonies',
+  ChainEvents = 'chainEvents',
   Domains = 'domains',
   Events = 'events',
   Levels = 'levels',
@@ -44,6 +46,51 @@ type SchemaFields<T> = {
 }
 
 export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
+  [
+    CollectionNames.ChainEvents,
+    {
+      create: {
+        validator: {
+          $jsonSchema: {
+            additionalProperties: false,
+            bsonType: 'object',
+            required: ['transaction', 'logIndex', 'address', 'topics', 'data'],
+            properties: {
+              _id: { bsonType: 'objectId' },
+              transaction: {
+                bsonType: 'string',
+                maxLength: 66,
+                minLength: 66,
+              },
+              logIndex: {
+                bsonType: 'number',
+                minimum: 0
+              },
+              address: {
+                bsonType: 'string',
+                maxLength: 42,
+                minLength: 42,
+              },
+              topics: {
+                bsonType: 'array',
+                items: {
+                  bsonType: 'string',
+                },
+              },
+              data: {
+                bsonType: 'string',
+              },
+            } as SchemaFields<ChainEventDoc>,
+          },
+        },
+      },
+      indexes: [
+        ['transaction', {}],
+        ['address', {}],
+        ['topics', {}],
+      ],
+    },
+  ],
   [
     CollectionNames.Users,
     {

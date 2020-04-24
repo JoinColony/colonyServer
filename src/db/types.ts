@@ -168,6 +168,14 @@ export interface TokenDoc extends MongoDoc {
   symbol: string
 }
 
+export interface ChainEventDoc extends MongoDoc {
+  transaction: string
+  logIndex: number
+  address: string
+  topics: string[]
+  data: string
+}
+
 export interface NotificationDoc extends MongoDoc {
   eventId: ObjectID
   users: { address: string; read?: boolean }[]

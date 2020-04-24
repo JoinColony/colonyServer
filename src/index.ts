@@ -12,10 +12,12 @@ import { getTokenForAddress } from './auth'
 import { connect } from './db/connect'
 import { provider } from './network/provider'
 import { isDevelopment } from './env'
+import { createEventMonitor } from './eventMonitor'
 
 const startServer = async () => {
   const { db } = await connect()
   const apolloServer = createApolloServer(db, provider)
+  const eventMonitor = createEventMonitor(db, provider)
 
   const app = express()
   const port = process.env.APOLLO_PORT
@@ -51,6 +53,7 @@ const startServer = async () => {
       )
     }
   })
+  await eventMonitor.init();
 }
 
 startServer()

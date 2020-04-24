@@ -34,6 +34,7 @@ import {
   SuggestionDoc,
   TaskDoc,
   UserDoc,
+  ChainEventDoc,
 } from './types'
 import { CollectionNames } from './collections'
 import { matchUsernames } from './matchers'
@@ -61,6 +62,7 @@ export class ColonyMongoApi {
   private readonly suggestions: Collection<SuggestionDoc>
   private readonly tasks: Collection<TaskDoc>
   private readonly users: Collection<UserDoc>
+  private readonly chainEvents: Collection<ChainEventDoc>
 
   constructor(db: Db) {
     this.colonies = db.collection<ColonyDoc>(CollectionNames.Colonies)
@@ -78,6 +80,26 @@ export class ColonyMongoApi {
     this.suggestions = db.collection<SuggestionDoc>(CollectionNames.Suggestions)
     this.tasks = db.collection<TaskDoc>(CollectionNames.Tasks)
     this.users = db.collection<UserDoc>(CollectionNames.Users)
+    this.chainEvents = db.collection<ChainEventDoc>(CollectionNames.ChainEvents)
+  }
+
+
+  async recordChainEvent(
+    transaction: string,
+    logIndex: number,
+    address: string,
+    topics: string[],
+    data: boolean,
+  ) {
+    const doc: Omit<ChainEventDoc, '_id'> = {
+      transaction,
+      logIndex,
+      address,
+      topics,
+      data,
+    }
+
+    return this.chainEvents.updateOne(doc, { $setOnInsert: doc }, { upsert: true })
   }
 
   private async updateUser(
