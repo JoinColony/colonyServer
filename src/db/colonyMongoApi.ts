@@ -89,7 +89,7 @@ export class ColonyMongoApi {
     logIndex: number,
     address: string,
     topics: string[],
-    data: boolean,
+    data: string,
   ) {
     const doc: Omit<ChainEventDoc, '_id'> = {
       transaction,
