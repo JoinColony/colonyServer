@@ -3,7 +3,10 @@ import { MongoClient } from 'mongodb'
 import { globalSetup } from '@shelf/jest-mongodb/jest-preset'
 
 const mongoDbSetup = require(globalSetup)
-const { createCollections } = require(resolve(__dirname, './scripts/db-setup.ts'))
+const { createCollections } = require(resolve(
+  __dirname,
+  './scripts/db-setup.ts',
+))
 
 module.exports = async () => {
   await mongoDbSetup()

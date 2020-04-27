@@ -322,11 +322,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
           $jsonSchema: {
             additionalProperties: false,
             bsonType: 'object',
-            required: [
-              'creatorAddress',
-              'colonyAddress',
-              'status',
-            ],
+            required: ['creatorAddress', 'colonyAddress', 'status'],
             properties: {
               _id: { bsonType: 'objectId' },
               colonyAddress: {
@@ -682,7 +678,10 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
           },
         },
       },
-      indexes: [['status', {}], ['completedBy', {}]],
+      indexes: [
+        ['status', {}],
+        ['completedBy', {}],
+      ],
     },
   ],
   [
@@ -743,11 +742,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
           $jsonSchema: {
             additionalProperties: false,
             bsonType: 'object',
-            required: [
-              'colonyAddress',
-              'creatorAddress',
-              'status',
-            ],
+            required: ['colonyAddress', 'creatorAddress', 'status'],
             properties: {
               _id: { bsonType: 'objectId' },
               colonyAddress: {

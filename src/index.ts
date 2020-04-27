@@ -11,7 +11,7 @@ import { createApolloServer } from './graphql'
 import { getTokenForAddress } from './auth'
 import { connect } from './db/connect'
 import { provider } from './network/provider'
-import { isDevelopment } from './env';
+import { isDevelopment } from './env'
 
 const startServer = async () => {
   const { db } = await connect()
@@ -55,4 +55,4 @@ const startServer = async () => {
 
 startServer()
   .then(() => console.info('Server started successfully'))
-  .catch(error => console.error(error))
+  .catch((error) => console.error(error))

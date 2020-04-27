@@ -6,6 +6,6 @@ export const Submission: SubmissionResolvers<ApolloContext> = {
     return data.getUserByAddress(creatorAddress)
   },
   async task({ persistentTaskId }, input, { dataSources: { data } }) {
-    return data.getPersistentTaskById(persistentTaskId);
-  }
+    return data.getPersistentTaskById(persistentTaskId)
+  },
 }

@@ -6,14 +6,17 @@ export const Level: LevelResolvers<ApolloContext> = {
     return data.getLevelTasks(id)
   },
   async program({ programId }, input, { dataSources: { data } }) {
-    return data.getProgramById(programId);
+    return data.getProgramById(programId)
   },
   async unlocked(
     { id, programId },
     input,
     { dataSources: { data }, userAddress },
   ) {
-    const submissibleLevels = await data.getSubmissibleLevels(userAddress, programId)
+    const submissibleLevels = await data.getSubmissibleLevels(
+      userAddress,
+      programId,
+    )
     return submissibleLevels.includes(id)
   },
 }

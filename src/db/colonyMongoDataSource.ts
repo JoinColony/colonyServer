@@ -266,7 +266,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       colony: undefined,
       creator: undefined,
       domain: undefined,
-      payouts: payouts.map(payout => ({ ...payout, token: undefined })),
+      payouts: payouts.map((payout) => ({ ...payout, token: undefined })),
       workRequestAddresses,
       workInviteAddresses,
     }
@@ -281,7 +281,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       ...doc,
       id: _id.toHexString(),
       createdAt: _id.getTimestamp(),
-      payouts: payouts.map(payout => ({ ...payout, token: undefined })),
+      payouts: payouts.map((payout) => ({ ...payout, token: undefined })),
       submissions: [],
       currentUserSubmission: undefined,
     }
@@ -338,7 +338,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     const docs = ttl
       ? await this.collections.tasks.findManyByIds(taskIds, { ttl })
       : await this.collections.tasks.collection
-          .find({ _id: { $in: taskIds.map(id => new ObjectID(id)) } })
+          .find({ _id: { $in: taskIds.map((id) => new ObjectID(id)) } })
           .toArray()
 
     return docs.map(ColonyMongoDataSource.transformTask)
@@ -437,7 +437,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
 
   async getProgramSubmissions(programId: string, ttl?: number) {
     const { levelIds } = await this.getProgramById(programId)
-    const levelObjectIds = levelIds.map(id => new ObjectID(id))
+    const levelObjectIds = levelIds.map((id) => new ObjectID(id))
     const query = {
       _id: { $in: levelObjectIds },
       status: { $ne: LevelStatus.Deleted },
@@ -580,7 +580,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   async getLevelsById(ids: string[], ttl?: number) {
-    const levelObjectIds = ids.map(id => new ObjectID(id))
+    const levelObjectIds = ids.map((id) => new ObjectID(id))
     const query = {
       _id: { $in: levelObjectIds },
       status: { $ne: LevelStatus.Deleted },
@@ -593,7 +593,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
 
   async getLevelTasks(levelId: string, ttl?: number) {
     const { stepIds } = await this.getLevelById(levelId)
-    const stepObjectIds = stepIds.map(id => new ObjectID(id))
+    const stepObjectIds = stepIds.map((id) => new ObjectID(id))
     const query = {
       _id: { $in: stepObjectIds },
       status: { $ne: PersistentTaskStatus.Deleted },
@@ -626,9 +626,9 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       '_id',
       levelQuery,
     )
-    const completedLevelIds = completedLevelObjectIds.map(id => id.toString())
+    const completedLevelIds = completedLevelObjectIds.map((id) => id.toString())
     const [nextLevelId] = levelIds.filter(
-      levelId => !completedLevelIds.includes(levelId),
+      (levelId) => !completedLevelIds.includes(levelId),
     )
     return [...completedLevelIds, nextLevelId]
   }
@@ -733,10 +733,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     })
   }
 
-  async getUserCompletedLevels(
-    address: string,
-    colonyAddress: string,
-  ) {
+  async getUserCompletedLevels(address: string, colonyAddress: string) {
     const query = { completedBy: address, status: { $ne: LevelStatus.Deleted } }
     const cursor = await this.collections.levels.collection.aggregate([
       // 1. Find all levels matching the above query

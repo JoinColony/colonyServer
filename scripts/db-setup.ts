@@ -19,7 +19,7 @@ export const createCollections = async (db: Db) => {
             db.createIndex(name, fieldName, options),
           ),
         )
-        if (collections.map(c => c.collectionName).includes(name)) {
+        if (collections.map((c) => c.collectionName).includes(name)) {
           console.log(`${name} collection already exists, don't seed it again`)
           return
         }
@@ -43,7 +43,7 @@ if (require.main === module) {
       console.info('Database setup completed successfully.')
       process.exit(0)
     })
-    .catch(error => {
+    .catch((error) => {
       console.error(error)
       process.exit(1)
     })

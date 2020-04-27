@@ -81,7 +81,7 @@ export const createApolloServer = (db: Db, provider: Provider) => {
       scalars,
     ],
     resolvers,
-    formatError: err => {
+    formatError: (err) => {
       // MongoDB json schema validation
       if (err.message.includes('failed validation')) {
         return new ValidationError('Database validation failed')
