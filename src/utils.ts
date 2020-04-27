@@ -1,6 +1,7 @@
-import { ETH_ADDRESS, DEFAULT_TOKEN_DECIMALS } from './constants';
+import { ETH_ADDRESS, DEFAULT_TOKEN_DECIMALS } from './constants'
 
-export const isETH = (address: string) => address === ETH_ADDRESS || address === '0x0';
+export const isETH = (address: string) =>
+  address === ETH_ADDRESS || address === '0x0'
 
 /*
  * @NOTE Don't trust the incoming decimals
@@ -14,10 +15,10 @@ export const getTokenDecimalsWithFallback = (
   fallbackDecimals?: any,
 ): number => {
   if (Number.isInteger(decimals) && decimals >= 0) {
-    return decimals;
+    return decimals
   }
   if (Number.isInteger(fallbackDecimals) && fallbackDecimals >= 0) {
-    return fallbackDecimals;
+    return fallbackDecimals
   }
-  return DEFAULT_TOKEN_DECIMALS;
+  return DEFAULT_TOKEN_DECIMALS
 }

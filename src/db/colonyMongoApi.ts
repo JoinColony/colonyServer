@@ -244,7 +244,7 @@ export class ColonyMongoApi {
 
     const doc = {
       eventId,
-      users: uniqueUsers.map(address => ({ address, read: false })),
+      users: uniqueUsers.map((address) => ({ address, read: false })),
     }
 
     return this.notifications.updateOne(
@@ -318,7 +318,7 @@ export class ColonyMongoApi {
     stepIds: LevelDoc['stepIds'],
     creatorAddress: string,
   ) {
-    const stepObjectIds = stepIds.map(stepId => new ObjectID(stepId))
+    const stepObjectIds = stepIds.map((stepId) => new ObjectID(stepId))
     const query = {
       _id: { $in: stepObjectIds },
     }
@@ -508,12 +508,12 @@ export class ColonyMongoApi {
   async setUserTokens(initiator: string, tokenAddresses: string[]) {
     await this.tryGetUser(initiator)
     const tokens = tokenAddresses
-      .filter(token => !isETH(token))
+      .filter((token) => !isETH(token))
       /*
        * @NOTE In all likelyhood the address that comes from the dApp is already checksummed
        * But we'll checksum it again here as a precaution
        */
-      .map(token => toChecksumAddress(token))
+      .map((token) => toChecksumAddress(token))
     return this.updateUser(initiator, {}, { $set: { tokenAddresses: tokens } })
   }
 
@@ -525,12 +525,12 @@ export class ColonyMongoApi {
     await this.tryGetUser(initiator)
     await this.tryGetColony(colonyAddress)
     const tokens = tokenAddresses
-      .filter(token => !isETH(token))
+      .filter((token) => !isETH(token))
       /*
        * @NOTE In all likelyhood the address that comes from the dApp is already checksummed
        * But we'll checksum it again here as a precaution
        */
-      .map(token => toChecksumAddress(token))
+      .map((token) => toChecksumAddress(token))
     return this.updateColony(
       colonyAddress,
       {},
@@ -859,15 +859,11 @@ export class ColonyMongoApi {
       throw new Error(`Task with ID ${taskId} is already (being) finalized`)
     }
 
-    await this.createEvent(
-      initiator,
-      EventType.SetTaskPending,
-      {
-        taskId,
-        colonyAddress,
-        txHash,
-      },
-    )
+    await this.createEvent(initiator, EventType.SetTaskPending, {
+      taskId,
+      colonyAddress,
+      txHash,
+    })
     return this.updateTask(taskId, {}, { $set: { txHash } })
   }
 
@@ -941,9 +937,11 @@ export class ColonyMongoApi {
     const filter: StrictRootQuerySelector<NotificationDoc> = {
       users: match as NotificationDoc['users'],
     }
-    const update: StrictUpdateQuery<NotificationDoc & {
-      'users.$.read': boolean
-    }> = { $set: { 'users.$.read': true } }
+    const update: StrictUpdateQuery<
+      NotificationDoc & {
+        'users.$.read': boolean
+      }
+    > = { $set: { 'users.$.read': true } }
 
     return this.notifications.updateMany(filter, update)
   }
@@ -1031,7 +1029,7 @@ export class ColonyMongoApi {
 
     const { username: currentUsername } = await this.tryGetUser(initiator)
     const mentioned = matchUsernames(message).filter(
-      username => username !== currentUsername,
+      (username) => username !== currentUsername,
     )
     const users = (
       await this.users.find({ username: { $in: mentioned } }).toArray()
@@ -1327,7 +1325,7 @@ export class ColonyMongoApi {
         { $push: { completedBy: creatorAddress } },
       )
       const { levelIds } = await this.tryGetProgram(programId.toString())
-      const levelIdx = levelIds.findIndex(id => id === levelId)
+      const levelIdx = levelIds.findIndex((id) => id === levelId)
       const nextLevelId = levelIdx ? levelIds[levelIdx + 1] || null : null
 
       const eventId = await this.createEvent(
@@ -1534,7 +1532,7 @@ export class ColonyMongoApi {
     const { programId, stepIds } = await this.tryGetLevel(levelId)
     await this.tryGetProgram(programId.toHexString())
 
-    const stepObjectIDs = stepIds.map(stepId => new ObjectID(stepId))
+    const stepObjectIDs = stepIds.map((stepId) => new ObjectID(stepId))
 
     await this.persistentTasks.updateMany(
       { _id: { $in: stepObjectIDs } },

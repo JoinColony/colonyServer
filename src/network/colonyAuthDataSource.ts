@@ -257,7 +257,7 @@ export class ColonyAuthDataSource extends DataSource<any> {
 
   private async hasSomeRole(roles: ColonyRoles[], args: DomainAuthArgs) {
     const userRoles = await Promise.all(
-      roles.map(role => this.hasRole(role, args)),
+      roles.map((role) => this.hasRole(role, args)),
     )
     return userRoles.some(Boolean)
   }

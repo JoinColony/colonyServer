@@ -25,10 +25,10 @@ const insertMany = async <T>(
 
   const { insertedIds } = await db
     .collection(collectionName)
-    .insertMany(docs.map(doc => Object.assign({}, doc)))
+    .insertMany(docs.map((doc) => Object.assign({}, doc)))
   return Object.keys(insertedIds)
     .sort()
-    .map(idx => insertedIds[idx].toHexString())
+    .map((idx) => insertedIds[idx].toHexString())
 }
 
 interface DocsToInsert {

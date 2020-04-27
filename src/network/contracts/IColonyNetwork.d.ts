@@ -60,7 +60,7 @@ interface IColonyNetworkInterface extends Interface {
         BigNumberish,
         string,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -94,7 +94,7 @@ interface IColonyNetworkInterface extends Interface {
       encode([_user, _amount, _skillId]: [
         string,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -137,7 +137,7 @@ interface IColonyNetworkInterface extends Interface {
     getParentSkillId: TypedFunctionDescription<{
       encode([_skillId, _parentSkillIndex]: [
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -152,7 +152,7 @@ interface IColonyNetworkInterface extends Interface {
     calculateMinerWeight: TypedFunctionDescription<{
       encode([_timeStaked, _submissonIndex]: [
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -165,7 +165,7 @@ interface IColonyNetworkInterface extends Interface {
         Arrayish,
         BigNumberish,
         string[],
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -259,7 +259,7 @@ interface IColonyNetworkInterface extends Interface {
       encodeTopics([metaColony, token, rootSkillId]: [
         null,
         null,
-        null
+        null,
       ]): string[]
     }>
 
@@ -267,7 +267,7 @@ interface IColonyNetworkInterface extends Interface {
       encodeTopics([colonyId, colonyAddress, token]: [
         BigNumberish | null,
         string | null,
-        null
+        null,
       ]): string[]
     }>
 
@@ -292,7 +292,7 @@ interface IColonyNetworkInterface extends Interface {
         null,
         null,
         null,
-        null
+        null,
       ]): string[]
     }>
 

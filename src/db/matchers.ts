@@ -35,5 +35,5 @@ matcher // Remove default matchers, as we don't care about those here
 
 export const matchUsernames = (text: string): string[] => {
   const matches = matcher.match(text)
-  return matches ? matches.map(match => match.text.substr(1)) : []
+  return matches ? matches.map((match) => match.text.substr(1)) : []
 }

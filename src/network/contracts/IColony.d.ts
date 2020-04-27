@@ -104,7 +104,7 @@ interface IColonyInterface extends Interface {
       encode([_user, _domainId, _role]: [
         string,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -114,7 +114,7 @@ interface IColonyInterface extends Interface {
         BigNumberish,
         BigNumberish,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -146,7 +146,7 @@ interface IColonyInterface extends Interface {
       encode([_permissionDomainId, _childSkillIndex, _parentDomainId]: [
         BigNumberish,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -161,7 +161,7 @@ interface IColonyInterface extends Interface {
         Arrayish,
         Arrayish,
         BigNumberish,
-        Arrayish[]
+        Arrayish[],
       ]): string
     }>
 
@@ -169,7 +169,7 @@ interface IColonyInterface extends Interface {
       encode([_permissionDomainId, _childSkillIndex, _domainId]: [
         BigNumberish,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -178,7 +178,7 @@ interface IColonyInterface extends Interface {
         BigNumberish,
         BigNumberish,
         BigNumberish,
-        string
+        string,
       ]): string
     }>
 
@@ -194,7 +194,7 @@ interface IColonyInterface extends Interface {
       encode([_id, _slot, _recipient]: [
         BigNumberish,
         BigNumberish,
-        string
+        string,
       ]): string
     }>
 
@@ -203,7 +203,7 @@ interface IColonyInterface extends Interface {
         BigNumberish,
         BigNumberish,
         string,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -211,7 +211,7 @@ interface IColonyInterface extends Interface {
       encode([_id, _slot, _skillId]: [
         BigNumberish,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -227,7 +227,7 @@ interface IColonyInterface extends Interface {
         BigNumberish,
         BigNumberish,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -237,7 +237,7 @@ interface IColonyInterface extends Interface {
         BigNumberish,
         BigNumberish,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -275,7 +275,7 @@ interface IColonyInterface extends Interface {
         string,
         BigNumberish,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -283,7 +283,7 @@ interface IColonyInterface extends Interface {
       encode([_permissionDomainId, _childSkillIndex, _id]: [
         BigNumberish,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -292,7 +292,7 @@ interface IColonyInterface extends Interface {
         BigNumberish,
         BigNumberish,
         BigNumberish,
-        string
+        string,
       ]): string
     }>
 
@@ -301,7 +301,7 @@ interface IColonyInterface extends Interface {
         BigNumberish,
         BigNumberish,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -311,7 +311,7 @@ interface IColonyInterface extends Interface {
         BigNumberish,
         BigNumberish,
         string,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -339,7 +339,7 @@ interface IColonyInterface extends Interface {
         Arrayish,
         BigNumberish,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -356,7 +356,7 @@ interface IColonyInterface extends Interface {
         Arrayish[],
         BigNumberish[],
         BigNumberish,
-        Arrayish
+        Arrayish,
       ]): string
     }>
 
@@ -367,7 +367,7 @@ interface IColonyInterface extends Interface {
         Arrayish[],
         BigNumberish[],
         BigNumberish,
-        Arrayish
+        Arrayish,
       ]): string
     }>
 
@@ -375,7 +375,7 @@ interface IColonyInterface extends Interface {
       encode([_id, _role, _ratingSecret]: [
         BigNumberish,
         BigNumberish,
-        Arrayish
+        Arrayish,
       ]): string
     }>
 
@@ -384,7 +384,7 @@ interface IColonyInterface extends Interface {
         BigNumberish,
         BigNumberish,
         BigNumberish,
-        Arrayish
+        Arrayish,
       ]): string
     }>
 
@@ -405,7 +405,7 @@ interface IColonyInterface extends Interface {
         BigNumberish,
         string,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -449,7 +449,7 @@ interface IColonyInterface extends Interface {
       encode([_id, _deliverableHash, _ratingSecret]: [
         BigNumberish,
         Arrayish,
-        Arrayish
+        Arrayish,
       ]): string
     }>
 
@@ -487,7 +487,7 @@ interface IColonyInterface extends Interface {
       encode([_id, _token, _amount]: [
         BigNumberish,
         string,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -495,7 +495,7 @@ interface IColonyInterface extends Interface {
       encode([_id, _token, _amount]: [
         BigNumberish,
         string,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -503,7 +503,7 @@ interface IColonyInterface extends Interface {
       encode([_id, _token, _amount]: [
         BigNumberish,
         string,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -513,7 +513,7 @@ interface IColonyInterface extends Interface {
         string,
         BigNumberish,
         BigNumberish,
-        BigNumberish
+        BigNumberish,
       ]): string
     }>
 
@@ -527,7 +527,7 @@ interface IColonyInterface extends Interface {
         Arrayish,
         Arrayish,
         BigNumberish,
-        Arrayish[]
+        Arrayish[],
       ]): string
     }>
 
@@ -538,7 +538,7 @@ interface IColonyInterface extends Interface {
         Arrayish,
         Arrayish,
         BigNumberish,
-        Arrayish[]
+        Arrayish[],
       ]): string
     }>
 
@@ -580,7 +580,7 @@ interface IColonyInterface extends Interface {
         BigNumberish,
         BigNumberish,
         BigNumberish,
-        string
+        string,
       ]): string
     }>
 
@@ -615,7 +615,7 @@ interface IColonyInterface extends Interface {
         string | null,
         BigNumberish | null,
         BigNumberish | null,
-        null
+        null,
       ]): string[]
     }>
 
@@ -624,7 +624,7 @@ interface IColonyInterface extends Interface {
         BigNumberish | null,
         BigNumberish | null,
         null,
-        null
+        null,
       ]): string[]
     }>
 
@@ -645,7 +645,7 @@ interface IColonyInterface extends Interface {
         null,
         null,
         null,
-        null
+        null,
       ]): string[]
     }>
 
@@ -660,7 +660,7 @@ interface IColonyInterface extends Interface {
     ExpenditureTransferred: TypedEventDescription<{
       encodeTopics([expenditureId, owner]: [
         BigNumberish | null,
-        string | null
+        string | null,
       ]): string[]
     }>
 
@@ -676,7 +676,7 @@ interface IColonyInterface extends Interface {
       encodeTopics([expenditureId, slot, recipient]: [
         BigNumberish | null,
         BigNumberish | null,
-        string | null
+        string | null,
       ]): string[]
     }>
 
@@ -684,7 +684,7 @@ interface IColonyInterface extends Interface {
       encodeTopics([expenditureId, slot, skillId]: [
         BigNumberish | null,
         BigNumberish | null,
-        BigNumberish | null
+        BigNumberish | null,
       ]): string[]
     }>
 
@@ -693,7 +693,7 @@ interface IColonyInterface extends Interface {
         BigNumberish | null,
         BigNumberish | null,
         string | null,
-        null
+        null,
       ]): string[]
     }>
 
@@ -708,7 +708,7 @@ interface IColonyInterface extends Interface {
     TaskBriefSet: TypedEventDescription<{
       encodeTopics([taskId, specificationHash]: [
         BigNumberish | null,
-        null
+        null,
       ]): string[]
     }>
 
@@ -719,14 +719,14 @@ interface IColonyInterface extends Interface {
     TaskSkillSet: TypedEventDescription<{
       encodeTopics([taskId, skillId]: [
         BigNumberish | null,
-        BigNumberish | null
+        BigNumberish | null,
       ]): string[]
     }>
 
     TaskSkillRemove: TypedEventDescription<{
       encodeTopics([taskId, skillId]: [
         BigNumberish | null,
-        BigNumberish | null
+        BigNumberish | null,
       ]): string[]
     }>
 
@@ -734,7 +734,7 @@ interface IColonyInterface extends Interface {
       encodeTopics([taskId, role, user]: [
         BigNumberish | null,
         null,
-        string | null
+        string | null,
       ]): string[]
     }>
 
@@ -743,14 +743,14 @@ interface IColonyInterface extends Interface {
         BigNumberish | null,
         null,
         null,
-        null
+        null,
       ]): string[]
     }>
 
     TaskDeliverableSubmitted: TypedEventDescription<{
       encodeTopics([taskId, deliverableHash]: [
         BigNumberish | null,
-        null
+        null,
       ]): string[]
     }>
 
@@ -762,7 +762,7 @@ interface IColonyInterface extends Interface {
       encodeTopics([taskId, role, rating]: [
         BigNumberish | null,
         null,
-        null
+        null,
       ]): string[]
     }>
 
@@ -774,7 +774,7 @@ interface IColonyInterface extends Interface {
       encodeTopics([fundingPotId, token, amount]: [
         BigNumberish | null,
         string | null,
-        null
+        null,
       ]): string[]
     }>
 
@@ -2487,7 +2487,10 @@ export class IColony extends Contract {
 
     setTaskSkill(_id: BigNumberish, _skillId: BigNumberish): Promise<BigNumber>
 
-    removeTaskSkill(_id: BigNumberish, _skillId: BigNumberish): Promise<BigNumber>
+    removeTaskSkill(
+      _id: BigNumberish,
+      _skillId: BigNumberish,
+    ): Promise<BigNumber>
 
     setTaskBrief(
       _id: BigNumberish,

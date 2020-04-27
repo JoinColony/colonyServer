@@ -15,7 +15,7 @@ export const Colony: ColonyResolvers<ApolloContext> = {
     return data.getColonySubscribedUsers(colonyAddress)
   },
   async suggestions({ colonyAddress }, input, { dataSources: { data } }) {
-    return data.getColonySuggestions(colonyAddress);
+    return data.getColonySuggestions(colonyAddress)
   },
   async tasks(
     { taskIds },

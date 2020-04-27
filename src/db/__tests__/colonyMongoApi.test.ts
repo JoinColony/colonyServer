@@ -106,7 +106,7 @@ describe('ColonyMongoApi', () => {
         },
       },
     )
-    
+
     // We're creating five submissions of which just 2 satisfy the criteria:
     // - Belongs to user `second`
     // - Is `Accepted`
@@ -151,10 +151,7 @@ describe('ColonyMongoApi', () => {
     ])
 
     await expect(
-      api['countAcceptedLevelSubmissions'](
-        [taskIds[0].toString()],
-        'second',
-      ),
+      api['countAcceptedLevelSubmissions']([taskIds[0].toString()], 'second'),
     ).resolves.toEqual(2)
   })
 })
