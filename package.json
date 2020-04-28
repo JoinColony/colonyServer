@@ -41,7 +41,7 @@
     "express": "4.17.1",
     "graphql": "15.0.0",
     "graphql-iso-date": "3.6.1",
-    "graphql-tools": "5.0.1-b0a6f8a.0",
+    "graphql-tools": "5.0.1-ffb435a.0",
     "jose": "1.26.0",
     "linkify-it": "2.2.0",
     "mongodb": "3.5.6",
