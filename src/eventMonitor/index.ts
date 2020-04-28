@@ -1,11 +1,37 @@
 import { ColonyMongoApi } from '../db/colonyMongoApi'
 import { IColonyNetworkFactory } from '../network/contracts/IColonyNetworkFactory'
 import { IColonyFactory } from '../network/contracts/IColonyFactory'
-import { utils } from 'ethers'
-import { web3 } from 'Web3'
-import { ChainEventDoc } from './types'
+import { IColonyNetwork } from '../network/contracts/IColonyNetwork'
+import { IColony } from '../network/contracts/IColony'
+import { utils, EventFilter } from 'ethers'
+import { Log } from 'ethers/providers/abstract-provider'
+import { ChainEventDoc } from './../db/types'
+import { Db } from 'mongodb'
+import { Provider } from 'ethers/providers'
+
+type FullEventFilter = {
+  address?: string | Array<string>
+  topics?: Array<Array<string>> | Array<string>
+  fromBlock?: Number
+  toBlock?: Number
+}
 
 class EventMonitor {
+  provider: Provider
+  db: Db
+  api: ColonyMongoApi
+  network: IColonyNetwork
+  colonyAddresses: string[]
+  dummyColony: IColony
+  topicMapping: Map<string, string>
+  blockProcessing: boolean
+  blocksToProcess: number[]
+  logsToProcess: Log[]
+  logProcessing: boolean
+  logQueueTimerId: NodeJS.Timer
+  blockQueueTimerId: NodeJS.Timer
+  topicFilter: FullEventFilter
+
   constructor(db: Db, provider: Provider) {
     this.provider = provider
     this.db = db
@@ -22,7 +48,7 @@ class EventMonitor {
     )
 
     // We're gonna need this later
-    this.topicMapping = {}
+    this.topicMapping = new Map<string, string>()
     Object.keys(this.dummyColony.interface.events).forEach(
       (eName) =>
         (this.topicMapping[
@@ -38,6 +64,7 @@ class EventMonitor {
       this.processBlockQueue.bind(this),
       15000,
     )
+    this.topicFilter = { fromBlock: 1, toBlock: 1, topics: [[]] }
   }
 
   private async processBlockQueue() {
@@ -87,40 +114,34 @@ class EventMonitor {
     // No async calls above here, otherwise it's race-condition city
     while (this.logsToProcess.length > 0) {
       // Get log
-      const {
-        transactionHash,
-        logIndex,
-        address,
-        topics,
-        data,
-      } = this.logsToProcess.shift()
+      const log = this.logsToProcess.shift()
       const res = await this.api.recordChainEvent(
-        transactionHash,
-        logIndex,
-        address,
-        topics,
-        data,
+        log.transactionHash,
+        log.logIndex,
+        log.address,
+        log.topics,
+        log.data,
       )
       // TODO: If the process gets killed here, the effect of this event will never be applied to the db. An edge case, but a case
       // nonetheless
-      if (res?.result?.upserted) {
-        // This property only appears if we didn't have the log previously, so process the consequences
-        await this.processEventConsequences(log)
+      if (res?.upsertedCount !== 0) {
+        // This property is nonzero if we didn't have the log previously, so process the consequences
+        await this.processLogConsequences(log)
       }
     }
 
     this.logProcessing = false
   }
 
-  async processEventConsequences(event: ChainEventDoc) {
-    const eventSig = this.topicMapping[event.topics[0]]
+  async processLogConsequences(log: Log) {
+    const eventSig = this.topicMapping[log.topics[0]]
     if (!eventSig) {
       return
     }
     if (eventSig === 'DomainAdded(uint256)') {
       const domain = await this.api.domains.findOne({
-        colonyAddress: event.address,
-        ethDomainId: parseInt(event.data),
+        colonyAddress: log.address,
+        ethDomainId: parseInt(log.data),
       })
       if (domain !== null) {
         // Domain already exists, so return
@@ -128,7 +149,7 @@ class EventMonitor {
         return
       }
       // If it doesn't already exist, we should make it. We need to get the tx, to find out the parent ID
-      const tx = await this.provider.getTransaction(event.transactionHash)
+      const tx = await this.provider.getTransaction(log.transactionHash)
       const [, , parentId] = utils.defaultAbiCoder.decode(
         ['uint256', 'uint256', 'uint256'],
         utils.hexDataSlice(tx.data, 4),
@@ -138,16 +159,16 @@ class EventMonitor {
       // it's not the job of a unique index to preserve data integrity.
       return this.api.domains.updateOne(
         {
-          colonyAddress: event.address,
-          ethDomainId: parseInt(event.data),
+          colonyAddress: log.address,
+          ethDomainId: parseInt(log.data),
           ethParentDomainId: parentId.toNumber(),
         },
         {
           $setOnInsert: {
-            colonyAddress: event.address,
-            ethDomainId: parseInt(event.data),
+            colonyAddress: log.address,
+            ethDomainId: parseInt(log.data),
             ethParentDomainId: parentId.toNumber(),
-            name: `Domain #${parseInt(event.data)}`,
+            name: `Domain #${parseInt(log.data)}`,
           },
         },
         { upsert: true },
@@ -183,11 +204,19 @@ class EventMonitor {
 
   async init() {
     // First, get a list of colonies
-    const colonyAddedFilter = this.network.filters.ColonyAdded()
-    colonyAddedFilter.fromBlock = 1
+    const colonyAddedFilter = await this.network.filters.ColonyAdded(
+      null,
+      null,
+      null,
+    )
+
+    const colonyAddedFilterSinceGenesis = colonyAddedFilter as FullEventFilter
+    colonyAddedFilterSinceGenesis.fromBlock = 1
     let colonyAddedEvents = []
     try {
-      colonyAddedEvents = await this.provider.getLogs(colonyAddedFilter)
+      colonyAddedEvents = await this.provider.getLogs(
+        colonyAddedFilterSinceGenesis,
+      )
     } catch (e) {
       console.log(`getLogs failed with error ${e}. Initialisation unsuccessful`)
       return
@@ -198,7 +227,7 @@ class EventMonitor {
       )
     })
     // Set up listener for future colonies being created to be added to the array.
-    this.network.on(colonyAddedFilter, (e) => {
+    this.network.on(colonyAddedFilter as EventFilter, (e) => {
       this.colonyAddresses.push(
         utils.getAddress(`0x${e.topics[2].substring(26)}`),
       )
@@ -206,12 +235,10 @@ class EventMonitor {
 
     // Set up single listener for all events from everywhere.
     const topicsOfInterest = [
-      this.dummyColony.filters.DomainAdded(),
-      this.dummyColony.filters.FundingPotAdded(),
+      this.dummyColony.filters.DomainAdded(null),
+      this.dummyColony.filters.FundingPotAdded(null),
     ].map((f) => f.topics[0])
-    this.topicFilter = {
-      topics: [topicsOfInterest],
-    }
+    this.topicFilter.topics = [topicsOfInterest]
 
     await this.catchUpEvents()
   }
