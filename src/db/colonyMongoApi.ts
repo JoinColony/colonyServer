@@ -83,7 +83,6 @@ export class ColonyMongoApi {
     this.chainEvents = db.collection<ChainEventDoc>(CollectionNames.ChainEvents)
   }
 
-
   async recordChainEvent(
     transaction: string,
     logIndex: number,
@@ -99,7 +98,11 @@ export class ColonyMongoApi {
       data,
     }
 
-    return this.chainEvents.updateOne(doc, { $setOnInsert: doc }, { upsert: true })
+    return this.chainEvents.updateOne(
+      doc,
+      { $setOnInsert: doc },
+      { upsert: true },
+    )
   }
 
   private async updateUser(
@@ -249,13 +252,17 @@ export class ColonyMongoApi {
     return colony
   }
 
-  private async tryGetDomain(colonyAddress: string, ethDomainId: number) {
+  async tryGetDomain(colonyAddress: string, ethDomainId: number) {
     const domain = await this.domains.findOne({ colonyAddress, ethDomainId })
     assert.ok(
       !!domain,
       `Domain with ID '${ethDomainId}' of colony '${colonyAddress}' not found`,
     )
     return domain
+  }
+
+  async getLatestChainEvent() {
+    return await this.chainEvents.findOne({}, { sort: [['_id', -1]] })
   }
 
   private async createNotification(eventId: ObjectID, users: string[]) {
@@ -1010,6 +1017,20 @@ export class ColonyMongoApi {
     })
     await this.createColonyNotification(initiator, eventId, colonyAddress)
 
+    return this.createDomainNoChecks(
+      colonyAddress,
+      ethDomainId,
+      ethParentDomainId,
+      name,
+    )
+  }
+
+  async createDomainNoChecks(
+    colonyAddress: string,
+    ethDomainId: number,
+    ethParentDomainId: number | undefined | null,
+    name: string,
+  ) {
     // An upsert is used even if it's not strictly necessary because
     // it's not the job of a unique index to preserve data integrity.
     return this.domains.updateOne(

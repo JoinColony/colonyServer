@@ -4,17 +4,10 @@ import { IColonyFactory } from '../network/contracts/IColonyFactory'
 import { IColonyNetwork } from '../network/contracts/IColonyNetwork'
 import { IColony } from '../network/contracts/IColony'
 import { utils, EventFilter } from 'ethers'
-import { Log } from 'ethers/providers/abstract-provider'
+import { Log, Filter } from 'ethers/providers/abstract-provider'
 import { ChainEventDoc } from './../db/types'
 import { Db } from 'mongodb'
 import { Provider } from 'ethers/providers'
-
-type FullEventFilter = {
-  address?: string | Array<string>
-  topics?: Array<Array<string>> | Array<string>
-  fromBlock?: Number
-  toBlock?: Number
-}
 
 class EventMonitor {
   provider: Provider
@@ -30,7 +23,7 @@ class EventMonitor {
   logProcessing: boolean
   logQueueTimerId: NodeJS.Timer
   blockQueueTimerId: NodeJS.Timer
-  topicFilter: FullEventFilter
+  topicFilter: Filter
 
   constructor(db: Db, provider: Provider) {
     this.provider = provider
@@ -81,7 +74,7 @@ class EventMonitor {
     this.blockProcessing = false
   }
 
-  async queueEvents(blockNumber: Number) {
+  async queueEvents(blockNumber: number) {
     this.topicFilter.fromBlock = blockNumber
     this.topicFilter.toBlock = blockNumber
     let logs = []
@@ -139,10 +132,10 @@ class EventMonitor {
       return
     }
     if (eventSig === 'DomainAdded(uint256)') {
-      const domain = await this.api.domains.findOne({
-        colonyAddress: log.address,
-        ethDomainId: parseInt(log.data),
-      })
+      const domain = await this.api.tryGetDomain(
+        log.address,
+        parseInt(log.data),
+      )
       if (domain !== null) {
         // Domain already exists, so return
         console.log('Domain already exists, skipping')
@@ -157,31 +150,18 @@ class EventMonitor {
       // Copied almost-verbatim from inside the API...
       // An upsert is used even if it's not strictly necessary because
       // it's not the job of a unique index to preserve data integrity.
-      return this.api.domains.updateOne(
-        {
-          colonyAddress: log.address,
-          ethDomainId: parseInt(log.data),
-          ethParentDomainId: parentId.toNumber(),
-        },
-        {
-          $setOnInsert: {
-            colonyAddress: log.address,
-            ethDomainId: parseInt(log.data),
-            ethParentDomainId: parentId.toNumber(),
-            name: `Domain #${parseInt(log.data)}`,
-          },
-        },
-        { upsert: true },
+      return this.api.createDomainNoChecks(
+        log.address,
+        parseInt(log.data),
+        parentId.toNumber(),
+        `Domain #${parseInt(log.data)}`,
       )
     }
   }
 
   private async catchUpEvents() {
     // Get the most recent event we added
-    const latestEvent = await this.api.chainEvents.findOne(
-      {},
-      { sort: [['_id', -1]] },
-    )
+    const latestEvent = await this.api.getLatestChainEvent()
     let blockNumber
     if (latestEvent === null) {
       blockNumber = await this.provider.getBlockNumber()
@@ -210,7 +190,8 @@ class EventMonitor {
       null,
     )
 
-    const colonyAddedFilterSinceGenesis = colonyAddedFilter as FullEventFilter
+    const colonyAddedFilterSinceGenesis = colonyAddedFilter as Filter
+    // EventFilter doesn't have fromBlock on it
     colonyAddedFilterSinceGenesis.fromBlock = 1
     let colonyAddedEvents = []
     try {
