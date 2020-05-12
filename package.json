@@ -2,6 +2,9 @@
   "name": "colonyServer",
   "version": "1.2.2",
   "description": "",
+  "engines": {
+    "node": ">=12.16.3 <13"
+  },
   "main": "index.js",
   "repository": {
     "type": "git",
@@ -22,8 +25,7 @@
     "db:clean": "ts-node scripts/db-clean.ts",
     "typecheck": "tsc --noEmit",
     "graphql:typegen": "graphql-codegen",
-    "contracts:typegen": "typechain --target=ethers --outDir=src/network/contracts 'lib/colonyNetwork/build/contracts/{IColony,IMetaColony,IColonyNetwork,DSToken}.json'",
-    "preinstall": "./scripts/preinstall.sh"
+    "contracts:typegen": "typechain --target=ethers --outDir=src/network/contracts 'lib/colonyNetwork/build/contracts/{IColony,IMetaColony,IColonyNetwork,DSToken}.json'"
   },
   "keywords": [],
   "author": "",
