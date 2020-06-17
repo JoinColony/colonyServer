@@ -25,12 +25,16 @@
     "db:clean": "ts-node scripts/db-clean.ts",
     "typecheck": "tsc --noEmit",
     "graphql:typegen": "graphql-codegen",
-    "contracts:typegen": "typechain --target=ethers --outDir=src/network/contracts 'lib/colonyNetwork/build/contracts/{IColony,IMetaColony,IColonyNetwork,DSToken}.json'"
+    "contracts:typegen": "typechain --target=ethers --outDir=src/network/contracts 'lib/colonyNetwork/build/contracts/{IColony,IMetaColony,IColonyNetwork,DSToken}.json'",
+    "thegraph:start": "cd lib/graph-node/docker && docker-compose up",
+    "thegraph:stop": "cd lib/graph-node/docker && docker-compose down",
+    "thegraph:reset": "node ./scripts/setupGraph.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@graphprotocol/graph-cli": "^0.18.0",
     "apollo-datasource-mongo": "git://github.com/jameslefrere/apollo-datasource-mongodb.git#12f6b7977d7a6a874f8c5473e4a70239ce7ee5b1",
     "apollo-datasource-rest": "0.8.1",
     "apollo-server-express": "2.12.0",
