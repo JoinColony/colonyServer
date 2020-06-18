@@ -33,7 +33,7 @@ npm run dev
 cd lib/colonyNetwork
 npm run start:blockchain:client
 npx truffle migrate --reset --compile-all
-```
+
 
 # The Graph
 cd lib/subgraph
@@ -52,3 +52,4 @@ npm run codegen
 npm run create-local
 npm run deploy-local
 # If you update the graph, you need to run the codegen and the deploy-local step again, and the graph will update
+```
