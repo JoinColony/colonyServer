@@ -34,3 +34,21 @@ cd lib/colonyNetwork
 npm run start:blockchain:client
 npx truffle migrate --reset --compile-all
 ```
+
+# The Graph
+cd lib/subgraph
+npm install
+cd ../lib/graph-node
+npm install
+cd ..
+# If it is a fresh install, you do not need to input your sudo password at the end of the next script and can cancel.
+# Otherwise you do need to input your password, or run the command it's going to run manually (see the output of the script)
+npm run thegraph:reset
+npm run thegraph:start
+# This brings up a local version of the graph, but also outputs some useful URLs for development so take a look at those.
+# In another window
+cd lib/subgraph
+npm run codegen
+npm run create-local
+npm run deploy-local
+# If you update the graph, you need to run the codegen and the deploy-local step again, and the graph will update
