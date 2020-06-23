@@ -26,7 +26,7 @@
     "typecheck": "tsc --noEmit",
     "graphql:typegen": "graphql-codegen",
     "contracts:typegen": "typechain --target=ethers --outDir=src/network/contracts 'lib/colonyNetwork/build/contracts/{IColony,IMetaColony,IColonyNetwork,DSToken}.json'",
-    "thegraph:start": "cd lib/graph-node/docker && docker-compose up",
+    "thegraph:start": "cd lib/graph-node/docker && UID=$UID docker-compose up",
     "thegraph:stop": "cd lib/graph-node/docker && docker-compose down",
     "thegraph:reset": "node ./scripts/setupGraph.js"
   },
