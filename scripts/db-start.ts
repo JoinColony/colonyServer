@@ -1,4 +1,7 @@
 import { MongoMemoryServer } from 'mongodb-memory-server'
+import { config } from 'dotenv'
+
+config()
 
 const MONGOD_VERSION = '4.2.7'
 
