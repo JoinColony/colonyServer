@@ -18,7 +18,7 @@
     "test": "jest",
     "contracts:start-blockchain-client": "cd lib/colonyNetwork && yarn start:blockchain:client",
     "contracts:migrate": "cd lib/colonyNetwork && yarn truffle migrate",
-    "db:start": "mongod --dbpath ./mongo-data",
+    "db:start": "ts-node scripts/db-start.ts",
     "db:start:prod": "mongod --fork --logpath logs/mongod.log --dbpath mongo-data --cpu",
     "db:console": "mongo",
     "db:setup": "ts-node scripts/db-setup.ts",

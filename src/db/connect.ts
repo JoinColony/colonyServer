@@ -1,9 +1,8 @@
 import { MongoClient, Db } from 'mongodb'
 
-export const connect = async (): Promise<{ db: Db; client: MongoClient }> => {
-  const dbName = process.env.DB_NAME
-  const dbUrl = process.env.DB_URL
+import { dbName, dbUrl } from '../env'
 
+export const connect = async (): Promise<{ db: Db; client: MongoClient }> => {
   console.info(`Connecting to database "${dbName}" via "${dbUrl}"...`)
 
   const client = await MongoClient.connect(dbUrl, { useUnifiedTopology: true })
