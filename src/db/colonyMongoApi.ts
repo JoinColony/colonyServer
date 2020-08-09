@@ -796,14 +796,19 @@ export class ColonyMongoApi {
      * This way we ensure that the asignee always gets notified
      */
     await this.subscribeToTask(initiator, taskId)
-    await this.subscribeToTask(workerAddress, taskId)
+    const workerExists = !!(await this.users.findOne({ walletAddress: workerAddress }))
+    if (workerExists) {
+      await this.subscribeToTask(workerAddress, taskId)
+    }
 
     const eventId = await this.createEvent(initiator, EventType.AssignWorker, {
       taskId,
       workerAddress,
       colonyAddress,
     })
-    await this.createNotification(eventId, [workerAddress])
+    if (workerExists) {
+      await this.createNotification(eventId, [workerAddress])
+    }
     return this.updateTask(
       taskId,
       {},
