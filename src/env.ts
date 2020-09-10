@@ -9,3 +9,4 @@ export const ethplorerKey = process.env.ETHPLORER_API_KEY || 'freekey'
 export const isMainnet = blockchainNetwork === 'mainnet'
 export const dbName = process.env.DB_NAME
 export const dbUrl = process.env.DB_URL
+export const rpcUrl = process.env.RPC_URL
