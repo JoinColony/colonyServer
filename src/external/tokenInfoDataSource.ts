@@ -1,4 +1,5 @@
 import { Provider } from 'ethers/providers'
+import { DataSource } from 'apollo-datasource'
 
 export interface NetworkTokenInfo {
   id: string
@@ -9,10 +10,11 @@ export interface NetworkTokenInfo {
   verified: boolean
 }
 
-export class TokenInfoDataSource {
+export class TokenInfoDataSource extends DataSource<any> {
   private provider: Provider
 
   constructor(provider: Provider) {
+    super()
     if (!provider) {
       throw new Error('Provider not set. Cannot fetch Token infomation')
     }
