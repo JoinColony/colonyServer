@@ -2,14 +2,7 @@ import { toChecksumAddress } from 'web3-utils'
 
 import { ApolloContext } from '../apolloTypes'
 import { TokenInfo, QueryResolvers } from '../types'
-import {
-  EthplorerDataSource,
-  EthplorerTokenInfo,
-} from '../../external/ethplorerDataSource'
-import {
-  TokenInfoDataSource,
-  NetworkTokenInfo,
-} from '../../external/tokenInfoDataSource'
+import { NetworkTokenInfo } from '../../external/tokenInfoDataSource'
 import { SystemDataSource } from '../../external/systemDataSource'
 import { getTokenDecimalsWithFallback } from '../../utils'
 
