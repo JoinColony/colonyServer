@@ -2,10 +2,7 @@ import { toChecksumAddress } from 'web3-utils'
 
 import { ApolloContext } from '../apolloTypes'
 import { TokenInfo, QueryResolvers } from '../types'
-import {
-  EthplorerDataSource,
-  EthplorerTokenInfo,
-} from '../../external/ethplorerDataSource'
+import { NetworkTokenInfo } from '../../external/tokenInfoDataSource'
 import { SystemDataSource } from '../../external/systemDataSource'
 import { getTokenDecimalsWithFallback } from '../../utils'
 
@@ -43,23 +40,20 @@ export const Query: QueryResolvers<ApolloContext> = {
   async tokenInfo(
     parent,
     { address }: { address: string },
-    { dataSources: { data, ethplorer } },
+    { dataSources: { data, tokenInfo } },
   ) {
     /*
      * @NOTE In all likelyhood the address that comes from the dApp is already checksummed
      * But we'll checksum it again here as a precaution
      */
     const checksummedTokenAddress: string = toChecksumAddress(address)
-    let ethplorerTokenInfo = {} as EthplorerTokenInfo
-    // There might be a better way to check whether we're on mainnet (not on QA)
-    if (EthplorerDataSource.isActive) {
-      try {
-        ethplorerTokenInfo = await ethplorer.getTokenInfo(
-          checksummedTokenAddress,
-        )
-      } catch (e) {
-        // Do nothing, might be just a token that isn't on ethplorer
-      }
+    let networkTokenInfo = {} as NetworkTokenInfo
+    try {
+      networkTokenInfo = await tokenInfo.getTokenInfo(checksummedTokenAddress)
+    } catch (error) {
+      // Do nothing, might be just a token that isn't on the network
+      // Also, it might be that the PRC endpoint failed to fetch it
+      // At any rate, we're falling back here to the database token info
     }
     let databaseTokenInfo = {} as TokenInfo
     try {
@@ -72,14 +66,13 @@ export const Query: QueryResolvers<ApolloContext> = {
       id: checksummedTokenAddress,
       address: checksummedTokenAddress,
       decimals: getTokenDecimalsWithFallback(
-        ethplorerTokenInfo.decimals,
+        networkTokenInfo.decimals,
         databaseTokenInfo.decimals,
       ),
       iconHash: databaseTokenInfo.iconHash,
-      name:
-        ethplorerTokenInfo.name || databaseTokenInfo.name || 'Unknown token',
-      symbol: ethplorerTokenInfo.symbol || databaseTokenInfo.symbol || '???',
-      verified: ethplorerTokenInfo.verified || false,
+      name: networkTokenInfo.name || databaseTokenInfo.name || 'Unknown token',
+      symbol: networkTokenInfo.symbol || databaseTokenInfo.symbol || '???',
+      verified: networkTokenInfo.verified || false,
     }
   },
   async systemInfo() {
