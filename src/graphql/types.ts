@@ -243,7 +243,15 @@ export type UnlockNextLevelEvent = {
   submissionId: Scalars['String'];
 };
 
-export type EventContext = AcceptLevelTaskSubmissionEvent | AssignWorkerEvent | CancelTaskEvent | CreateDomainEvent | CreateTaskEvent | CreateLevelTaskSubmissionEvent | CreateWorkRequestEvent | EnrollUserInProgramEvent | FinalizeTaskEvent | NewUserEvent | RemoveTaskPayoutEvent | SendWorkInviteEvent | SetTaskDescriptionEvent | SetTaskDomainEvent | SetTaskDueDateEvent | SetTaskPayoutEvent | SetTaskPendingEvent | SetTaskSkillEvent | RemoveTaskSkillEvent | SetTaskTitleEvent | TaskMessageEvent | UnassignWorkerEvent | UnlockNextLevelEvent;
+export type TransactionMessageEvent = {
+   __typename?: 'TransactionMessageEvent';
+  type: EventType;
+  transactionHash: Scalars['String'];
+  message: Scalars['String'];
+  colonyAddress?: Maybe<Scalars['String']>;
+};
+
+export type EventContext = AcceptLevelTaskSubmissionEvent | AssignWorkerEvent | CancelTaskEvent | CreateDomainEvent | CreateTaskEvent | CreateLevelTaskSubmissionEvent | CreateWorkRequestEvent | EnrollUserInProgramEvent | FinalizeTaskEvent | NewUserEvent | RemoveTaskPayoutEvent | SendWorkInviteEvent | SetTaskDescriptionEvent | SetTaskDomainEvent | SetTaskDueDateEvent | SetTaskPayoutEvent | SetTaskPendingEvent | SetTaskSkillEvent | RemoveTaskSkillEvent | SetTaskTitleEvent | TaskMessageEvent | UnassignWorkerEvent | UnlockNextLevelEvent | TransactionMessageEvent;
 
 export type Event = {
    __typename?: 'Event';
@@ -902,6 +910,7 @@ export type Query = {
   task: Task;
   tokenInfo: TokenInfo;
   systemInfo: SystemInfo;
+  transaction: Transaction;
 };
 
 
@@ -1039,6 +1048,16 @@ export type TokenInfo = {
   verified: Scalars['Boolean'];
 };
 
+export type TransactionEvents = Event & {
+   __typename?: 'TransactionEvents';
+  context: TransactionMessageEvent;
+};
+
+export type Transaction = {
+   __typename?: 'Transaction';
+  events: Array<Event>;
+};
+
 export type User = {
    __typename?: 'User';
   id: Scalars['String'];
@@ -1098,7 +1117,8 @@ export enum EventType {
   SetTaskTitle = 'SetTaskTitle',
   TaskMessage = 'TaskMessage',
   UnassignWorker = 'UnassignWorker',
-  UnlockNextLevel = 'UnlockNextLevel'
+  UnlockNextLevel = 'UnlockNextLevel',
+  TransactionMessage = 'TransactionMessage'
 }
 
 
@@ -1204,7 +1224,8 @@ export type ResolversTypes = {
   CreateLevelTaskSubmissionEvent: ResolverTypeWrapper<CreateLevelTaskSubmissionEvent>,
   EnrollUserInProgramEvent: ResolverTypeWrapper<EnrollUserInProgramEvent>,
   UnlockNextLevelEvent: ResolverTypeWrapper<UnlockNextLevelEvent>,
-  EventContext: ResolversTypes['AcceptLevelTaskSubmissionEvent'] | ResolversTypes['AssignWorkerEvent'] | ResolversTypes['CancelTaskEvent'] | ResolversTypes['CreateDomainEvent'] | ResolversTypes['CreateTaskEvent'] | ResolversTypes['CreateLevelTaskSubmissionEvent'] | ResolversTypes['CreateWorkRequestEvent'] | ResolversTypes['EnrollUserInProgramEvent'] | ResolversTypes['FinalizeTaskEvent'] | ResolversTypes['NewUserEvent'] | ResolversTypes['RemoveTaskPayoutEvent'] | ResolversTypes['SendWorkInviteEvent'] | ResolversTypes['SetTaskDescriptionEvent'] | ResolversTypes['SetTaskDomainEvent'] | ResolversTypes['SetTaskDueDateEvent'] | ResolversTypes['SetTaskPayoutEvent'] | ResolversTypes['SetTaskPendingEvent'] | ResolversTypes['SetTaskSkillEvent'] | ResolversTypes['RemoveTaskSkillEvent'] | ResolversTypes['SetTaskTitleEvent'] | ResolversTypes['TaskMessageEvent'] | ResolversTypes['UnassignWorkerEvent'] | ResolversTypes['UnlockNextLevelEvent'],
+  TransactionMessageEvent: ResolverTypeWrapper<TransactionMessageEvent>,
+  EventContext: ResolversTypes['AcceptLevelTaskSubmissionEvent'] | ResolversTypes['AssignWorkerEvent'] | ResolversTypes['CancelTaskEvent'] | ResolversTypes['CreateDomainEvent'] | ResolversTypes['CreateTaskEvent'] | ResolversTypes['CreateLevelTaskSubmissionEvent'] | ResolversTypes['CreateWorkRequestEvent'] | ResolversTypes['EnrollUserInProgramEvent'] | ResolversTypes['FinalizeTaskEvent'] | ResolversTypes['NewUserEvent'] | ResolversTypes['RemoveTaskPayoutEvent'] | ResolversTypes['SendWorkInviteEvent'] | ResolversTypes['SetTaskDescriptionEvent'] | ResolversTypes['SetTaskDomainEvent'] | ResolversTypes['SetTaskDueDateEvent'] | ResolversTypes['SetTaskPayoutEvent'] | ResolversTypes['SetTaskPendingEvent'] | ResolversTypes['SetTaskSkillEvent'] | ResolversTypes['RemoveTaskSkillEvent'] | ResolversTypes['SetTaskTitleEvent'] | ResolversTypes['TaskMessageEvent'] | ResolversTypes['UnassignWorkerEvent'] | ResolversTypes['UnlockNextLevelEvent'] | ResolversTypes['TransactionMessageEvent'],
   Event: ResolverTypeWrapper<Omit<Event, 'context'> & { context: ResolversTypes['EventContext'] }>,
   Notification: ResolverTypeWrapper<Notification>,
   LevelStatus: LevelStatus,
@@ -1274,6 +1295,8 @@ export type ResolversTypes = {
   TaskPayout: ResolverTypeWrapper<TaskPayout>,
   Task: ResolverTypeWrapper<Task>,
   TokenInfo: ResolverTypeWrapper<TokenInfo>,
+  TransactionEvents: ResolverTypeWrapper<TransactionEvents>,
+  Transaction: ResolverTypeWrapper<Transaction>,
   User: ResolverTypeWrapper<User>,
   UserProfile: ResolverTypeWrapper<UserProfile>,
   GraphQLDateTime: ResolverTypeWrapper<Scalars['GraphQLDateTime']>,
@@ -1312,7 +1335,8 @@ export type ResolversParentTypes = {
   CreateLevelTaskSubmissionEvent: CreateLevelTaskSubmissionEvent,
   EnrollUserInProgramEvent: EnrollUserInProgramEvent,
   UnlockNextLevelEvent: UnlockNextLevelEvent,
-  EventContext: ResolversParentTypes['AcceptLevelTaskSubmissionEvent'] | ResolversParentTypes['AssignWorkerEvent'] | ResolversParentTypes['CancelTaskEvent'] | ResolversParentTypes['CreateDomainEvent'] | ResolversParentTypes['CreateTaskEvent'] | ResolversParentTypes['CreateLevelTaskSubmissionEvent'] | ResolversParentTypes['CreateWorkRequestEvent'] | ResolversParentTypes['EnrollUserInProgramEvent'] | ResolversParentTypes['FinalizeTaskEvent'] | ResolversParentTypes['NewUserEvent'] | ResolversParentTypes['RemoveTaskPayoutEvent'] | ResolversParentTypes['SendWorkInviteEvent'] | ResolversParentTypes['SetTaskDescriptionEvent'] | ResolversParentTypes['SetTaskDomainEvent'] | ResolversParentTypes['SetTaskDueDateEvent'] | ResolversParentTypes['SetTaskPayoutEvent'] | ResolversParentTypes['SetTaskPendingEvent'] | ResolversParentTypes['SetTaskSkillEvent'] | ResolversParentTypes['RemoveTaskSkillEvent'] | ResolversParentTypes['SetTaskTitleEvent'] | ResolversParentTypes['TaskMessageEvent'] | ResolversParentTypes['UnassignWorkerEvent'] | ResolversParentTypes['UnlockNextLevelEvent'],
+  TransactionMessageEvent: TransactionMessageEvent,
+  EventContext: ResolversParentTypes['AcceptLevelTaskSubmissionEvent'] | ResolversParentTypes['AssignWorkerEvent'] | ResolversParentTypes['CancelTaskEvent'] | ResolversParentTypes['CreateDomainEvent'] | ResolversParentTypes['CreateTaskEvent'] | ResolversParentTypes['CreateLevelTaskSubmissionEvent'] | ResolversParentTypes['CreateWorkRequestEvent'] | ResolversParentTypes['EnrollUserInProgramEvent'] | ResolversParentTypes['FinalizeTaskEvent'] | ResolversParentTypes['NewUserEvent'] | ResolversParentTypes['RemoveTaskPayoutEvent'] | ResolversParentTypes['SendWorkInviteEvent'] | ResolversParentTypes['SetTaskDescriptionEvent'] | ResolversParentTypes['SetTaskDomainEvent'] | ResolversParentTypes['SetTaskDueDateEvent'] | ResolversParentTypes['SetTaskPayoutEvent'] | ResolversParentTypes['SetTaskPendingEvent'] | ResolversParentTypes['SetTaskSkillEvent'] | ResolversParentTypes['RemoveTaskSkillEvent'] | ResolversParentTypes['SetTaskTitleEvent'] | ResolversParentTypes['TaskMessageEvent'] | ResolversParentTypes['UnassignWorkerEvent'] | ResolversParentTypes['UnlockNextLevelEvent'] | ResolversParentTypes['TransactionMessageEvent'],
   Event: Omit<Event, 'context'> & { context: ResolversParentTypes['EventContext'] },
   Notification: Notification,
   LevelStatus: LevelStatus,
@@ -1382,6 +1406,8 @@ export type ResolversParentTypes = {
   TaskPayout: TaskPayout,
   Task: Task,
   TokenInfo: TokenInfo,
+  TransactionEvents: TransactionEvents,
+  Transaction: Transaction,
   User: User,
   UserProfile: UserProfile,
   GraphQLDateTime: Scalars['GraphQLDateTime'],
@@ -1621,8 +1647,16 @@ export type UnlockNextLevelEventResolvers<ContextType = any, ParentType extends 
   __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
+export type TransactionMessageEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionMessageEvent'] = ResolversParentTypes['TransactionMessageEvent']> = {
+  type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
+  transactionHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  __isTypeOf?: isTypeOfResolverFn<ParentType>,
+};
+
 export type EventContextResolvers<ContextType = any, ParentType extends ResolversParentTypes['EventContext'] = ResolversParentTypes['EventContext']> = {
-  __resolveType: TypeResolveFn<'AcceptLevelTaskSubmissionEvent' | 'AssignWorkerEvent' | 'CancelTaskEvent' | 'CreateDomainEvent' | 'CreateTaskEvent' | 'CreateLevelTaskSubmissionEvent' | 'CreateWorkRequestEvent' | 'EnrollUserInProgramEvent' | 'FinalizeTaskEvent' | 'NewUserEvent' | 'RemoveTaskPayoutEvent' | 'SendWorkInviteEvent' | 'SetTaskDescriptionEvent' | 'SetTaskDomainEvent' | 'SetTaskDueDateEvent' | 'SetTaskPayoutEvent' | 'SetTaskPendingEvent' | 'SetTaskSkillEvent' | 'RemoveTaskSkillEvent' | 'SetTaskTitleEvent' | 'TaskMessageEvent' | 'UnassignWorkerEvent' | 'UnlockNextLevelEvent', ParentType, ContextType>
+  __resolveType: TypeResolveFn<'AcceptLevelTaskSubmissionEvent' | 'AssignWorkerEvent' | 'CancelTaskEvent' | 'CreateDomainEvent' | 'CreateTaskEvent' | 'CreateLevelTaskSubmissionEvent' | 'CreateWorkRequestEvent' | 'EnrollUserInProgramEvent' | 'FinalizeTaskEvent' | 'NewUserEvent' | 'RemoveTaskPayoutEvent' | 'SendWorkInviteEvent' | 'SetTaskDescriptionEvent' | 'SetTaskDomainEvent' | 'SetTaskDueDateEvent' | 'SetTaskPayoutEvent' | 'SetTaskPendingEvent' | 'SetTaskSkillEvent' | 'RemoveTaskSkillEvent' | 'SetTaskTitleEvent' | 'TaskMessageEvent' | 'UnassignWorkerEvent' | 'UnlockNextLevelEvent' | 'TransactionMessageEvent', ParentType, ContextType>
 };
 
 export type EventResolvers<ContextType = any, ParentType extends ResolversParentTypes['Event'] = ResolversParentTypes['Event']> = {
@@ -1756,6 +1790,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   task?: Resolver<ResolversTypes['Task'], ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>,
   tokenInfo?: Resolver<ResolversTypes['TokenInfo'], ParentType, ContextType, RequireFields<QueryTokenInfoArgs, 'address'>>,
   systemInfo?: Resolver<ResolversTypes['SystemInfo'], ParentType, ContextType>,
+  transaction?: Resolver<ResolversTypes['Transaction'], ParentType, ContextType>,
 };
 
 export type SubmissionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Submission'] = ResolversParentTypes['Submission']> = {
@@ -1843,6 +1878,16 @@ export type TokenInfoResolvers<ContextType = any, ParentType extends ResolversPa
   __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
+export type TransactionEventsResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionEvents'] = ResolversParentTypes['TransactionEvents']> = {
+  context?: Resolver<ResolversTypes['TransactionMessageEvent'], ParentType, ContextType>,
+  __isTypeOf?: isTypeOfResolverFn<ParentType>,
+};
+
+export type TransactionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Transaction'] = ResolversParentTypes['Transaction']> = {
+  events?: Resolver<Array<ResolversTypes['Event']>, ParentType, ContextType>,
+  __isTypeOf?: isTypeOfResolverFn<ParentType>,
+};
+
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
@@ -1900,6 +1945,7 @@ export type Resolvers<ContextType = any> = {
   CreateLevelTaskSubmissionEvent?: CreateLevelTaskSubmissionEventResolvers<ContextType>,
   EnrollUserInProgramEvent?: EnrollUserInProgramEventResolvers<ContextType>,
   UnlockNextLevelEvent?: UnlockNextLevelEventResolvers<ContextType>,
+  TransactionMessageEvent?: TransactionMessageEventResolvers<ContextType>,
   EventContext?: EventContextResolvers,
   Event?: EventResolvers<ContextType>,
   Notification?: NotificationResolvers<ContextType>,
@@ -1915,6 +1961,8 @@ export type Resolvers<ContextType = any> = {
   TaskPayout?: TaskPayoutResolvers<ContextType>,
   Task?: TaskResolvers<ContextType>,
   TokenInfo?: TokenInfoResolvers<ContextType>,
+  TransactionEvents?: TransactionEventsResolvers<ContextType>,
+  Transaction?: TransactionResolvers<ContextType>,
   User?: UserResolvers<ContextType>,
   UserProfile?: UserProfileResolvers<ContextType>,
   GraphQLDateTime?: GraphQLScalarType,

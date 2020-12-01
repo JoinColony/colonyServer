@@ -172,6 +172,13 @@ export default gql`
     submissionId: String!
   }
 
+  type TransactionMessageEvent {
+    type: EventType!
+    transactionHash: String!
+    message: String!
+    colonyAddress: String
+  }
+
   union EventContext =
       AcceptLevelTaskSubmissionEvent
     | AssignWorkerEvent
@@ -196,6 +203,7 @@ export default gql`
     | TaskMessageEvent
     | UnassignWorkerEvent
     | UnlockNextLevelEvent
+    | TransactionMessageEvent
 
   type Event {
     id: String!

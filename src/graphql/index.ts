@@ -28,6 +28,7 @@ import Task from './typeDefs/Task'
 import TokenInfo from './typeDefs/TokenInfo'
 import SystemInfo from './typeDefs/SystemInfo'
 import User from './typeDefs/User'
+import Transaction from './typeDefs/Transaction'
 import scalars from './typeDefs/scalars'
 
 const authenticate = (token: string) => {
@@ -79,6 +80,7 @@ export const createApolloServer = (db: Db, provider: Provider) => {
       SystemInfo,
       User,
       scalars,
+      Transaction,
     ],
     resolvers,
     formatError: (err) => {
