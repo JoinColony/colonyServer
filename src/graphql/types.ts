@@ -910,7 +910,7 @@ export type Query = {
   task: Task;
   tokenInfo: TokenInfo;
   systemInfo: SystemInfo;
-  transaction: Transaction;
+  transactionMessages: TransactionMessages;
 };
 
 
@@ -947,6 +947,11 @@ export type QueryTaskArgs = {
 
 export type QueryTokenInfoArgs = {
   address: Scalars['String'];
+};
+
+
+export type QueryTransactionMessagesArgs = {
+  transactionHash: Scalars['String'];
 };
 
 export enum SubmissionStatus {
@@ -1048,14 +1053,10 @@ export type TokenInfo = {
   verified: Scalars['Boolean'];
 };
 
-export type TransactionEvents = Event & {
-   __typename?: 'TransactionEvents';
-  context: TransactionMessageEvent;
-};
-
-export type Transaction = {
-   __typename?: 'Transaction';
-  events: Array<Event>;
+export type TransactionMessages = {
+   __typename?: 'TransactionMessages';
+  transactionHash: Scalars['String'];
+  messages: Array<Event>;
 };
 
 export type User = {
@@ -1295,8 +1296,7 @@ export type ResolversTypes = {
   TaskPayout: ResolverTypeWrapper<TaskPayout>,
   Task: ResolverTypeWrapper<Task>,
   TokenInfo: ResolverTypeWrapper<TokenInfo>,
-  TransactionEvents: ResolverTypeWrapper<TransactionEvents>,
-  Transaction: ResolverTypeWrapper<Transaction>,
+  TransactionMessages: ResolverTypeWrapper<TransactionMessages>,
   User: ResolverTypeWrapper<User>,
   UserProfile: ResolverTypeWrapper<UserProfile>,
   GraphQLDateTime: ResolverTypeWrapper<Scalars['GraphQLDateTime']>,
@@ -1406,8 +1406,7 @@ export type ResolversParentTypes = {
   TaskPayout: TaskPayout,
   Task: Task,
   TokenInfo: TokenInfo,
-  TransactionEvents: TransactionEvents,
-  Transaction: Transaction,
+  TransactionMessages: TransactionMessages,
   User: User,
   UserProfile: UserProfile,
   GraphQLDateTime: Scalars['GraphQLDateTime'],
@@ -1790,7 +1789,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   task?: Resolver<ResolversTypes['Task'], ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>,
   tokenInfo?: Resolver<ResolversTypes['TokenInfo'], ParentType, ContextType, RequireFields<QueryTokenInfoArgs, 'address'>>,
   systemInfo?: Resolver<ResolversTypes['SystemInfo'], ParentType, ContextType>,
-  transaction?: Resolver<ResolversTypes['Transaction'], ParentType, ContextType>,
+  transactionMessages?: Resolver<ResolversTypes['TransactionMessages'], ParentType, ContextType, RequireFields<QueryTransactionMessagesArgs, 'transactionHash'>>,
 };
 
 export type SubmissionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Submission'] = ResolversParentTypes['Submission']> = {
@@ -1878,13 +1877,9 @@ export type TokenInfoResolvers<ContextType = any, ParentType extends ResolversPa
   __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
-export type TransactionEventsResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionEvents'] = ResolversParentTypes['TransactionEvents']> = {
-  context?: Resolver<ResolversTypes['TransactionMessageEvent'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
-};
-
-export type TransactionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Transaction'] = ResolversParentTypes['Transaction']> = {
-  events?: Resolver<Array<ResolversTypes['Event']>, ParentType, ContextType>,
+export type TransactionMessagesResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionMessages'] = ResolversParentTypes['TransactionMessages']> = {
+  transactionHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  messages?: Resolver<Array<ResolversTypes['Event']>, ParentType, ContextType>,
   __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
@@ -1961,8 +1956,7 @@ export type Resolvers<ContextType = any> = {
   TaskPayout?: TaskPayoutResolvers<ContextType>,
   Task?: TaskResolvers<ContextType>,
   TokenInfo?: TokenInfoResolvers<ContextType>,
-  TransactionEvents?: TransactionEventsResolvers<ContextType>,
-  Transaction?: TransactionResolvers<ContextType>,
+  TransactionMessages?: TransactionMessagesResolvers<ContextType>,
   User?: UserResolvers<ContextType>,
   UserProfile?: UserProfileResolvers<ContextType>,
   GraphQLDateTime?: GraphQLScalarType,

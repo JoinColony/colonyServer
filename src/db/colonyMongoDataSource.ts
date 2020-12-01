@@ -776,4 +776,12 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
 
     return ColonyMongoDataSource.transformToken(token)
   }
+
+  async getTransactionMessages(transactionHash: string, ttl?: number) {
+    const query = { 'context.transactionHash': transactionHash }
+    const events = ttl
+      ? await this.collections.events.findManyByQuery(query, { ttl })
+      : await this.collections.events.collection.find(query).toArray()
+    return events.map(ColonyMongoDataSource.transformEvent)
+  }
 }

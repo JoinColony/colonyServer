@@ -10,6 +10,6 @@ export default gql`
     task(id: String!): Task!
     tokenInfo(address: String!): TokenInfo!
     systemInfo: SystemInfo!
-    transaction: Transaction!
+    transactionMessages(transactionHash: String!): TransactionMessages!
   }
 `

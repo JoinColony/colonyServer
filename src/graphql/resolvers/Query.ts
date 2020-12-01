@@ -79,4 +79,15 @@ export const Query: QueryResolvers<ApolloContext> = {
     const system = new SystemDataSource()
     return system.getSystemInfo()
   },
+  async transactionMessages(
+    parent,
+    { transactionHash }: { transactionHash: string },
+    { dataSources: { data } },
+  ) {
+    const messages = await data.getTransactionMessages(transactionHash)
+    return {
+      transactionHash,
+      messages,
+    }
+  },
 }
