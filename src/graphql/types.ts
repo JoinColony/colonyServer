@@ -248,7 +248,7 @@ export type TransactionMessageEvent = {
   type: EventType;
   transactionHash: Scalars['String'];
   message: Scalars['String'];
-  colonyAddress?: Maybe<Scalars['String']>;
+  colonyAddress: Scalars['String'];
 };
 
 export type EventContext = AcceptLevelTaskSubmissionEvent | AssignWorkerEvent | CancelTaskEvent | CreateDomainEvent | CreateTaskEvent | CreateLevelTaskSubmissionEvent | CreateWorkRequestEvent | EnrollUserInProgramEvent | FinalizeTaskEvent | NewUserEvent | RemoveTaskPayoutEvent | SendWorkInviteEvent | SetTaskDescriptionEvent | SetTaskDomainEvent | SetTaskDueDateEvent | SetTaskPayoutEvent | SetTaskPendingEvent | SetTaskSkillEvent | RemoveTaskSkillEvent | SetTaskTitleEvent | TaskMessageEvent | UnassignWorkerEvent | UnlockNextLevelEvent | TransactionMessageEvent;
@@ -556,6 +556,12 @@ export type RemoveProgramInput = {
   id: Scalars['String'];
 };
 
+export type SendTransactionMessageInput = {
+  transactionHash: Scalars['String'];
+  message: Scalars['String'];
+  colonyAddress: Scalars['String'];
+};
+
 export type Mutation = {
    __typename?: 'Mutation';
   createColony?: Maybe<Colony>;
@@ -564,6 +570,7 @@ export type Mutation = {
   createDomain?: Maybe<Domain>;
   editDomainName?: Maybe<Domain>;
   sendTaskMessage: Scalars['Boolean'];
+  sendTransactionMessage: Scalars['Boolean'];
   markAllNotificationsAsRead: Scalars['Boolean'];
   markNotificationAsRead: Scalars['Boolean'];
   createSuggestion?: Maybe<Suggestion>;
@@ -638,6 +645,11 @@ export type MutationEditDomainNameArgs = {
 
 export type MutationSendTaskMessageArgs = {
   input: SendTaskMessageInput;
+};
+
+
+export type MutationSendTransactionMessageArgs = {
+  input: SendTransactionMessageInput;
 };
 
 
@@ -1281,6 +1293,7 @@ export type ResolversTypes = {
   ReorderProgramLevelsInput: ReorderProgramLevelsInput,
   PublishProgramInput: PublishProgramInput,
   RemoveProgramInput: RemoveProgramInput,
+  SendTransactionMessageInput: SendTransactionMessageInput,
   Mutation: ResolverTypeWrapper<{}>,
   PersistentTaskStatus: PersistentTaskStatus,
   PersistentTask: ResolverTypeWrapper<PersistentTask>,
@@ -1391,6 +1404,7 @@ export type ResolversParentTypes = {
   ReorderProgramLevelsInput: ReorderProgramLevelsInput,
   PublishProgramInput: PublishProgramInput,
   RemoveProgramInput: RemoveProgramInput,
+  SendTransactionMessageInput: SendTransactionMessageInput,
   Mutation: {},
   PersistentTaskStatus: PersistentTaskStatus,
   PersistentTask: PersistentTask,
@@ -1650,7 +1664,7 @@ export type TransactionMessageEventResolvers<ContextType = any, ParentType exten
   type?: Resolver<ResolversTypes['EventType'], ParentType, ContextType>,
   transactionHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  colonyAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
@@ -1701,6 +1715,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   createDomain?: Resolver<Maybe<ResolversTypes['Domain']>, ParentType, ContextType, RequireFields<MutationCreateDomainArgs, 'input'>>,
   editDomainName?: Resolver<Maybe<ResolversTypes['Domain']>, ParentType, ContextType, RequireFields<MutationEditDomainNameArgs, 'input'>>,
   sendTaskMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendTaskMessageArgs, 'input'>>,
+  sendTransactionMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendTransactionMessageArgs, 'input'>>,
   markAllNotificationsAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
   markNotificationAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationMarkNotificationAsReadArgs, 'input'>>,
   createSuggestion?: Resolver<Maybe<ResolversTypes['Suggestion']>, ParentType, ContextType, RequireFields<MutationCreateSuggestionArgs, 'input'>>,

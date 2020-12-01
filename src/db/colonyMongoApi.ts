@@ -796,7 +796,9 @@ export class ColonyMongoApi {
      * This way we ensure that the asignee always gets notified
      */
     await this.subscribeToTask(initiator, taskId)
-    const workerExists = !!(await this.users.findOne({ walletAddress: workerAddress }))
+    const workerExists = !!(await this.users.findOne({
+      walletAddress: workerAddress,
+    }))
     if (workerExists) {
       await this.subscribeToTask(workerAddress, taskId)
     }
@@ -1559,5 +1561,19 @@ export class ColonyMongoApi {
       { _id: new ObjectID(levelId) },
       { $set: update },
     )
+  }
+
+  async sendTransactionMessage(
+    initiator: string,
+    transactionHash: string,
+    colonyAddress: string,
+    message: string,
+  ) {
+    await this.tryGetUser(initiator)
+    return this.createEvent(initiator, EventType.TransactionMessage, {
+      transactionHash,
+      message,
+      colonyAddress,
+    })
   }
 }

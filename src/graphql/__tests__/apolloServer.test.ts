@@ -22,6 +22,7 @@ import Suggestion from '../typeDefs/Suggestion'
 import Task from '../typeDefs/Task'
 import TokenInfo from '../typeDefs/TokenInfo'
 import SystemInfo from '../typeDefs/SystemInfo'
+import Transaction from '../typeDefs/Transaction'
 import User from '../typeDefs/User'
 import scalars from '../typeDefs/scalars'
 import { resolvers } from '../resolvers'
@@ -62,6 +63,7 @@ const typeDefs = [
   Task,
   TokenInfo,
   SystemInfo,
+  Transaction,
   User,
   scalars,
 ]

@@ -508,7 +508,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['initiatorAddress', {}],
         ['context.colonyAddress', { sparse: true }],
         ['context.taskId', { sparse: true }],
-        ['context.txHash', { sparse: true }],
+        ['context.transactionHash', { sparse: true }],
       ],
     },
   ],

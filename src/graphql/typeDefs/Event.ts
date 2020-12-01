@@ -176,7 +176,7 @@ export default gql`
     type: EventType!
     transactionHash: String!
     message: String!
-    colonyAddress: String
+    colonyAddress: String!
   }
 
   union EventContext =
