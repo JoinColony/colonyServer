@@ -466,6 +466,19 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     await api.sendTaskMessage(userAddress, id, message)
     return true
   },
+  async sendTransactionMessage(
+    parent,
+    { input: { transactionHash, message, colonyAddress } },
+    { userAddress, api, dataSources: { data } },
+  ) {
+    await api.sendTransactionMessage(
+      userAddress,
+      transactionHash,
+      colonyAddress,
+      message,
+    )
+    return true
+  },
   // Domains
   async createDomain(
     parent,

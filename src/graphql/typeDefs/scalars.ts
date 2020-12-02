@@ -27,5 +27,6 @@ export default gql`
     TaskMessage
     UnassignWorker
     UnlockNextLevel
+    TransactionMessage
   }
 `

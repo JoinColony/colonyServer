@@ -263,6 +263,12 @@ export default gql`
     id: String!
   }
 
+  input SendTransactionMessageInput {
+    transactionHash: String!
+    message: String!
+    colonyAddress: String!
+  }
+
   type Mutation {
     # Colonies
     createColony(input: CreateColonyInput!): Colony
@@ -273,6 +279,7 @@ export default gql`
     editDomainName(input: EditDomainNameInput!): Domain
     # Messages
     sendTaskMessage(input: SendTaskMessageInput!): Boolean!
+    sendTransactionMessage(input: SendTransactionMessageInput!): Boolean!
     # Notifications
     markAllNotificationsAsRead: Boolean!
     markNotificationAsRead(input: MarkNotificationAsReadInput!): Boolean!

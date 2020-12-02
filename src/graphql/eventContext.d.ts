@@ -23,6 +23,7 @@ import {
   TaskMessageEvent,
   UnassignWorkerEvent,
   UnlockNextLevelEvent,
+  TransactionMessageEvent,
 } from './types'
 
 interface EventContextMap {
@@ -49,6 +50,7 @@ interface EventContextMap {
   [EventType.UnassignWorker]: UnassignWorkerEvent
   [EventType.UnlockNextLevel]: UnlockNextLevelEvent
   [EventType.NewUser]: NewUserEvent
+  [EventType.TransactionMessage]: TransactionMessageEvent
 }
 
 export type EventContextOfType<T extends EventType> = Omit<
