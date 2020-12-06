@@ -23,6 +23,11 @@ export enum CollectionNames {
   PersistentTasks = 'persistentTasks',
   Programs = 'programs',
   Submissions = 'submissions',
+  /*
+   * @NOTE That while the Suggestions feature is remove, the database collection
+   * itself is not, in order to preserve the currently available data from
+   * the production server
+   */
   Suggestions = 'suggestions',
   Tasks = 'tasks',
   Tokens = 'tokens',

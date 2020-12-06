@@ -38,7 +38,6 @@ describe('ColonyMongoApi', () => {
     await db.collection('persistentTasks').deleteMany({})
     await db.collection('programs').deleteMany({})
     await db.collection('submissions').deleteMany({})
-    await db.collection('suggestions').deleteMany({})
     await db.collection('tasks').deleteMany({})
     await db.collection('tokens').deleteMany({})
     await db.collection('users').deleteMany({})

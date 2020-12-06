@@ -10,7 +10,6 @@ import {
   PersistentTaskDoc,
   ProgramDoc,
   SubmissionDoc,
-  SuggestionDoc,
   TaskDoc,
   TokenDoc,
   UserDoc,
@@ -40,7 +39,6 @@ interface DocsToInsert {
   persistentTasks?: Partial<PersistentTaskDoc>[]
   programs?: Partial<ProgramDoc>[]
   submissions?: Partial<SubmissionDoc>[]
-  suggestions?: Partial<SuggestionDoc>[]
   tasks?: Partial<TaskDoc>[]
   tokens?: Partial<TokenDoc>[]
   users?: Partial<UserDoc>[]
@@ -55,7 +53,6 @@ interface InsertedDocs {
   persistentTasks: string[]
   programs: string[]
   submissions: string[]
-  suggestions: string[]
   tasks: string[]
   tokens: string[]
   users: string[]
@@ -100,7 +97,6 @@ export const insertDocs = async (
       persistentTasks: [],
       programs: [],
       submissions: [],
-      suggestions: [],
       tasks: [],
       tokens: [],
       users: [],
