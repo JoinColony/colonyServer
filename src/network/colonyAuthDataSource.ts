@@ -32,7 +32,6 @@ enum AuthChecks {
   CreateTask = 'CreateTask',
   EditColonyProfile = 'EditColonyProfile',
   EditDomainName = 'EditDomainName',
-  EditSuggestion = 'EditSuggestion',
   FinalizeTask = 'FinalizeTask',
   RemoveTaskPayout = 'RemoveTaskPayout',
   SendWorkInvite = 'SendWorkInvite',
@@ -103,12 +102,6 @@ const AUTH_DECLARATIONS: Record<AuthChecks, AuthDeclaration> = {
   AdminProgram: {
     description: 'Administer a program',
     roles: [ColonyRoles.Administration, ColonyRoles.Funding],
-    type: AuthTypes.Domain,
-  },
-  // Suggestion
-  EditSuggestion: {
-    description: 'Edit a suggestion',
-    roles: [ColonyRoles.Administration],
     type: AuthTypes.Domain,
   },
   // Task
@@ -383,10 +376,6 @@ export class ColonyAuthDataSource extends DataSource<any> {
 
   async assertCanEditDomainName(args: DomainAuthArgs) {
     return this.assertForDomain(AuthChecks.EditDomainName, args)
-  }
-
-  async assertCanModifySuggestionStatus(args: DomainAuthArgs) {
-    return this.assertForDomain(AuthChecks.EditSuggestion, args)
   }
 
   async assertCanCreateTask(args: DomainAuthArgs) {
