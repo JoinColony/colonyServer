@@ -22,7 +22,6 @@ import Mutation from './typeDefs/Mutation'
 import PersistentTask from './typeDefs/PersistentTask'
 import Program from './typeDefs/Program'
 import Query from './typeDefs/Query'
-import Suggestion from './typeDefs/Suggestion'
 import Submission from './typeDefs/Submission'
 import Task from './typeDefs/Task'
 import TokenInfo from './typeDefs/TokenInfo'
@@ -74,7 +73,6 @@ export const createApolloServer = (db: Db, provider: Provider) => {
       Program,
       Query,
       Submission,
-      Suggestion,
       Task,
       TokenInfo,
       SystemInfo,

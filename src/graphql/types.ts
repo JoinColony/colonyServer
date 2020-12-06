@@ -32,7 +32,6 @@ export type Colony = {
   nativeTokenAddress: Scalars['String'];
   programs: Array<Program>;
   subscribedUsers: Array<User>;
-  suggestions: Array<Suggestion>;
   tokenAddresses: Array<Scalars['String']>;
 };
 
@@ -446,29 +445,6 @@ export type SetUserTokensInput = {
   tokenAddresses: Array<Scalars['String']>;
 };
 
-export type CreateSuggestionInput = {
-  colonyAddress: Scalars['String'];
-  ethDomainId: Scalars['Int'];
-  title: Scalars['String'];
-};
-
-export type SetSuggestionStatusInput = {
-  id: Scalars['String'];
-  status: SuggestionStatus;
-};
-
-export type AddUpvoteToSuggestionInput = {
-  id: Scalars['String'];
-};
-
-export type RemoveUpvoteFromSuggestionInput = {
-  id: Scalars['String'];
-};
-
-export type CreateTaskFromSuggestionInput = {
-  id: Scalars['String'];
-};
-
 export type CreateLevelTaskSubmissionInput = {
   levelId: Scalars['String'];
   persistentTaskId: Scalars['String'];
@@ -573,14 +549,9 @@ export type Mutation = {
   sendTransactionMessage: Scalars['Boolean'];
   markAllNotificationsAsRead: Scalars['Boolean'];
   markNotificationAsRead: Scalars['Boolean'];
-  createSuggestion?: Maybe<Suggestion>;
-  setSuggestionStatus?: Maybe<Suggestion>;
-  addUpvoteToSuggestion?: Maybe<Suggestion>;
-  removeUpvoteFromSuggestion?: Maybe<Suggestion>;
   assignWorker?: Maybe<Task>;
   cancelTask?: Maybe<Task>;
   createTask?: Maybe<Task>;
-  createTaskFromSuggestion?: Maybe<Task>;
   createWorkRequest?: Maybe<Task>;
   finalizeTask?: Maybe<Task>;
   removeTaskPayout?: Maybe<Task>;
@@ -658,26 +629,6 @@ export type MutationMarkNotificationAsReadArgs = {
 };
 
 
-export type MutationCreateSuggestionArgs = {
-  input: CreateSuggestionInput;
-};
-
-
-export type MutationSetSuggestionStatusArgs = {
-  input: SetSuggestionStatusInput;
-};
-
-
-export type MutationAddUpvoteToSuggestionArgs = {
-  input: AddUpvoteToSuggestionInput;
-};
-
-
-export type MutationRemoveUpvoteFromSuggestionArgs = {
-  input: RemoveUpvoteFromSuggestionInput;
-};
-
-
 export type MutationAssignWorkerArgs = {
   input: AssignWorkerInput;
 };
@@ -690,11 +641,6 @@ export type MutationCancelTaskArgs = {
 
 export type MutationCreateTaskArgs = {
   input: CreateTaskInput;
-};
-
-
-export type MutationCreateTaskFromSuggestionArgs = {
-  input: CreateTaskFromSuggestionInput;
 };
 
 
@@ -994,27 +940,6 @@ export type ProgramSubmission = {
   submission: Submission;
 };
 
-export enum SuggestionStatus {
-  Open = 'Open',
-  NotPlanned = 'NotPlanned',
-  Accepted = 'Accepted',
-  Deleted = 'Deleted'
-}
-
-export type Suggestion = {
-   __typename?: 'Suggestion';
-  id: Scalars['String'];
-  createdAt: Scalars['GraphQLDateTime'];
-  colonyAddress: Scalars['String'];
-  creatorAddress: Scalars['String'];
-  creator: User;
-  ethDomainId: Scalars['Int'];
-  status: SuggestionStatus;
-  title: Scalars['String'];
-  taskId?: Maybe<Scalars['String']>;
-  upvotes: Array<Scalars['String']>;
-};
-
 export type SystemInfo = {
    __typename?: 'SystemInfo';
   version: Scalars['String'];
@@ -1271,11 +1196,6 @@ export type ResolversTypes = {
   EditDomainNameInput: EditDomainNameInput,
   SetColonyTokensInput: SetColonyTokensInput,
   SetUserTokensInput: SetUserTokensInput,
-  CreateSuggestionInput: CreateSuggestionInput,
-  SetSuggestionStatusInput: SetSuggestionStatusInput,
-  AddUpvoteToSuggestionInput: AddUpvoteToSuggestionInput,
-  RemoveUpvoteFromSuggestionInput: RemoveUpvoteFromSuggestionInput,
-  CreateTaskFromSuggestionInput: CreateTaskFromSuggestionInput,
   CreateLevelTaskSubmissionInput: CreateLevelTaskSubmissionInput,
   EditSubmissionInput: EditSubmissionInput,
   AcceptLevelTaskSubmissionInput: AcceptLevelTaskSubmissionInput,
@@ -1303,8 +1223,6 @@ export type ResolversTypes = {
   SubmissionStatus: SubmissionStatus,
   Submission: ResolverTypeWrapper<Submission>,
   ProgramSubmission: ResolverTypeWrapper<ProgramSubmission>,
-  SuggestionStatus: SuggestionStatus,
-  Suggestion: ResolverTypeWrapper<Suggestion>,
   SystemInfo: ResolverTypeWrapper<SystemInfo>,
   TaskPayout: ResolverTypeWrapper<TaskPayout>,
   Task: ResolverTypeWrapper<Task>,
@@ -1382,11 +1300,6 @@ export type ResolversParentTypes = {
   EditDomainNameInput: EditDomainNameInput,
   SetColonyTokensInput: SetColonyTokensInput,
   SetUserTokensInput: SetUserTokensInput,
-  CreateSuggestionInput: CreateSuggestionInput,
-  SetSuggestionStatusInput: SetSuggestionStatusInput,
-  AddUpvoteToSuggestionInput: AddUpvoteToSuggestionInput,
-  RemoveUpvoteFromSuggestionInput: RemoveUpvoteFromSuggestionInput,
-  CreateTaskFromSuggestionInput: CreateTaskFromSuggestionInput,
   CreateLevelTaskSubmissionInput: CreateLevelTaskSubmissionInput,
   EditSubmissionInput: EditSubmissionInput,
   AcceptLevelTaskSubmissionInput: AcceptLevelTaskSubmissionInput,
@@ -1414,8 +1327,6 @@ export type ResolversParentTypes = {
   SubmissionStatus: SubmissionStatus,
   Submission: Submission,
   ProgramSubmission: ProgramSubmission,
-  SuggestionStatus: SuggestionStatus,
-  Suggestion: Suggestion,
   SystemInfo: SystemInfo,
   TaskPayout: TaskPayout,
   Task: Task,
@@ -1446,7 +1357,6 @@ export type ColonyResolvers<ContextType = any, ParentType extends ResolversParen
   nativeTokenAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   programs?: Resolver<Array<ResolversTypes['Program']>, ParentType, ContextType>,
   subscribedUsers?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>,
-  suggestions?: Resolver<Array<ResolversTypes['Suggestion']>, ParentType, ContextType>,
   tokenAddresses?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
@@ -1718,14 +1628,9 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   sendTransactionMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendTransactionMessageArgs, 'input'>>,
   markAllNotificationsAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
   markNotificationAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationMarkNotificationAsReadArgs, 'input'>>,
-  createSuggestion?: Resolver<Maybe<ResolversTypes['Suggestion']>, ParentType, ContextType, RequireFields<MutationCreateSuggestionArgs, 'input'>>,
-  setSuggestionStatus?: Resolver<Maybe<ResolversTypes['Suggestion']>, ParentType, ContextType, RequireFields<MutationSetSuggestionStatusArgs, 'input'>>,
-  addUpvoteToSuggestion?: Resolver<Maybe<ResolversTypes['Suggestion']>, ParentType, ContextType, RequireFields<MutationAddUpvoteToSuggestionArgs, 'input'>>,
-  removeUpvoteFromSuggestion?: Resolver<Maybe<ResolversTypes['Suggestion']>, ParentType, ContextType, RequireFields<MutationRemoveUpvoteFromSuggestionArgs, 'input'>>,
   assignWorker?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationAssignWorkerArgs, 'input'>>,
   cancelTask?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationCancelTaskArgs, 'input'>>,
   createTask?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationCreateTaskArgs, 'input'>>,
-  createTaskFromSuggestion?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationCreateTaskFromSuggestionArgs, 'input'>>,
   createWorkRequest?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationCreateWorkRequestArgs, 'input'>>,
   finalizeTask?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationFinalizeTaskArgs, 'input'>>,
   removeTaskPayout?: Resolver<Maybe<ResolversTypes['Task']>, ParentType, ContextType, RequireFields<MutationRemoveTaskPayoutArgs, 'input'>>,
@@ -1825,20 +1730,6 @@ export type ProgramSubmissionResolvers<ContextType = any, ParentType extends Res
   levelId?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   level?: Resolver<ResolversTypes['Level'], ParentType, ContextType>,
   submission?: Resolver<ResolversTypes['Submission'], ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
-};
-
-export type SuggestionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Suggestion'] = ResolversParentTypes['Suggestion']> = {
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
-  colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>,
-  ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
-  status?: Resolver<ResolversTypes['SuggestionStatus'], ParentType, ContextType>,
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  taskId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
-  upvotes?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
   __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
@@ -1966,7 +1857,6 @@ export type Resolvers<ContextType = any> = {
   Query?: QueryResolvers<ContextType>,
   Submission?: SubmissionResolvers<ContextType>,
   ProgramSubmission?: ProgramSubmissionResolvers<ContextType>,
-  Suggestion?: SuggestionResolvers<ContextType>,
   SystemInfo?: SystemInfoResolvers<ContextType>,
   TaskPayout?: TaskPayoutResolvers<ContextType>,
   Task?: TaskResolvers<ContextType>,

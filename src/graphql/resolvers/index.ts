@@ -10,7 +10,6 @@ import { PersistentTask } from './PersistentTask'
 import { Program } from './Program'
 import { ProgramSubmission } from './ProgramSubmission'
 import { Submission } from './Submission'
-import { Suggestion } from './Suggestion'
 import { User } from './User'
 import { Task } from './Task'
 import { Mutation } from './Mutation'
@@ -29,7 +28,6 @@ export const resolvers: Resolvers<ApolloContext> = {
   Program,
   ProgramSubmission,
   Submission,
-  Suggestion,
   User,
   Task,
   Mutation,

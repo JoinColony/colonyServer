@@ -20,7 +20,6 @@ export default gql`
     nativeTokenAddress: String!
     programs: [Program!]!
     subscribedUsers: [User!]!
-    suggestions: [Suggestion!]!
     tokenAddresses: [String!]!
   }
 `

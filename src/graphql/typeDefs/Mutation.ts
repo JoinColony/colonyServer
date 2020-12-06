@@ -153,29 +153,6 @@ export default gql`
     tokenAddresses: [String!]!
   }
 
-  input CreateSuggestionInput {
-    colonyAddress: String!
-    ethDomainId: Int!
-    title: String!
-  }
-
-  input SetSuggestionStatusInput {
-    id: String!
-    status: SuggestionStatus!
-  }
-
-  input AddUpvoteToSuggestionInput {
-    id: String!
-  }
-
-  input RemoveUpvoteFromSuggestionInput {
-    id: String!
-  }
-
-  input CreateTaskFromSuggestionInput {
-    id: String!
-  }
-
   input CreateLevelTaskSubmissionInput {
     levelId: String!
     persistentTaskId: String!
@@ -283,18 +260,10 @@ export default gql`
     # Notifications
     markAllNotificationsAsRead: Boolean!
     markNotificationAsRead(input: MarkNotificationAsReadInput!): Boolean!
-    # Suggestions
-    createSuggestion(input: CreateSuggestionInput!): Suggestion
-    setSuggestionStatus(input: SetSuggestionStatusInput!): Suggestion
-    addUpvoteToSuggestion(input: AddUpvoteToSuggestionInput!): Suggestion
-    removeUpvoteFromSuggestion(
-      input: RemoveUpvoteFromSuggestionInput!
-    ): Suggestion
     # Tasks
     assignWorker(input: AssignWorkerInput!): Task
     cancelTask(input: TaskIdInput!): Task
     createTask(input: CreateTaskInput!): Task
-    createTaskFromSuggestion(input: CreateTaskFromSuggestionInput!): Task
     createWorkRequest(input: CreateWorkRequestInput!): Task
     finalizeTask(input: FinalizeTaskInput!): Task
     removeTaskPayout(input: RemoveTaskPayoutInput!): Task
