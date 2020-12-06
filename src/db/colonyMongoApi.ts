@@ -18,7 +18,6 @@ import {
   PersistentTaskStatus,
   ProgramStatus,
   SubmissionStatus,
-  SuggestionStatus,
 } from '../graphql/types'
 import {
   ColonyDoc,
@@ -31,7 +30,6 @@ import {
   StrictRootQuerySelector,
   StrictUpdateQuery,
   SubmissionDoc,
-  SuggestionDoc,
   TaskDoc,
   UserDoc,
 } from './types'
@@ -58,7 +56,6 @@ export class ColonyMongoApi {
   private readonly persistentTasks: Collection<PersistentTaskDoc>
   private readonly programs: Collection<ProgramDoc>
   private readonly submissions: Collection<SubmissionDoc>
-  private readonly suggestions: Collection<SuggestionDoc>
   private readonly tasks: Collection<TaskDoc>
   private readonly users: Collection<UserDoc>
 
@@ -75,7 +72,6 @@ export class ColonyMongoApi {
     )
     this.programs = db.collection<ProgramDoc>(CollectionNames.Programs)
     this.submissions = db.collection<SubmissionDoc>(CollectionNames.Submissions)
-    this.suggestions = db.collection<SuggestionDoc>(CollectionNames.Suggestions)
     this.tasks = db.collection<TaskDoc>(CollectionNames.Tasks)
     this.users = db.collection<UserDoc>(CollectionNames.Users)
   }
@@ -161,12 +157,6 @@ export class ColonyMongoApi {
       modifier,
       options,
     )
-  }
-
-  private async tryGetSuggestion(id: string) {
-    const suggestion = await this.suggestions.findOne(new ObjectID(id))
-    assert.ok(!!suggestion, `Suggestion with ID '${id}' not found`)
-    return suggestion
   }
 
   private async tryGetPersistentTask(id: string) {
@@ -1042,68 +1032,6 @@ export class ColonyMongoApi {
       await this.users.find({ username: { $in: mentioned } }).toArray()
     ).map(({ walletAddress }) => walletAddress)
     await this.createNotification(eventId, users)
-  }
-
-  async createSuggestion(
-    initiator: string,
-    colonyAddress: string,
-    ethDomainId: number,
-    title: string,
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetColony(colonyAddress)
-
-    const { insertedId } = await this.suggestions.insertOne({
-      colonyAddress,
-      creatorAddress: initiator,
-      ethDomainId,
-      status: SuggestionStatus.Open,
-      upvotes: [initiator],
-      title,
-    })
-
-    return insertedId.toString()
-  }
-
-  async editSuggestion(
-    initiator: string,
-    id: string,
-    {
-      taskId,
-      ...edit
-    }: {
-      status?: SuggestionStatus
-      taskId?: string | null
-      title?: string | null
-    },
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetSuggestion(id)
-    const update = ColonyMongoApi.createEditUpdater({
-      ...edit,
-      taskId: taskId ? new ObjectID(taskId) : undefined,
-    })
-    return this.suggestions.updateOne({ _id: new ObjectID(id) }, update)
-  }
-
-  async addUpvoteToSuggestion(initiator: string, id: string) {
-    // This effectively limits upvotes to users with a registered ENS name
-    await this.tryGetUser(initiator)
-    await this.tryGetSuggestion(id)
-    return this.suggestions.updateOne(
-      { _id: new ObjectID(id) },
-      { $addToSet: { upvotes: initiator } },
-    )
-  }
-
-  async removeUpvoteFromSuggestion(initiator: string, id: string) {
-    // This effectively limits upvotes to users with a registered ENS name
-    await this.tryGetUser(initiator)
-    await this.tryGetSuggestion(id)
-    return this.suggestions.updateOne(
-      { _id: new ObjectID(id) },
-      { $pull: { upvotes: initiator } },
-    )
   }
 
   async createPersistentTask(initiator: string, colonyAddress: string) {

@@ -13,7 +13,6 @@ import {
   ProgramDoc,
   ProgramSubmissionDoc,
   SubmissionDoc,
-  SuggestionDoc,
   TaskDoc,
   TokenDoc,
   UserDoc,
@@ -32,8 +31,6 @@ import {
   ProgramSubmission,
   Submission,
   SubmissionStatus,
-  Suggestion,
-  SuggestionStatus,
   Task,
   TokenInfo,
   User,
@@ -53,7 +50,6 @@ interface Collections {
   persistentTasks: CachedCollection<PersistentTaskDoc>
   programs: CachedCollection<ProgramDoc>
   submissions: CachedCollection<SubmissionDoc>
-  suggestions: CachedCollection<SuggestionDoc>
   tasks: CachedCollection<TaskDoc>
   tokens: CachedCollection<TokenDoc>
   users: CachedCollection<UserDoc>
@@ -73,7 +69,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       db.collection(CollectionNames.PersistentTasks),
       db.collection(CollectionNames.Programs),
       db.collection(CollectionNames.Submissions),
-      db.collection(CollectionNames.Suggestions),
       db.collection(CollectionNames.Tasks),
       db.collection(CollectionNames.Tokens),
       db.collection(CollectionNames.Users),
@@ -104,7 +99,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       domains: [],
       programs: [],
       subscribedUsers: [],
-      suggestions: [],
     }
   }
 
@@ -232,20 +226,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       program: undefined,
       steps: undefined,
       unlocked: undefined,
-    }
-  }
-
-  private static transformSuggestion({
-    _id,
-    taskId,
-    ...doc
-  }: SuggestionDoc): Suggestion {
-    return {
-      ...doc,
-      id: _id.toHexString(),
-      createdAt: _id.getTimestamp(),
-      creator: undefined,
-      taskId: taskId ? taskId.toHexString() : undefined,
     }
   }
 
@@ -631,26 +611,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       (levelId) => !completedLevelIds.includes(levelId),
     )
     return [...completedLevelIds, nextLevelId]
-  }
-
-  async getSuggestionById(id: string, ttl?: number) {
-    const doc = ttl
-      ? await this.collections.suggestions.findOneById(id, { ttl })
-      : await this.collections.suggestions.collection.findOne({
-          _id: new ObjectID(id),
-        })
-
-    if (!doc) throw new Error(`Suggestion with id '${id}' not found`)
-
-    return ColonyMongoDataSource.transformSuggestion(doc)
-  }
-
-  async getColonySuggestions(colonyAddress: string, ttl?: number) {
-    const query = { colonyAddress, status: { $ne: SuggestionStatus.Deleted } }
-    const docs = ttl
-      ? await this.collections.suggestions.findManyByQuery(query, { ttl })
-      : await this.collections.suggestions.collection.find(query).toArray()
-    return docs.map(ColonyMongoDataSource.transformSuggestion)
   }
 
   async getUserByAddress(walletAddress: string, ttl?: number) {

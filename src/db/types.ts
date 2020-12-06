@@ -14,7 +14,6 @@ import {
   PersistentTaskStatus,
   ProgramStatus,
   SubmissionStatus,
-  SuggestionStatus,
   TaskPayout,
 } from '../graphql/types'
 
@@ -129,16 +128,6 @@ export interface SubmissionDoc extends MongoDoc {
 export interface ProgramSubmissionDoc extends MongoDoc {
   levelId: ObjectID
   submission: SubmissionDoc
-}
-
-export interface SuggestionDoc extends MongoDoc {
-  colonyAddress: string
-  creatorAddress: string
-  ethDomainId: number
-  status: SuggestionStatus
-  upvotes: string[]
-  taskId?: ObjectID
-  title: string
 }
 
 export interface TaskDoc extends MongoDoc {
