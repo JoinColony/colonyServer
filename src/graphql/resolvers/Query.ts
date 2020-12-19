@@ -90,4 +90,14 @@ export const Query: QueryResolvers<ApolloContext> = {
       messages,
     }
   },
+  async transactionMessagesCount(
+    parent,
+    { colonyAddress }: { colonyAddress: string },
+    { dataSources: { data } },
+  ) {
+    const messagesCount = await data.getTransactionMessagesCount(colonyAddress)
+    return {
+      colonyTransactionMessages: messagesCount,
+    }
+  },
 }
