@@ -37,8 +37,8 @@ import {
   Task,
   TokenInfo,
   User,
+  EventType,
 } from '../graphql/types'
-import { ETH_ADDRESS } from '../constants'
 
 // TODO re-enable cache
 // const DEFAULT_TTL = { ttl: 10000 }
@@ -285,6 +285,21 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       submissions: [],
       currentUserSubmission: undefined,
     }
+  }
+
+  private static transformTransactionMessagesCount(
+    transactionMessages: EventDoc<{ transactionHash: string }>[] = [],
+  ): Array<{ transactionHash: string; count: number }> {
+    const messages = {}
+    transactionMessages.map(({ context: { transactionHash } }) => {
+      messages[transactionHash] = messages[transactionHash]
+        ? messages[transactionHash] + 1
+        : 1
+    })
+    return Object.keys(messages).map((transactionHash) => ({
+      transactionHash,
+      count: messages[transactionHash],
+    }))
   }
 
   async getColonyByAddress(colonyAddress: string, ttl?: number) {
@@ -783,5 +798,16 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       ? await this.collections.events.findManyByQuery(query, { ttl })
       : await this.collections.events.collection.find(query).toArray()
     return events.map(ColonyMongoDataSource.transformEvent)
+  }
+
+  async getTransactionMessagesCount(colonyAddress: string, ttl?: number) {
+    const query = {
+      'context.colonyAddress': colonyAddress,
+      type: EventType.TransactionMessage,
+    }
+    const events = ttl
+      ? await this.collections.events.findManyByQuery(query, { ttl })
+      : await this.collections.events.collection.find(query).toArray()
+    return ColonyMongoDataSource.transformTransactionMessagesCount(events)
   }
 }
