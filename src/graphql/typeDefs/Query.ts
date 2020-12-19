@@ -11,5 +11,6 @@ export default gql`
     tokenInfo(address: String!): TokenInfo!
     systemInfo: SystemInfo!
     transactionMessages(transactionHash: String!): TransactionMessages!
+    transactionMessagesCount(colonyAddress: String!): TransactionMessagesCount!
   }
 `

@@ -5,4 +5,13 @@ export default gql`
     transactionHash: String!
     messages: [Event!]!
   }
+
+  type TransactionCount {
+    transactionHash: String!
+    count: Int!
+  }
+
+  type TransactionMessagesCount {
+    colonyTransactionMessages: [TransactionCount!]!
+  }
 `
