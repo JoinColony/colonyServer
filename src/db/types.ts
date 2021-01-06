@@ -10,9 +10,6 @@ import {
 
 import {
   EventType,
-  LevelStatus,
-  PersistentTaskStatus,
-  ProgramStatus,
   SubmissionStatus,
   SuggestionStatus,
   TaskPayout,
@@ -85,50 +82,11 @@ export interface EventDoc<C extends object> extends MongoDoc {
   context: C
 }
 
-export interface ProgramDoc extends MongoDoc {
-  colonyAddress: string
-  creatorAddress: string
-  title?: string
-  description?: string
-  levelIds: string[]
-  enrolledUserAddresses: string[]
-  status: ProgramStatus
-}
-
-export interface LevelDoc extends MongoDoc {
-  creatorAddress: string
-  programId: ObjectID
-  title?: string
-  description?: string
-  achievement?: string
-  numRequiredSteps?: number
-  stepIds: string[]
-  completedBy: string[]
-  status: LevelStatus
-}
-
-export interface PersistentTaskDoc extends MongoDoc {
-  colonyAddress: string
-  creatorAddress: string
-  ethDomainId?: number
-  ethSkillId?: number
-  title?: string
-  description?: string
-  payouts: TaskPayout[]
-  status: PersistentTaskStatus
-}
-
 export interface SubmissionDoc extends MongoDoc {
   creatorAddress: string
-  persistentTaskId: ObjectID
   submission: string
   status: SubmissionStatus
   statusChangedAt: Date
-}
-
-export interface ProgramSubmissionDoc extends MongoDoc {
-  levelId: ObjectID
-  submission: SubmissionDoc
 }
 
 export interface SuggestionDoc extends MongoDoc {

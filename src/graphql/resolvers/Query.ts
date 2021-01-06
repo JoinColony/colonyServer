@@ -27,12 +27,6 @@ export const Query: QueryResolvers<ApolloContext> = {
   ) {
     return data.getDomainByEthId(colonyAddress, ethDomainId)
   },
-  async level(parent, { id }: { id: string }, { dataSources: { data } }) {
-    return data.getLevelById(id)
-  },
-  async program(parent, { id }: { id: string }, { dataSources: { data } }) {
-    return data.getProgramById(id)
-  },
   // TODO task by ethPotId/colonyAddress
   async task(parent, { id }: { id: string }, { dataSources: { data } }) {
     return data.getTaskById(id)

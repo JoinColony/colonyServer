@@ -5,10 +5,6 @@ import { Event, ColonyEvent, TaskEvent, EventContext } from './Event'
 import { Query } from './Query'
 import { Colony } from './Colony'
 import { Domain } from './Domain'
-import { Level } from './Level'
-import { PersistentTask } from './PersistentTask'
-import { Program } from './Program'
-import { ProgramSubmission } from './ProgramSubmission'
 import { Submission } from './Submission'
 import { Suggestion } from './Suggestion'
 import { User } from './User'
@@ -24,10 +20,6 @@ export const resolvers: Resolvers<ApolloContext> = {
   EventContext,
   Query,
   Domain,
-  Level,
-  PersistentTask,
-  Program,
-  ProgramSubmission,
   Submission,
   Suggestion,
   User,

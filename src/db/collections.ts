@@ -3,10 +3,7 @@ import {
   ColonyDoc,
   DomainDoc,
   EventDoc,
-  LevelDoc,
   NotificationDoc,
-  PersistentTaskDoc,
-  ProgramDoc,
   SubmissionDoc,
   SuggestionDoc,
   TaskDoc,
@@ -19,10 +16,7 @@ export enum CollectionNames {
   Colonies = 'colonies',
   Domains = 'domains',
   Events = 'events',
-  Levels = 'levels',
   Notifications = 'notifications',
-  PersistentTasks = 'persistentTasks',
-  Programs = 'programs',
   Submissions = 'submissions',
   Suggestions = 'suggestions',
   Tasks = 'tasks',
@@ -315,74 +309,6 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
     },
   ],
   [
-    CollectionNames.PersistentTasks,
-    {
-      create: {
-        validator: {
-          $jsonSchema: {
-            additionalProperties: false,
-            bsonType: 'object',
-            required: ['creatorAddress', 'colonyAddress', 'status'],
-            properties: {
-              _id: { bsonType: 'objectId' },
-              colonyAddress: {
-                bsonType: 'string',
-                description: 'must be a string and is required',
-                maxLength: 42,
-              },
-              creatorAddress: {
-                bsonType: 'string',
-                description: 'must be a string and is required',
-                maxLength: 42,
-              },
-              ethDomainId: {
-                bsonType: 'number',
-                minimum: 1,
-              },
-              ethSkillId: {
-                bsonType: 'number',
-                minimum: 1,
-              },
-              title: {
-                bsonType: 'string',
-                maxLength: 200,
-              },
-              description: {
-                bsonType: 'string',
-                maxLength: 4000,
-              },
-              payouts: {
-                bsonType: 'array',
-                additionalProperties: false,
-                items: {
-                  bsonType: 'object',
-                  required: ['tokenAddress', 'amount'],
-                  properties: {
-                    tokenAddress: {
-                      bsonType: 'string',
-                    },
-                    amount: {
-                      bsonType: 'string',
-                    },
-                  },
-                },
-              },
-              status: {
-                enum: ['Active', 'Closed', 'Deleted'],
-                maxLength: 100,
-              },
-            } as SchemaFields<PersistentTaskDoc>,
-          },
-        },
-      },
-      indexes: [
-        ['colonyAddress', {}],
-        ['ethDomainId', { sparse: true }],
-        ['status', {}],
-      ],
-    },
-  ],
-  [
     CollectionNames.Domains,
     {
       create: {
@@ -585,7 +511,6 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
             bsonType: 'object',
             required: [
               'creatorAddress',
-              'persistentTaskId',
               'submission',
               'status',
             ],
@@ -596,7 +521,6 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 description: 'must be a string and is required',
                 maxLength: 42,
               },
-              persistentTaskId: { bsonType: 'objectId' },
               submission: {
                 bsonType: 'string',
               },
@@ -613,75 +537,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       },
       indexes: [
         ['creatorAddress', {}],
-        ['persistentTaskId', {}],
         ['status', {}],
-      ],
-    },
-  ],
-  [
-    CollectionNames.Levels,
-    {
-      create: {
-        validator: {
-          $jsonSchema: {
-            additionalProperties: false,
-            bsonType: 'object',
-            required: [
-              'completedBy',
-              'creatorAddress',
-              'programId',
-              'stepIds',
-              'status',
-            ],
-            properties: {
-              _id: { bsonType: 'objectId' },
-              creatorAddress: {
-                bsonType: 'string',
-                maxLength: 42,
-              },
-              programId: { bsonType: 'objectId' },
-              title: {
-                bsonType: 'string',
-                maxLength: 200,
-              },
-              description: {
-                bsonType: 'string',
-                maxLength: 4000,
-              },
-              achievement: {
-                bsonType: 'string',
-                maxLength: 200,
-              },
-              numRequiredSteps: {
-                bsonType: 'int',
-              },
-              stepIds: {
-                bsonType: 'array',
-                description: 'must be an array of persistent task IDs',
-                uniqueItems: true,
-                items: {
-                  bsonType: 'string',
-                },
-              },
-              completedBy: {
-                bsonType: 'array',
-                description: 'must be an array of user addresses',
-                uniqueItems: true,
-                items: {
-                  bsonType: 'string',
-                },
-              },
-              status: {
-                enum: ['Active', 'Deleted'],
-                maxLength: 10,
-              },
-            } as SchemaFields<LevelDoc>,
-          },
-        },
-      },
-      indexes: [
-        ['status', {}],
-        ['completedBy', {}],
       ],
     },
   ],
@@ -733,64 +589,6 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
           decimals: 18,
         },
       ] as TokenDoc[],
-    },
-  ],
-  [
-    CollectionNames.Programs,
-    {
-      create: {
-        validator: {
-          $jsonSchema: {
-            additionalProperties: false,
-            bsonType: 'object',
-            required: ['colonyAddress', 'creatorAddress', 'status'],
-            properties: {
-              _id: { bsonType: 'objectId' },
-              colonyAddress: {
-                bsonType: 'string',
-                maxLength: 42,
-              },
-              creatorAddress: {
-                bsonType: 'string',
-                maxLength: 42,
-              },
-              title: {
-                bsonType: 'string',
-                maxLength: 100,
-              },
-              description: {
-                bsonType: 'string',
-                maxLength: 4000,
-              },
-              levelIds: {
-                bsonType: 'array',
-                description: 'must be an ordered array of level Ids',
-                uniqueItems: true,
-                items: {
-                  bsonType: 'string',
-                },
-              },
-              enrolledUserAddresses: {
-                bsonType: 'array',
-                description: 'must be an array of user addresses',
-                uniqueItems: true,
-                items: {
-                  bsonType: 'string',
-                  maxLength: 42,
-                },
-              },
-              status: {
-                enum: ['Draft', 'Active', 'Deleted'],
-                maxLength: 100,
-              },
-            } as SchemaFields<ProgramDoc>,
-          },
-        },
-      },
-      indexes: [
-        ['colonyAddress', {}],
-        ['status', {}],
-      ],
     },
   ],
 ])

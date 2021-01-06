@@ -11,7 +11,6 @@ export default gql`
     taskIds: [String!]!
     tokenAddresses: [String!]!
     notifications(read: Boolean): [Notification!]! # Only provided for the current user
-    completedLevels(colonyAddress: String!): [Level!]!
   }
 
   type UserProfile {
