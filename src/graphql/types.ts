@@ -410,11 +410,6 @@ export type CreateTaskFromSuggestionInput = {
   id: Scalars['String'];
 };
 
-export type EditSubmissionInput = {
-  id: Scalars['String'];
-  submission: Scalars['String'];
-};
-
 export type Payout = {
   amount: Scalars['String'];
   tokenAddress: Scalars['String'];
@@ -463,7 +458,6 @@ export type Mutation = {
   subscribeToColony?: Maybe<User>;
   unsubscribeFromColony?: Maybe<User>;
   setUserTokens?: Maybe<User>;
-  editSubmission?: Maybe<Submission>;
 };
 
 
@@ -637,11 +631,6 @@ export type MutationSetUserTokensArgs = {
 };
 
 
-export type MutationEditSubmissionArgs = {
-  input: EditSubmissionInput;
-};
-
-
 export type Query = {
    __typename?: 'Query';
   user: User;
@@ -688,25 +677,6 @@ export type QueryTransactionMessagesArgs = {
 
 export type QueryTransactionMessagesCountArgs = {
   colonyAddress: Scalars['String'];
-};
-
-export enum SubmissionStatus {
-  Open = 'Open',
-  Accepted = 'Accepted',
-  Rejected = 'Rejected',
-  Deleted = 'Deleted'
-}
-
-
-export type Submission = {
-   __typename?: 'Submission';
-  id: Scalars['String'];
-  createdAt: Scalars['GraphQLDateTime'];
-  creatorAddress: Scalars['String'];
-  creator: User;
-  submission: Scalars['String'];
-  status: SubmissionStatus;
-  statusChangedAt?: Maybe<Scalars['GraphQLDateTime']>;
 };
 
 
@@ -988,13 +958,10 @@ export type ResolversTypes = {
   AddUpvoteToSuggestionInput: AddUpvoteToSuggestionInput,
   RemoveUpvoteFromSuggestionInput: RemoveUpvoteFromSuggestionInput,
   CreateTaskFromSuggestionInput: CreateTaskFromSuggestionInput,
-  EditSubmissionInput: EditSubmissionInput,
   Payout: Payout,
   SendTransactionMessageInput: SendTransactionMessageInput,
   Mutation: ResolverTypeWrapper<{}>,
   Query: ResolverTypeWrapper<{}>,
-  SubmissionStatus: SubmissionStatus,
-  Submission: ResolverTypeWrapper<Submission>,
   SuggestionStatus: SuggestionStatus,
   Suggestion: ResolverTypeWrapper<Suggestion>,
   SystemInfo: ResolverTypeWrapper<SystemInfo>,
@@ -1075,13 +1042,10 @@ export type ResolversParentTypes = {
   AddUpvoteToSuggestionInput: AddUpvoteToSuggestionInput,
   RemoveUpvoteFromSuggestionInput: RemoveUpvoteFromSuggestionInput,
   CreateTaskFromSuggestionInput: CreateTaskFromSuggestionInput,
-  EditSubmissionInput: EditSubmissionInput,
   Payout: Payout,
   SendTransactionMessageInput: SendTransactionMessageInput,
   Mutation: {},
   Query: {},
-  SubmissionStatus: SubmissionStatus,
-  Submission: Submission,
   SuggestionStatus: SuggestionStatus,
   Suggestion: Suggestion,
   SystemInfo: SystemInfo,
@@ -1360,7 +1324,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   subscribeToColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSubscribeToColonyArgs, 'input'>>,
   unsubscribeFromColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUnsubscribeFromColonyArgs, 'input'>>,
   setUserTokens?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSetUserTokensArgs, 'input'>>,
-  editSubmission?: Resolver<Maybe<ResolversTypes['Submission']>, ParentType, ContextType, RequireFields<MutationEditSubmissionArgs, 'input'>>,
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
@@ -1372,17 +1335,6 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   systemInfo?: Resolver<ResolversTypes['SystemInfo'], ParentType, ContextType>,
   transactionMessages?: Resolver<ResolversTypes['TransactionMessages'], ParentType, ContextType, RequireFields<QueryTransactionMessagesArgs, 'transactionHash'>>,
   transactionMessagesCount?: Resolver<ResolversTypes['TransactionMessagesCount'], ParentType, ContextType, RequireFields<QueryTransactionMessagesCountArgs, 'colonyAddress'>>,
-};
-
-export type SubmissionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Submission'] = ResolversParentTypes['Submission']> = {
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
-  creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>,
-  submission?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  status?: Resolver<ResolversTypes['SubmissionStatus'], ParentType, ContextType>,
-  statusChangedAt?: Resolver<Maybe<ResolversTypes['GraphQLDateTime']>, ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type SuggestionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Suggestion'] = ResolversParentTypes['Suggestion']> = {
@@ -1524,7 +1476,6 @@ export type Resolvers<ContextType = any> = {
   Notification?: NotificationResolvers<ContextType>,
   Mutation?: MutationResolvers<ContextType>,
   Query?: QueryResolvers<ContextType>,
-  Submission?: SubmissionResolvers<ContextType>,
   Suggestion?: SuggestionResolvers<ContextType>,
   SystemInfo?: SystemInfoResolvers<ContextType>,
   TaskPayout?: TaskPayoutResolvers<ContextType>,

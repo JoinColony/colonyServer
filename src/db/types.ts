@@ -10,7 +10,6 @@ import {
 
 import {
   EventType,
-  SubmissionStatus,
   SuggestionStatus,
   TaskPayout,
 } from '../graphql/types'
@@ -80,13 +79,6 @@ export interface EventDoc<C extends object> extends MongoDoc {
   initiatorAddress: string
   sourceType: 'db' | 'contract'
   context: C
-}
-
-export interface SubmissionDoc extends MongoDoc {
-  creatorAddress: string
-  submission: string
-  status: SubmissionStatus
-  statusChangedAt: Date
 }
 
 export interface SuggestionDoc extends MongoDoc {

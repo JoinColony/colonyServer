@@ -20,7 +20,6 @@ import Event from './typeDefs/Event'
 import Mutation from './typeDefs/Mutation'
 import Query from './typeDefs/Query'
 import Suggestion from './typeDefs/Suggestion'
-import Submission from './typeDefs/Submission'
 import Task from './typeDefs/Task'
 import TokenInfo from './typeDefs/TokenInfo'
 import SystemInfo from './typeDefs/SystemInfo'
@@ -67,7 +66,6 @@ export const createApolloServer = (db: Db, provider: Provider) => {
       Event,
       Mutation,
       Query,
-      Submission,
       Suggestion,
       Task,
       TokenInfo,

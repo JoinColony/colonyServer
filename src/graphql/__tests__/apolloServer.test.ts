@@ -1,7 +1,5 @@
 import { ApolloServer, gql } from 'apollo-server-express'
 import { createTestClient } from 'apollo-server-testing'
-import { DocumentNode } from 'graphql'
-import { mocked } from 'ts-jest/utils'
 import { MongoClient, ObjectID } from 'mongodb'
 import fs from 'fs'
 import path from 'path'
@@ -14,7 +12,6 @@ import Domain from '../typeDefs/Domain'
 import Event from '../typeDefs/Event'
 import Mutation from '../typeDefs/Mutation'
 import Query from '../typeDefs/Query'
-import Submission from '../typeDefs/Submission'
 import Suggestion from '../typeDefs/Suggestion'
 import Task from '../typeDefs/Task'
 import TokenInfo from '../typeDefs/TokenInfo'
@@ -30,12 +27,10 @@ import {
   DomainDoc,
   SuggestionDoc,
   TaskDoc,
-  TokenDoc,
   UserDoc,
 } from '../../db/types'
 import {
   EventType,
-  SubmissionStatus,
   SuggestionStatus,
 } from '../types'
 import { CollectionNames } from '../../db/collections'
@@ -49,7 +44,6 @@ const typeDefs = [
   Event,
   Mutation,
   Query,
-  Submission,
   Suggestion,
   Task,
   TokenInfo,
@@ -127,12 +121,6 @@ const token3Doc = {
   symbol: 'TKN3',
   decimals: 18,
 }
-const submissionDoc = {
-  creatorAddress: user1Doc.walletAddress,
-  status: SubmissionStatus.Open,
-  statusChangedAt: new Date(2000),
-  submission: 'My cool submission',
-}
 
 const systemInfoResult = {
   version: JSON.parse(
@@ -157,7 +145,6 @@ describe('Apollo Server', () => {
     await db.collection(CollectionNames.Domains).deleteMany({})
     await db.collection(CollectionNames.Events).deleteMany({})
     await db.collection(CollectionNames.Notifications).deleteMany({})
-    await db.collection(CollectionNames.Submissions).deleteMany({})
     await db.collection(CollectionNames.Tasks).deleteMany({})
     await db.collection(CollectionNames.Tokens).deleteMany({})
     await db.collection(CollectionNames.Users).deleteMany({})
@@ -1978,57 +1965,6 @@ describe('Apollo Server', () => {
         data: { removeUpvoteFromSuggestion: { upvotes: [] } },
         errors: undefined,
       })
-    })
-
-    it('editSubmission', async () => {
-      const {
-      } = await insertDocs(db, {
-        users: [user1Doc],
-        colonies: [colonyDoc],
-      })
-
-      const {
-        submissions: [id],
-      } = await insertDocs(db, {
-        submissions: [
-          { ...submissionDoc },
-        ],
-      })
-
-      const result = await mutate({
-        mutation: gql`
-          mutation editSubmission($input: EditSubmissionInput!) {
-            editSubmission(input: $input) {
-              id
-              submission
-              status
-              statusChangedAt
-            }
-          }
-        `,
-        variables: {
-          input: {
-            id,
-            submission: 'Changed submission',
-          },
-        },
-      })
-
-      expect(result).toMatchObject({
-        data: {
-          editSubmission: {
-            id,
-            submission: 'Changed submission',
-            status: SubmissionStatus.Open,
-          },
-        },
-        errors: undefined,
-      })
-
-      expect(
-        new Date(result.data.editSubmission.statusChangedAt) >
-          new Date(submissionDoc.statusChangedAt),
-      ).toBeTruthy()
     })
   })
 })

@@ -176,11 +176,6 @@ export default gql`
     id: String!
   }
 
-  input EditSubmissionInput {
-    id: String!
-    submission: String!
-  }
-
   input Payout {
     amount: String!
     tokenAddress: String!
@@ -237,6 +232,5 @@ export default gql`
     subscribeToColony(input: SubscribeToColonyInput!): User
     unsubscribeFromColony(input: UnsubscribeFromColonyInput!): User
     setUserTokens(input: SetUserTokensInput!): User
-    editSubmission(input: EditSubmissionInput!): Submission
   }
 `

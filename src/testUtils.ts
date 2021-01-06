@@ -6,7 +6,6 @@ import {
   DomainDoc,
   EventDoc,
   NotificationDoc,
-  SubmissionDoc,
   SuggestionDoc,
   TaskDoc,
   TokenDoc,
@@ -33,7 +32,6 @@ interface DocsToInsert {
   domains?: Partial<DomainDoc>[]
   events?: Partial<EventDoc<any>>[]
   notifications?: Partial<NotificationDoc>[]
-  submissions?: Partial<SubmissionDoc>[]
   suggestions?: Partial<SuggestionDoc>[]
   tasks?: Partial<TaskDoc>[]
   tokens?: Partial<TokenDoc>[]
@@ -45,7 +43,6 @@ interface InsertedDocs {
   domains: string[]
   events: string[]
   notifications: string[]
-  submissions: string[]
   suggestions: string[]
   tasks: string[]
   tokens: string[]
@@ -87,7 +84,6 @@ export const insertDocs = async (
       domains: [],
       events: [],
       notifications: [],
-      submissions: [],
       suggestions: [],
       tasks: [],
       tokens: [],

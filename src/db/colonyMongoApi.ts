@@ -13,7 +13,6 @@ import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
 import {
   EventType,
-  SubmissionStatus,
   SuggestionStatus,
 } from '../graphql/types'
 import {
@@ -23,7 +22,6 @@ import {
   NotificationDoc,
   StrictRootQuerySelector,
   StrictUpdateQuery,
-  SubmissionDoc,
   SuggestionDoc,
   TaskDoc,
   UserDoc,
@@ -47,7 +45,6 @@ export class ColonyMongoApi {
   private readonly events: Collection<EventDoc<any>>
   private readonly domains: Collection<DomainDoc>
   private readonly notifications: Collection<NotificationDoc>
-  private readonly submissions: Collection<SubmissionDoc>
   private readonly suggestions: Collection<SuggestionDoc>
   private readonly tasks: Collection<TaskDoc>
   private readonly users: Collection<UserDoc>
@@ -59,7 +56,6 @@ export class ColonyMongoApi {
     this.notifications = db.collection<NotificationDoc>(
       CollectionNames.Notifications,
     )
-    this.submissions = db.collection<SubmissionDoc>(CollectionNames.Submissions)
     this.suggestions = db.collection<SuggestionDoc>(CollectionNames.Suggestions)
     this.tasks = db.collection<TaskDoc>(CollectionNames.Tasks)
     this.users = db.collection<UserDoc>(CollectionNames.Users)
@@ -152,16 +148,6 @@ export class ColonyMongoApi {
     const suggestion = await this.suggestions.findOne(new ObjectID(id))
     assert.ok(!!suggestion, `Suggestion with ID '${id}' not found`)
     return suggestion
-  }
-
-  private async tryGetSubmission(id: string) {
-    const submission = await this.submissions.findOne(new ObjectID(id))
-    assert.ok(!!submission, `Submission with ID '${id}' not found`)
-    assert.ok(
-      submission.status !== SubmissionStatus.Deleted,
-      `Submission with ID ${id} was deleted`,
-    )
-    return submission
   }
 
   private async tryGetTask(taskId: string) {
@@ -1017,37 +1003,6 @@ export class ColonyMongoApi {
       { _id: new ObjectID(id) },
       { $pull: { upvotes: initiator } },
     )
-  }
-
-  async createSubmission(
-    initiator: string,
-    submission: string,
-  ) {
-    await this.tryGetUser(initiator)
-
-    const { insertedId } = await this.submissions.insertOne({
-      creatorAddress: initiator,
-      submission: submission,
-      status: SubmissionStatus.Open,
-      statusChangedAt: new Date(),
-    })
-
-    return insertedId.toString()
-  }
-
-  async editSubmission(
-    initiator: string,
-    id: string,
-    edit: { submission?: string | null; status?: SubmissionStatus },
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetSubmission(id)
-
-    const update = ColonyMongoApi.createEditUpdater({
-      ...edit,
-      statusChangedAt: new Date(),
-    })
-    return this.submissions.updateOne({ _id: new ObjectID(id) }, update)
   }
 
   async sendTransactionMessage(

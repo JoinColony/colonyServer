@@ -1,7 +1,6 @@
 import { ApolloContext } from '../apolloTypes'
 import {
   MutationResolvers,
-  SubmissionStatus,
   SuggestionStatus,
 } from '../types'
 import { tryAuth } from './auth'
@@ -513,18 +512,5 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     )
     await api.editDomainName(userAddress, colonyAddress, ethDomainId, name)
     return data.getDomainByEthId(colonyAddress, ethDomainId)
-  },
-  // Submissions
-  async editSubmission(
-    parent,
-    { input: { id, submission } },
-    { userAddress, api, dataSources: { data } },
-  ) {
-    const { creatorAddress } = await data.getSubmissionById(id)
-    if (creatorAddress !== userAddress) {
-      throw new Error('Submissions can only be edited by their creators')
-    }
-    await api.editSubmission(userAddress, id, { submission })
-    return data.getSubmissionById(id)
   },
 }

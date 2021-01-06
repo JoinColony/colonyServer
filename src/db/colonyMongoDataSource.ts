@@ -8,7 +8,6 @@ import {
   DomainDoc,
   EventDoc,
   NotificationDoc,
-  SubmissionDoc,
   SuggestionDoc,
   TaskDoc,
   TokenDoc,
@@ -19,8 +18,6 @@ import {
   Colony,
   Domain,
   Event,
-  Submission,
-  SubmissionStatus,
   Suggestion,
   SuggestionStatus,
   Task,
@@ -38,7 +35,6 @@ interface Collections {
   domains: CachedCollection<DomainDoc>
   events: CachedCollection<EventDoc<any>>
   notifications: CachedCollection<NotificationDoc>
-  submissions: CachedCollection<SubmissionDoc>
   suggestions: CachedCollection<SuggestionDoc>
   tasks: CachedCollection<TaskDoc>
   tokens: CachedCollection<TokenDoc>
@@ -55,7 +51,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       db.collection(CollectionNames.Domains),
       db.collection(CollectionNames.Events),
       db.collection(CollectionNames.Notifications),
-      db.collection(CollectionNames.Submissions),
       db.collection(CollectionNames.Suggestions),
       db.collection(CollectionNames.Tasks),
       db.collection(CollectionNames.Tokens),
@@ -161,19 +156,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       tasks: [],
       id: _id.toHexString(),
       createdAt: _id.getTimestamp(),
-    }
-  }
-
-  private static transformSubmission({
-    _id,
-    ...doc
-  }: SubmissionDoc): Submission {
-    return {
-      ...doc,
-      id: _id.toHexString(),
-      createdAt: _id.getTimestamp(),
-      creator: undefined,
-      task: undefined,
     }
   }
 
@@ -324,37 +306,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       : await this.collections.domains.collection.find(query).toArray()
     return docs.map(ColonyMongoDataSource.transformDomain)
   }
-
-  async getTaskSubmissions(id: string, ttl?: number) {
-    const query = {
-      status: { $ne: SubmissionStatus.Deleted },
-    }
-    const docs = ttl
-      ? await this.collections.submissions.findManyByQuery(query, { ttl })
-      : await this.collections.submissions.collection.find(query).toArray()
-    return docs.map(ColonyMongoDataSource.transformSubmission)
-  }
-
-  async getSubmissionById(id: string, ttl?: number) {
-    const query = {
-      _id: new ObjectID(id),
-      status: { $ne: SubmissionStatus.Deleted },
-    }
-    let doc: SubmissionDoc
-    if (ttl) {
-      const docs = await this.collections.submissions.findManyByQuery(query, {
-        ttl,
-      })
-      doc = docs[0]
-    } else {
-      doc = await this.collections.submissions.collection.findOne(query)
-    }
-
-    if (!doc) throw new Error(`Submission with id '${id}' not found`)
-
-    return ColonyMongoDataSource.transformSubmission(doc)
-  }
-
 
   async getSuggestionById(id: string, ttl?: number) {
     const doc = ttl
