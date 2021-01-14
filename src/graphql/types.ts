@@ -235,6 +235,11 @@ export type Notification = {
   read: Scalars['Boolean'];
 };
 
+export enum LevelStatus {
+  Active = 'Active',
+  Deleted = 'Deleted'
+}
+
 export type CreateUserInput = {
   username: Scalars['String'];
 };
@@ -630,6 +635,17 @@ export type MutationSetUserTokensArgs = {
   input: SetUserTokensInput;
 };
 
+export enum PersistentTaskStatus {
+  Active = 'Active',
+  Closed = 'Closed',
+  Deleted = 'Deleted'
+}
+
+export enum ProgramStatus {
+  Draft = 'Draft',
+  Active = 'Active',
+  Deleted = 'Deleted'
+}
 
 export type Query = {
    __typename?: 'Query';
@@ -679,6 +695,12 @@ export type QueryTransactionMessagesCountArgs = {
   colonyAddress: Scalars['String'];
 };
 
+export enum SubmissionStatus {
+  Open = 'Open',
+  Accepted = 'Accepted',
+  Rejected = 'Rejected',
+  Deleted = 'Deleted'
+}
 
 export enum SuggestionStatus {
   Open = 'Open',
@@ -785,7 +807,6 @@ export type User = {
 export type UserNotificationsArgs = {
   read?: Maybe<Scalars['Boolean']>;
 };
-
 
 export type UserProfile = {
    __typename?: 'UserProfile';
@@ -925,6 +946,7 @@ export type ResolversTypes = {
   EventContext: ResolversTypes['AssignWorkerEvent'] | ResolversTypes['CancelTaskEvent'] | ResolversTypes['CreateDomainEvent'] | ResolversTypes['CreateTaskEvent'] | ResolversTypes['CreateWorkRequestEvent'] | ResolversTypes['FinalizeTaskEvent'] | ResolversTypes['NewUserEvent'] | ResolversTypes['RemoveTaskPayoutEvent'] | ResolversTypes['SendWorkInviteEvent'] | ResolversTypes['SetTaskDescriptionEvent'] | ResolversTypes['SetTaskDomainEvent'] | ResolversTypes['SetTaskDueDateEvent'] | ResolversTypes['SetTaskPayoutEvent'] | ResolversTypes['SetTaskPendingEvent'] | ResolversTypes['SetTaskSkillEvent'] | ResolversTypes['RemoveTaskSkillEvent'] | ResolversTypes['SetTaskTitleEvent'] | ResolversTypes['TaskMessageEvent'] | ResolversTypes['UnassignWorkerEvent'] | ResolversTypes['TransactionMessageEvent'],
   Event: ResolverTypeWrapper<Omit<Event, 'context'> & { context: ResolversTypes['EventContext'] }>,
   Notification: ResolverTypeWrapper<Notification>,
+  LevelStatus: LevelStatus,
   CreateUserInput: CreateUserInput,
   EditUserInput: EditUserInput,
   CreateColonyInput: CreateColonyInput,
@@ -961,7 +983,10 @@ export type ResolversTypes = {
   Payout: Payout,
   SendTransactionMessageInput: SendTransactionMessageInput,
   Mutation: ResolverTypeWrapper<{}>,
+  PersistentTaskStatus: PersistentTaskStatus,
+  ProgramStatus: ProgramStatus,
   Query: ResolverTypeWrapper<{}>,
+  SubmissionStatus: SubmissionStatus,
   SuggestionStatus: SuggestionStatus,
   Suggestion: ResolverTypeWrapper<Suggestion>,
   SystemInfo: ResolverTypeWrapper<SystemInfo>,
@@ -1006,9 +1031,10 @@ export type ResolversParentTypes = {
   TaskMessageEvent: TaskMessageEvent,
   NewUserEvent: NewUserEvent,
   TransactionMessageEvent: TransactionMessageEvent,
-  EventContext: ResolversParentTypes['AssignWorkerEvent'] | ResolversParentTypes['CancelTaskEvent'] | ResolversParentTypes['CreateWorkRequestEvent'] | ResolversParentTypes['FinalizeTaskEvent'] | ResolversParentTypes['NewUserEvent'] | ResolversParentTypes['RemoveTaskPayoutEvent'] | ResolversParentTypes['SendWorkInviteEvent'] | ResolversParentTypes['SetTaskDescriptionEvent'] | ResolversParentTypes['SetTaskDomainEvent'] | ResolversParentTypes['SetTaskDueDateEvent'] | ResolversParentTypes['SetTaskPayoutEvent'] | ResolversParentTypes['SetTaskPendingEvent'] | ResolversParentTypes['SetTaskSkillEvent'] | ResolversParentTypes['RemoveTaskSkillEvent'] | ResolversParentTypes['SetTaskTitleEvent'] | ResolversParentTypes['TaskMessageEvent'] | ResolversParentTypes['UnassignWorkerEvent'] | ResolversParentTypes['TransactionMessageEvent'],
+  EventContext: ResolversParentTypes['AssignWorkerEvent'] | ResolversParentTypes['CancelTaskEvent'] | ResolversParentTypes['CreateDomainEvent'] | ResolversParentTypes['CreateTaskEvent'] | ResolversParentTypes['CreateWorkRequestEvent'] | ResolversParentTypes['FinalizeTaskEvent'] | ResolversParentTypes['NewUserEvent'] | ResolversParentTypes['RemoveTaskPayoutEvent'] | ResolversParentTypes['SendWorkInviteEvent'] | ResolversParentTypes['SetTaskDescriptionEvent'] | ResolversParentTypes['SetTaskDomainEvent'] | ResolversParentTypes['SetTaskDueDateEvent'] | ResolversParentTypes['SetTaskPayoutEvent'] | ResolversParentTypes['SetTaskPendingEvent'] | ResolversParentTypes['SetTaskSkillEvent'] | ResolversParentTypes['RemoveTaskSkillEvent'] | ResolversParentTypes['SetTaskTitleEvent'] | ResolversParentTypes['TaskMessageEvent'] | ResolversParentTypes['UnassignWorkerEvent'] | ResolversParentTypes['TransactionMessageEvent'],
   Event: Omit<Event, 'context'> & { context: ResolversParentTypes['EventContext'] },
   Notification: Notification,
+  LevelStatus: LevelStatus,
   CreateUserInput: CreateUserInput,
   EditUserInput: EditUserInput,
   CreateColonyInput: CreateColonyInput,
@@ -1045,7 +1071,10 @@ export type ResolversParentTypes = {
   Payout: Payout,
   SendTransactionMessageInput: SendTransactionMessageInput,
   Mutation: {},
+  PersistentTaskStatus: PersistentTaskStatus,
+  ProgramStatus: ProgramStatus,
   Query: {},
+  SubmissionStatus: SubmissionStatus,
   SuggestionStatus: SuggestionStatus,
   Suggestion: Suggestion,
   SystemInfo: SystemInfo,
