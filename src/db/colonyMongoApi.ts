@@ -61,6 +61,7 @@ export class ColonyMongoApi {
     this.persistentTasks = db.collection<PersistentTaskDoc>(
       CollectionNames.PersistentTasks,
     )
+    this.submissions = db.collection<SubmissionDoc>(CollectionNames.Submissions)
     this.suggestions = db.collection<SuggestionDoc>(CollectionNames.Suggestions)
     this.tasks = db.collection<TaskDoc>(CollectionNames.Tasks)
     this.users = db.collection<UserDoc>(CollectionNames.Users)
