@@ -1,9 +1,7 @@
-import { Db, MongoClient, ObjectID } from 'mongodb'
-import { CachedCollection } from 'apollo-datasource-mongo'
+import { Db, MongoClient } from 'mongodb'
 
 import { ColonyMongoApi } from '../colonyMongoApi'
 import {
-  EventType,
   LevelStatus,
   PersistentTaskStatus,
   ProgramStatus,

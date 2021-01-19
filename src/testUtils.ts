@@ -5,11 +5,7 @@ import {
   ColonyDoc,
   DomainDoc,
   EventDoc,
-  LevelDoc,
   NotificationDoc,
-  PersistentTaskDoc,
-  ProgramDoc,
-  SubmissionDoc,
   SuggestionDoc,
   TaskDoc,
   TokenDoc,
@@ -35,11 +31,7 @@ interface DocsToInsert {
   colonies?: Partial<ColonyDoc>[]
   domains?: Partial<DomainDoc>[]
   events?: Partial<EventDoc<any>>[]
-  levels?: Partial<LevelDoc>[]
   notifications?: Partial<NotificationDoc>[]
-  persistentTasks?: Partial<PersistentTaskDoc>[]
-  programs?: Partial<ProgramDoc>[]
-  submissions?: Partial<SubmissionDoc>[]
   suggestions?: Partial<SuggestionDoc>[]
   tasks?: Partial<TaskDoc>[]
   tokens?: Partial<TokenDoc>[]
@@ -50,11 +42,7 @@ interface InsertedDocs {
   colonies: string[]
   domains: string[]
   events: string[]
-  levels: string[]
   notifications: string[]
-  persistentTasks: string[]
-  programs: string[]
-  submissions: string[]
   suggestions: string[]
   tasks: string[]
   tokens: string[]
@@ -95,11 +83,7 @@ export const insertDocs = async (
       colonies: [],
       domains: [],
       events: [],
-      levels: [],
       notifications: [],
-      persistentTasks: [],
-      programs: [],
-      submissions: [],
       suggestions: [],
       tasks: [],
       tokens: [],

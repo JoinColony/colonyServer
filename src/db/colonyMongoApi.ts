@@ -11,29 +11,20 @@ import { toChecksumAddress } from 'web3-utils'
 import { ROOT_DOMAIN, AUTO_SUBSCRIBED_COLONIES } from '../constants'
 import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
-import {
-  EditPersistentTaskInput,
-  EventType,
-  LevelStatus,
-  PersistentTaskStatus,
-  ProgramStatus,
-  SubmissionStatus,
-  SuggestionStatus,
-} from '../graphql/types'
+import { EventType, SuggestionStatus, SubmissionStatus } from '../graphql/types'
 import {
   ColonyDoc,
   DomainDoc,
   EventDoc,
-  LevelDoc,
   NotificationDoc,
-  PersistentTaskDoc,
-  ProgramDoc,
   StrictRootQuerySelector,
   StrictUpdateQuery,
-  SubmissionDoc,
   SuggestionDoc,
   TaskDoc,
   UserDoc,
+  SubmissionDoc,
+  PersistentTaskDoc,
+  LevelDoc,
 } from './types'
 import { CollectionNames } from './collections'
 import { matchUsernames } from './matchers'
@@ -53,27 +44,23 @@ export class ColonyMongoApi {
   private readonly colonies: Collection<ColonyDoc>
   private readonly events: Collection<EventDoc<any>>
   private readonly domains: Collection<DomainDoc>
-  private readonly levels: Collection<LevelDoc>
   private readonly notifications: Collection<NotificationDoc>
-  private readonly persistentTasks: Collection<PersistentTaskDoc>
-  private readonly programs: Collection<ProgramDoc>
-  private readonly submissions: Collection<SubmissionDoc>
   private readonly suggestions: Collection<SuggestionDoc>
   private readonly tasks: Collection<TaskDoc>
   private readonly users: Collection<UserDoc>
+  private readonly persistentTasks: Collection<PersistentTaskDoc>
+  private readonly submissions: Collection<SubmissionDoc>
 
   constructor(db: Db) {
     this.colonies = db.collection<ColonyDoc>(CollectionNames.Colonies)
     this.events = db.collection<EventDoc<any>>(CollectionNames.Events)
     this.domains = db.collection<DomainDoc>(CollectionNames.Domains)
-    this.levels = db.collection<LevelDoc>(CollectionNames.Levels)
     this.notifications = db.collection<NotificationDoc>(
       CollectionNames.Notifications,
     )
     this.persistentTasks = db.collection<PersistentTaskDoc>(
       CollectionNames.PersistentTasks,
     )
-    this.programs = db.collection<ProgramDoc>(CollectionNames.Programs)
     this.submissions = db.collection<SubmissionDoc>(CollectionNames.Submissions)
     this.suggestions = db.collection<SuggestionDoc>(CollectionNames.Suggestions)
     this.tasks = db.collection<TaskDoc>(CollectionNames.Tasks)
@@ -167,46 +154,6 @@ export class ColonyMongoApi {
     const suggestion = await this.suggestions.findOne(new ObjectID(id))
     assert.ok(!!suggestion, `Suggestion with ID '${id}' not found`)
     return suggestion
-  }
-
-  private async tryGetPersistentTask(id: string) {
-    const query = {
-      _id: new ObjectID(id),
-      status: { $ne: PersistentTaskStatus.Deleted },
-    }
-    const task = await this.persistentTasks.findOne(query)
-    assert.ok(!!task, `Persistent Task with ID '${id}' not found`)
-    return task
-  }
-
-  private async tryGetSubmission(id: string) {
-    const submission = await this.submissions.findOne(new ObjectID(id))
-    assert.ok(!!submission, `Submission with ID '${id}' not found`)
-    assert.ok(
-      submission.status !== SubmissionStatus.Deleted,
-      `Submission with ID ${id} was deleted`,
-    )
-    return submission
-  }
-
-  private async tryGetProgram(id: string) {
-    const query = {
-      _id: new ObjectID(id),
-      status: { $ne: ProgramStatus.Deleted },
-    }
-    const program = await this.programs.findOne(query)
-    assert.ok(!!program, `Program with ID '${id}' not found`)
-    return program
-  }
-
-  private async tryGetLevel(id: string) {
-    const query = {
-      _id: new ObjectID(id),
-      status: { $ne: LevelStatus.Deleted },
-    }
-    const level = await this.levels.findOne(query)
-    assert.ok(!!level, `Level with ID '${id}' not found`)
-    return level
   }
 
   private async tryGetTask(taskId: string) {
@@ -1103,463 +1050,6 @@ export class ColonyMongoApi {
     return this.suggestions.updateOne(
       { _id: new ObjectID(id) },
       { $pull: { upvotes: initiator } },
-    )
-  }
-
-  async createPersistentTask(initiator: string, colonyAddress: string) {
-    await this.tryGetUser(initiator)
-    await this.tryGetColony(colonyAddress)
-
-    const { insertedId } = await this.persistentTasks.insertOne({
-      colonyAddress,
-      creatorAddress: initiator,
-      ethDomainId: ROOT_DOMAIN,
-      payouts: [],
-      status: PersistentTaskStatus.Active,
-    })
-
-    return insertedId.toString()
-  }
-
-  async createLevelTask(initiator: string, levelId: string) {
-    const { programId } = await this.tryGetLevel(levelId)
-    const { colonyAddress } = await this.tryGetProgram(programId.toHexString())
-
-    const taskId = await this.createPersistentTask(initiator, colonyAddress)
-
-    await this.levels.updateOne(
-      { _id: new ObjectID(levelId) },
-      { $addToSet: { stepIds: taskId } },
-    )
-
-    return taskId
-  }
-
-  async removeLevelTask(initiator: string, taskId: string, levelId: string) {
-    await this.tryGetPersistentTask(taskId)
-    const { numRequiredSteps, stepIds } = await this.tryGetLevel(levelId)
-
-    const update: {
-      $pull: { stepIds: string }
-      $set?: { numRequiredSteps: number }
-    } = { $pull: { stepIds: taskId } }
-
-    if (numRequiredSteps > stepIds.length - 1) {
-      update.$set = { numRequiredSteps: stepIds.length - 1 }
-    }
-
-    await this.levels.updateOne({ _id: new ObjectID(levelId) }, update)
-
-    return this.persistentTasks.updateOne(
-      { _id: new ObjectID(taskId) },
-      { $set: { status: PersistentTaskStatus.Deleted } },
-    )
-  }
-
-  async editPersistentTask(
-    initiator: string,
-    id: string,
-    edit: Omit<EditPersistentTaskInput, 'id'>,
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetPersistentTask(id)
-
-    const update = ColonyMongoApi.createEditUpdater(edit)
-    return this.persistentTasks.updateOne({ _id: new ObjectID(id) }, update)
-  }
-
-  async setPersistentTaskPayout(
-    initiator: string,
-    persistentTaskId: string,
-    amount: string,
-    tokenAddress: string,
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetPersistentTask(persistentTaskId)
-
-    const payout = { amount, tokenAddress }
-    return this.persistentTasks.updateOne(
-      { _id: new ObjectID(persistentTaskId) },
-      { $addToSet: { payouts: payout } },
-    )
-  }
-
-  async removePersistentTaskPayout(
-    initiator: string,
-    persistentTaskId: string,
-    amount: string,
-    tokenAddress: string,
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetPersistentTask(persistentTaskId)
-
-    const payout = { amount, tokenAddress }
-    return this.persistentTasks.updateOne(
-      { _id: new ObjectID(persistentTaskId) },
-      { $pull: { payouts: payout } },
-    )
-  }
-
-  async removePersistentTask(initiator: string, id: string) {
-    await this.tryGetUser(initiator)
-    await this.tryGetPersistentTask(id)
-
-    return this.persistentTasks.updateOne(
-      { _id: new ObjectID(id) },
-      { $set: { status: PersistentTaskStatus.Deleted } },
-    )
-  }
-
-  async createSubmission(
-    initiator: string,
-    persistentTaskId: string,
-    submission: string,
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetPersistentTask(persistentTaskId)
-
-    const { insertedId } = await this.submissions.insertOne({
-      creatorAddress: initiator,
-      persistentTaskId: new ObjectID(persistentTaskId),
-      submission: submission,
-      status: SubmissionStatus.Open,
-      statusChangedAt: new Date(),
-    })
-
-    return insertedId.toString()
-  }
-
-  async createLevelTaskSubmission(
-    initiator: string,
-    persistentTaskId: string,
-    levelId: string,
-    submission: string,
-  ) {
-    const { programId, creatorAddress: levelCreator } = await this.tryGetLevel(
-      levelId,
-    )
-    const { creatorAddress: programCreator } = await this.tryGetProgram(
-      programId.toString(),
-    )
-    const { creatorAddress: taskCreator } = await this.tryGetPersistentTask(
-      persistentTaskId,
-    )
-
-    const existingSubmission = await this.submissions.findOne({
-      creatorAddress: initiator,
-      persistentTaskId: new ObjectID(persistentTaskId),
-      status: { $in: [SubmissionStatus.Accepted, SubmissionStatus.Open] },
-    })
-
-    if (existingSubmission) {
-      throw new Error(
-        'An open or an accepted submission for that task already exists',
-      )
-    }
-
-    const submissionId = await this.createSubmission(
-      initiator,
-      persistentTaskId,
-      submission,
-    )
-
-    const eventId = await this.createEvent(
-      initiator,
-      EventType.CreateLevelTaskSubmission,
-      {
-        programId: programId.toString(),
-        persistentTaskId,
-        levelId,
-        submissionId,
-      },
-    )
-    await this.createNotification(eventId, [
-      programCreator,
-      levelCreator,
-      taskCreator,
-    ])
-
-    return submissionId
-  }
-
-  async acceptLevelTaskSubmission(
-    initiator: string,
-    submissionId: string,
-    levelId: string,
-  ) {
-    await this.tryGetUser(initiator)
-    const { stepIds, numRequiredSteps, programId } = await this.tryGetLevel(
-      levelId,
-    )
-    const { creatorAddress, persistentTaskId } = await this.tryGetSubmission(
-      submissionId,
-    )
-    const { payouts } = await this.tryGetPersistentTask(
-      persistentTaskId.toString(),
-    )
-
-    if (!stepIds.includes(persistentTaskId.toString())) {
-      throw new Error('Submission id not valid for this level')
-    }
-
-    await this.editSubmission(initiator, submissionId, {
-      status: SubmissionStatus.Accepted,
-    })
-
-    const eventId = await this.createEvent(
-      initiator,
-      EventType.AcceptLevelTaskSubmission,
-      {
-        acceptedBy: initiator,
-        levelId,
-        payouts,
-        persistentTaskId: persistentTaskId.toString(),
-        programId: programId.toString(),
-        submissionId,
-      },
-    )
-    await this.createNotification(eventId, [creatorAddress])
-
-    const numAcceptedSteps = await this.countAcceptedLevelSubmissions(
-      stepIds,
-      creatorAddress,
-    )
-
-    // User has completed a level
-    if (numAcceptedSteps === numRequiredSteps) {
-      await this.levels.updateOne(
-        { _id: new ObjectID(levelId) },
-        { $push: { completedBy: creatorAddress } },
-      )
-      const { levelIds } = await this.tryGetProgram(programId.toString())
-      const levelIdx = levelIds.findIndex((id) => id === levelId)
-      const nextLevelId = levelIdx ? levelIds[levelIdx + 1] || null : null
-
-      const eventId = await this.createEvent(
-        initiator,
-        EventType.UnlockNextLevel,
-        {
-          levelId,
-          nextLevelId,
-          persistentTaskId: persistentTaskId.toString(),
-          programId: programId.toString(),
-          submissionId,
-        },
-      )
-      await this.createNotification(eventId, [creatorAddress])
-    }
-  }
-
-  async editSubmission(
-    initiator: string,
-    id: string,
-    edit: { submission?: string | null; status?: SubmissionStatus },
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetSubmission(id)
-
-    const update = ColonyMongoApi.createEditUpdater({
-      ...edit,
-      statusChangedAt: new Date(),
-    })
-    return this.submissions.updateOne({ _id: new ObjectID(id) }, update)
-  }
-
-  async createProgram(initiator: string, colonyAddress: string) {
-    await this.tryGetUser(initiator)
-    await this.tryGetColony(colonyAddress)
-
-    const { insertedId } = await this.programs.insertOne({
-      colonyAddress,
-      creatorAddress: initiator,
-      enrolledUserAddresses: [],
-      levelIds: [],
-      status: ProgramStatus.Draft,
-    })
-
-    return insertedId.toString()
-  }
-
-  async editProgram(
-    initiator: string,
-    id: string,
-    edit: {
-      title?: string | null
-      description?: string | null
-      status?: ProgramStatus
-    },
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetProgram(id)
-
-    const update = ColonyMongoApi.createEditUpdater(edit)
-    return this.programs.updateOne(
-      {
-        _id: new ObjectID(id),
-      },
-      update,
-    )
-  }
-
-  async enrollInProgram(initiator: string, id: string) {
-    await this.tryGetUser(initiator)
-    const { creatorAddress } = await this.tryGetProgram(id)
-
-    const eventId = await this.createEvent(
-      initiator,
-      EventType.EnrollUserInProgram,
-      {
-        programId: id,
-      },
-    )
-    await this.createNotification(eventId, [creatorAddress])
-
-    return this.programs.updateOne(
-      {
-        _id: new ObjectID(id),
-      },
-      { $push: { enrolledUserAddresses: initiator } },
-    )
-  }
-
-  async removeProgram(initiator: string, id: string) {
-    await this.tryGetUser(initiator)
-    const { levelIds } = await this.tryGetProgram(id)
-
-    // In the future we could use batch processing here?
-    await Promise.all(
-      levelIds.map((levelId: string) => this.removeLevel(initiator, levelId)),
-    )
-
-    const update = {
-      status: ProgramStatus.Deleted,
-    } as {
-      status: ProgramStatus
-    }
-
-    return this.programs.updateOne(
-      {
-        _id: new ObjectID(id),
-      },
-      { $set: update },
-    )
-  }
-
-  async reorderProgramLevels(
-    initiator: string,
-    id: string,
-    orderedLevelIds: string[],
-  ) {
-    await this.tryGetUser(initiator)
-    const { levelIds } = await this.tryGetProgram(id)
-
-    assert.ok(
-      orderedLevelIds.length === levelIds.length &&
-        orderedLevelIds.every((levelId: string) => levelIds.includes(levelId)),
-      'Provided levelIds do not match existing levelIds. This only allows for re-sorting',
-    )
-
-    return this.programs.updateOne(
-      {
-        _id: new ObjectID(id),
-      },
-      { $set: { levelIds: orderedLevelIds } },
-    )
-  }
-
-  async createLevel(initiator: string, programId: string) {
-    await this.tryGetUser(initiator)
-    const { colonyAddress } = await this.tryGetProgram(programId)
-
-    const taskId = await this.createPersistentTask(initiator, colonyAddress)
-
-    const { insertedId } = await this.levels.insertOne({
-      creatorAddress: initiator,
-      programId: new ObjectID(programId),
-      stepIds: [taskId],
-      completedBy: [],
-      status: LevelStatus.Active,
-    })
-
-    await this.programs.updateOne(
-      { _id: new ObjectID(programId) },
-      { $addToSet: { levelIds: insertedId.toHexString() } },
-    )
-
-    return insertedId.toString()
-  }
-
-  async editLevel(
-    initiator: string,
-    id: string,
-    edit: {
-      title?: string | null
-      description?: string | null
-      achievement?: string | null
-      numRequiredSteps?: number | null
-      status?: LevelStatus
-    },
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetLevel(id)
-
-    const update = ColonyMongoApi.createEditUpdater(edit)
-    return this.levels.updateOne(
-      {
-        _id: new ObjectID(id),
-      },
-      update,
-    )
-  }
-
-  async reorderLevelSteps(
-    initiator: string,
-    id: string,
-    orderedStepIds: string[],
-  ) {
-    await this.tryGetUser(initiator)
-    const { stepIds } = await this.tryGetLevel(id)
-
-    assert.ok(
-      orderedStepIds.length === stepIds.length &&
-        orderedStepIds.every((levelId: string) => stepIds.includes(levelId)),
-      'Provided stepIds do not match existing stepIds. This only allows for re-sorting',
-    )
-
-    return this.levels.updateOne(
-      {
-        _id: new ObjectID(id),
-      },
-      { $set: { stepIds: orderedStepIds } },
-    )
-  }
-
-  async removeLevel(initiator: string, levelId: string) {
-    await this.tryGetUser(initiator)
-    const { programId, stepIds } = await this.tryGetLevel(levelId)
-    await this.tryGetProgram(programId.toHexString())
-
-    const stepObjectIDs = stepIds.map((stepId) => new ObjectID(stepId))
-
-    await this.persistentTasks.updateMany(
-      { _id: { $in: stepObjectIDs } },
-      { $set: { status: PersistentTaskStatus.Deleted } },
-    )
-
-    await this.programs.updateOne(
-      { _id: new ObjectID(programId) },
-      { $pull: { levelIds: levelId } },
-    )
-
-    const update = {
-      status: LevelStatus.Deleted,
-    } as {
-      status: LevelStatus
-    }
-
-    return this.levels.updateOne(
-      { _id: new ObjectID(levelId) },
-      { $set: update },
     )
   }
 

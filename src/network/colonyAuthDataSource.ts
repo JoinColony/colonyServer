@@ -25,7 +25,6 @@ type UserAddress = string
 type DomainId = number
 
 enum AuthChecks {
-  AdminProgram = 'AdminProgram',
   AssignWorker = 'AssignWorker',
   CancelTask = 'CancelTask',
   CreateDomain = 'CreateDomain',
@@ -97,12 +96,6 @@ const AUTH_DECLARATIONS: Record<AuthChecks, AuthDeclaration> = {
   CreateTask: {
     description: 'Create a task',
     roles: [ColonyRoles.Administration],
-    type: AuthTypes.Domain,
-  },
-  // Administer Programs
-  AdminProgram: {
-    description: 'Administer a program',
-    roles: [ColonyRoles.Administration, ColonyRoles.Funding],
     type: AuthTypes.Domain,
   },
   // Suggestion
@@ -292,12 +285,6 @@ export class ColonyAuthDataSource extends DataSource<any> {
     return this.assertForDomain(check, args)
   }
 
-  private async assertAdminProgram(check: AuthChecks, args: ColonyAuthArgs) {
-    // Programs require the FUNDING and ADMINISTRATION permissions in the ROOT domain. Always. So here's a shortcut
-    const domainAuthArgs: DomainAuthArgs = { ...args, domainId: ROOT_DOMAIN }
-    return this.assertForDomain(check, domainAuthArgs)
-  }
-
   async assertCanSetTaskDomain({
     colonyAddress,
     userAddress,
@@ -399,36 +386,6 @@ export class ColonyAuthDataSource extends DataSource<any> {
 
   async assertCanSetColonyTokens(args: ColonyAuthArgs) {
     return this.assertForColony(AuthChecks.SetColonyTokens, args)
-  }
-
-  async assertCanCreatePersistentTask(args: ColonyAuthArgs) {
-    // For now we just check the program auth for persistent tasks (as they are only used in programs)
-    return this.assertAdminProgram(AuthChecks.AdminProgram, args)
-  }
-
-  async assertCanEditPersistentTask(args: ColonyAuthArgs) {
-    // For now we just check the program auth for persistent tasks (as they are only used in programs)
-    return this.assertAdminProgram(AuthChecks.AdminProgram, args)
-  }
-
-  async assertCanAcceptSubmission(args: ColonyAuthArgs) {
-    return this.assertAdminProgram(AuthChecks.AdminProgram, args)
-  }
-
-  async assertCanCreateProgram(args: ColonyAuthArgs) {
-    return this.assertAdminProgram(AuthChecks.AdminProgram, args)
-  }
-
-  async assertCanEditProgram(args: ColonyAuthArgs) {
-    return this.assertAdminProgram(AuthChecks.AdminProgram, args)
-  }
-
-  async assertCanCreateLevel(args: ColonyAuthArgs) {
-    return this.assertAdminProgram(AuthChecks.AdminProgram, args)
-  }
-
-  async assertCanEditLevel(args: ColonyAuthArgs) {
-    return this.assertAdminProgram(AuthChecks.AdminProgram, args)
   }
 
   async assertColonyExists(colonyAddress: ColonyAddress): Promise<boolean> {
