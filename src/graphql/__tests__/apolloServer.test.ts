@@ -7,7 +7,6 @@ import path from 'path'
 import { ColonyMongoApi } from '../../db/colonyMongoApi'
 import { ColonyMongoDataSource } from '../../db/colonyMongoDataSource'
 import { ColonyAuthDataSource } from '../../network/colonyAuthDataSource'
-import Colony from '../typeDefs/Colony'
 import Domain from '../typeDefs/Domain'
 import Event from '../typeDefs/Event'
 import Mutation from '../typeDefs/Mutation'
@@ -29,17 +28,13 @@ import {
   TaskDoc,
   UserDoc,
 } from '../../db/types'
-import {
-  EventType,
-  SuggestionStatus,
-} from '../types'
+import { EventType, SuggestionStatus } from '../types'
 import { CollectionNames } from '../../db/collections'
 
 jest.mock('../../network/colonyAuthDataSource')
 jest.mock('../resolvers/auth')
 
 const typeDefs = [
-  Colony,
   Domain,
   Event,
   Mutation,
