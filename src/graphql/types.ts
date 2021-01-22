@@ -608,6 +608,7 @@ export enum ProgramStatus {
 export type Query = {
    __typename?: 'Query';
   user: User;
+  subscribedUsers: Array<Maybe<User>>;
   tempDomain: TempDomain;
   tempDomains: Array<TempDomain>;
   task: Task;
@@ -620,6 +621,11 @@ export type Query = {
 
 export type QueryUserArgs = {
   address: Scalars['String'];
+};
+
+
+export type QuerySubscribedUsersArgs = {
+  colonyAddress: Scalars['String'];
 };
 
 
@@ -1284,6 +1290,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'address'>>,
+  subscribedUsers?: Resolver<Array<Maybe<ResolversTypes['User']>>, ParentType, ContextType, RequireFields<QuerySubscribedUsersArgs, 'colonyAddress'>>,
   tempDomain?: Resolver<ResolversTypes['TempDomain'], ParentType, ContextType, RequireFields<QueryTempDomainArgs, 'colonyAddress' | 'ethDomainId'>>,
   tempDomains?: Resolver<Array<ResolversTypes['TempDomain']>, ParentType, ContextType, RequireFields<QueryTempDomainsArgs, 'colonyAddress'>>,
   task?: Resolver<ResolversTypes['Task'], ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>,

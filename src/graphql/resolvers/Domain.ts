@@ -1,7 +1,7 @@
 import { ApolloContext } from '../apolloTypes'
-import { DomainResolvers } from '../types'
+import { TempDomainResolvers } from '../types'
 
-export const TempDomain: DomainResolvers<ApolloContext> = {
+export const TempDomain: TempDomainResolvers<ApolloContext> = {
   async parent(
     { colonyAddress, ethParentDomainId },
     input,

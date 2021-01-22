@@ -15,8 +15,7 @@ import {
 } from './types'
 import { CollectionNames } from './collections'
 import {
-  Colony,
-  Domain,
+  TempDomain,
   Event,
   Suggestion,
   SuggestionStatus,
@@ -71,7 +70,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     tokenAddresses = [],
     taskIds = [],
     ...doc
-  }: ColonyDoc): Colony {
+  }: ColonyDoc) {
     return {
       ...doc,
       createdAt: _id.getTimestamp(),
@@ -95,7 +94,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return {
       id: profile.walletAddress,
       createdAt: _id.getTimestamp(),
-      colonies: [],
       notifications: [],
       tasks: [],
       colonyAddresses,
@@ -110,7 +108,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return {
       id: address,
       createdAt: new Date(0),
-      colonies: [],
       notifications: [],
       tasks: [],
       colonyAddresses: [],
@@ -150,7 +147,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
   }
 
-  private static transformDomain({ _id, ...doc }: DomainDoc): Domain {
+  private static transformDomain({ _id, ...doc }: DomainDoc): TempDomain {
     return {
       ...doc,
       tasks: [],
@@ -187,7 +184,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       events: [],
       workInvites: [],
       workRequests: [],
-      colony: undefined,
       creator: undefined,
       domain: undefined,
       payouts: payouts.map((payout) => ({ ...payout, token: undefined })),
