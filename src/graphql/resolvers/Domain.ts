@@ -2,9 +2,6 @@ import { ApolloContext } from '../apolloTypes'
 import { DomainResolvers } from '../types'
 
 export const Domain: DomainResolvers<ApolloContext> = {
-  async colony({ colonyAddress }, input, { dataSources: { data } }) {
-    return data.getColonyByAddress(colonyAddress)
-  },
   async parent(
     { colonyAddress, ethParentDomainId },
     input,

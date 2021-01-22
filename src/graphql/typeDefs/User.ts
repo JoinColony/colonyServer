@@ -5,7 +5,6 @@ export default gql`
     id: String! # wallet address
     createdAt: GraphQLDateTime!
     profile: UserProfile!
-    colonies: [Colony!]!
     colonyAddresses: [String!]!
     tasks: [Task!]!
     taskIds: [String!]!

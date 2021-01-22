@@ -8,7 +8,6 @@ export default gql`
     ethDomainId: Int!
     ethParentDomainId: Int
     name: String!
-    colony: Colony
     parent: Domain
     tasks: [Task!]!
   }

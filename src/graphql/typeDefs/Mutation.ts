@@ -188,10 +188,6 @@ export default gql`
   }
 
   type Mutation {
-    # Colonies
-    createColony(input: CreateColonyInput!): Colony
-    editColonyProfile(input: EditColonyProfileInput!): Colony
-    setColonyTokens(input: SetColonyTokensInput!): Colony
     # Domains
     createDomain(input: CreateDomainInput!): Domain
     editDomainName(input: EditDomainNameInput!): Domain
