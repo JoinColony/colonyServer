@@ -3,8 +3,8 @@ import { gql } from 'apollo-server-express'
 export default gql`
   type Query {
     user(address: String!): User!
-    domain(colonyAddress: String!, ethDomainId: Int!): Domain!
-    tempDomains(colonyAddress: String!): [Domain!]!
+    tempDomain(colonyAddress: String!, ethDomainId: Int!): TempDomain!
+    tempDomains(colonyAddress: String!): [TempDomain!]!
     task(id: String!): Task!
     tokenInfo(address: String!): TokenInfo!
     systemInfo: SystemInfo!

@@ -3,7 +3,7 @@ import { GraphQLDateTime } from 'graphql-iso-date'
 import { ApolloContext } from '../apolloTypes'
 import { Event, ColonyEvent, TaskEvent, EventContext } from './Event'
 import { Query } from './Query'
-import { Domain } from './Domain'
+import { TempDomain } from './Domain'
 import { Suggestion } from './Suggestion'
 import { User } from './User'
 import { Task } from './Task'
@@ -16,7 +16,7 @@ export const resolvers: Resolvers<ApolloContext> = {
   TaskEvent,
   EventContext,
   Query,
-  Domain,
+  TempDomain,
   Suggestion,
   User,
   Task,

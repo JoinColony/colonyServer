@@ -12,15 +12,15 @@ export type Scalars = {
   GraphQLDateTime: any;
 };
 
-export type Domain = {
-   __typename?: 'Domain';
+export type TempDomain = {
+   __typename?: 'TempDomain';
   id: Scalars['String'];
   createdAt: Scalars['GraphQLDateTime'];
   colonyAddress: Scalars['String'];
   ethDomainId: Scalars['Int'];
   ethParentDomainId?: Maybe<Scalars['Int']>;
   name: Scalars['String'];
-  parent?: Maybe<Domain>;
+  parent?: Maybe<TempDomain>;
   tasks: Array<Task>;
 };
 
@@ -404,8 +404,8 @@ export type SendTransactionMessageInput = {
 
 export type Mutation = {
    __typename?: 'Mutation';
-  createDomain?: Maybe<Domain>;
-  editDomainName?: Maybe<Domain>;
+  createDomain?: Maybe<TempDomain>;
+  editDomainName?: Maybe<TempDomain>;
   sendTaskMessage: Scalars['Boolean'];
   sendTransactionMessage: Scalars['Boolean'];
   markAllNotificationsAsRead: Scalars['Boolean'];
@@ -608,8 +608,8 @@ export enum ProgramStatus {
 export type Query = {
    __typename?: 'Query';
   user: User;
-  domain: Domain;
-  tempDomains: Array<Domain>;
+  tempDomain: TempDomain;
+  tempDomains: Array<TempDomain>;
   task: Task;
   tokenInfo: TokenInfo;
   systemInfo: SystemInfo;
@@ -623,7 +623,7 @@ export type QueryUserArgs = {
 };
 
 
-export type QueryDomainArgs = {
+export type QueryTempDomainArgs = {
   colonyAddress: Scalars['String'];
   ethDomainId: Scalars['Int'];
 };
@@ -707,7 +707,7 @@ export type Task = {
   colonyAddress: Scalars['String'];
   creator: User;
   creatorAddress: Scalars['String'];
-  domain: Domain;
+  domain: TempDomain;
   assignedWorker?: Maybe<User>;
   assignedWorkerAddress?: Maybe<Scalars['String']>;
   workInvites: Array<User>;
@@ -874,7 +874,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars['String']>,
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>,
-  Domain: ResolverTypeWrapper<Domain>,
+  TempDomain: ResolverTypeWrapper<TempDomain>,
   Int: ResolverTypeWrapper<Scalars['Int']>,
   TaskEvent: ResolversTypes['AssignWorkerEvent'] | ResolversTypes['UnassignWorkerEvent'] | ResolversTypes['CancelTaskEvent'] | ResolversTypes['CreateTaskEvent'] | ResolversTypes['CreateWorkRequestEvent'] | ResolversTypes['FinalizeTaskEvent'] | ResolversTypes['SetTaskPendingEvent'] | ResolversTypes['RemoveTaskPayoutEvent'] | ResolversTypes['SendWorkInviteEvent'] | ResolversTypes['SetTaskDescriptionEvent'] | ResolversTypes['SetTaskDomainEvent'] | ResolversTypes['SetTaskDueDateEvent'] | ResolversTypes['SetTaskPayoutEvent'] | ResolversTypes['SetTaskSkillEvent'] | ResolversTypes['RemoveTaskSkillEvent'] | ResolversTypes['SetTaskTitleEvent'] | ResolversTypes['TaskMessageEvent'],
   ColonyEvent: ResolversTypes['CreateDomainEvent'],
@@ -961,7 +961,7 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   String: Scalars['String'],
   Boolean: Scalars['Boolean'],
-  Domain: Domain,
+  TempDomain: TempDomain,
   Int: Scalars['Int'],
   TaskEvent: ResolversParentTypes['AssignWorkerEvent'] | ResolversParentTypes['UnassignWorkerEvent'] | ResolversParentTypes['CancelTaskEvent'] | ResolversParentTypes['CreateTaskEvent'] | ResolversParentTypes['CreateWorkRequestEvent'] | ResolversParentTypes['FinalizeTaskEvent'] | ResolversParentTypes['SetTaskPendingEvent'] | ResolversParentTypes['RemoveTaskPayoutEvent'] | ResolversParentTypes['SendWorkInviteEvent'] | ResolversParentTypes['SetTaskDescriptionEvent'] | ResolversParentTypes['SetTaskDomainEvent'] | ResolversParentTypes['SetTaskDueDateEvent'] | ResolversParentTypes['SetTaskPayoutEvent'] | ResolversParentTypes['SetTaskSkillEvent'] | ResolversParentTypes['RemoveTaskSkillEvent'] | ResolversParentTypes['SetTaskTitleEvent'] | ResolversParentTypes['TaskMessageEvent'],
   ColonyEvent: ResolversParentTypes['CreateDomainEvent'],
@@ -1044,14 +1044,14 @@ export type ResolversParentTypes = {
   EventType: EventType,
 };
 
-export type DomainResolvers<ContextType = any, ParentType extends ResolversParentTypes['Domain'] = ResolversParentTypes['Domain']> = {
+export type TempDomainResolvers<ContextType = any, ParentType extends ResolversParentTypes['TempDomain'] = ResolversParentTypes['TempDomain']> = {
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
   colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
   ethParentDomainId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  parent?: Resolver<Maybe<ResolversTypes['Domain']>, ParentType, ContextType>,
+  parent?: Resolver<Maybe<ResolversTypes['TempDomain']>, ParentType, ContextType>,
   tasks?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType>,
   __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
@@ -1248,8 +1248,8 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
-  createDomain?: Resolver<Maybe<ResolversTypes['Domain']>, ParentType, ContextType, RequireFields<MutationCreateDomainArgs, 'input'>>,
-  editDomainName?: Resolver<Maybe<ResolversTypes['Domain']>, ParentType, ContextType, RequireFields<MutationEditDomainNameArgs, 'input'>>,
+  createDomain?: Resolver<Maybe<ResolversTypes['TempDomain']>, ParentType, ContextType, RequireFields<MutationCreateDomainArgs, 'input'>>,
+  editDomainName?: Resolver<Maybe<ResolversTypes['TempDomain']>, ParentType, ContextType, RequireFields<MutationEditDomainNameArgs, 'input'>>,
   sendTaskMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendTaskMessageArgs, 'input'>>,
   sendTransactionMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendTransactionMessageArgs, 'input'>>,
   markAllNotificationsAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
@@ -1284,8 +1284,8 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'address'>>,
-  domain?: Resolver<ResolversTypes['Domain'], ParentType, ContextType, RequireFields<QueryDomainArgs, 'colonyAddress' | 'ethDomainId'>>,
-  tempDomains?: Resolver<Array<ResolversTypes['Domain']>, ParentType, ContextType, RequireFields<QueryTempDomainsArgs, 'colonyAddress'>>,
+  tempDomain?: Resolver<ResolversTypes['TempDomain'], ParentType, ContextType, RequireFields<QueryTempDomainArgs, 'colonyAddress' | 'ethDomainId'>>,
+  tempDomains?: Resolver<Array<ResolversTypes['TempDomain']>, ParentType, ContextType, RequireFields<QueryTempDomainsArgs, 'colonyAddress'>>,
   task?: Resolver<ResolversTypes['Task'], ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>,
   tokenInfo?: Resolver<ResolversTypes['TokenInfo'], ParentType, ContextType, RequireFields<QueryTokenInfoArgs, 'address'>>,
   systemInfo?: Resolver<ResolversTypes['SystemInfo'], ParentType, ContextType>,
@@ -1332,7 +1332,7 @@ export type TaskResolvers<ContextType = any, ParentType extends ResolversParentT
   colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>,
   creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  domain?: Resolver<ResolversTypes['Domain'], ParentType, ContextType>,
+  domain?: Resolver<ResolversTypes['TempDomain'], ParentType, ContextType>,
   assignedWorker?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>,
   assignedWorkerAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   workInvites?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>,
@@ -1401,7 +1401,7 @@ export interface GraphQlDateTimeScalarConfig extends GraphQLScalarTypeConfig<Res
 }
 
 export type Resolvers<ContextType = any> = {
-  Domain?: DomainResolvers<ContextType>,
+  TempDomain?: TempDomainResolvers<ContextType>,
   TaskEvent?: TaskEventResolvers,
   ColonyEvent?: ColonyEventResolvers,
   AssignWorkerEvent?: AssignWorkerEventResolvers<ContextType>,

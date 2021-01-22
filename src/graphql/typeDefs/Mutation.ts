@@ -189,8 +189,8 @@ export default gql`
 
   type Mutation {
     # Domains
-    createDomain(input: CreateDomainInput!): Domain
-    editDomainName(input: EditDomainNameInput!): Domain
+    createDomain(input: CreateDomainInput!): TempDomain
+    editDomainName(input: EditDomainNameInput!): TempDomain
     # Messages
     sendTaskMessage(input: SendTaskMessageInput!): Boolean!
     sendTransactionMessage(input: SendTransactionMessageInput!): Boolean!

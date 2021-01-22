@@ -10,7 +10,7 @@ export const Query: QueryResolvers<ApolloContext> = {
   async user(parent, { address }, { dataSources: { data } }) {
     return data.getUserByAddress(address)
   },
-  async domain(
+  async tempDomain(
     parent,
     {
       colonyAddress,
