@@ -221,69 +221,6 @@ describe('Apollo Server', () => {
       })
     })
 
-    it('colony', async () => {
-      await insertDocs(db, {
-        colonies: [colonyDoc],
-      })
-
-      await expect(
-        query({
-          query: gql`
-            query colony($address: String!) {
-              colony(address: $address) {
-                colonyAddress
-                colonyName
-              }
-            }
-          `,
-          variables: {
-            address: colonyDoc.colonyAddress,
-          },
-        }),
-      ).resolves.toMatchObject({
-        data: {
-          colony: {
-            colonyAddress: colonyDoc.colonyAddress,
-            colonyName: colonyDoc.colonyName,
-          },
-        },
-        errors: undefined,
-      })
-    })
-
-    it('domain', async () => {
-      await insertDocs(db, {
-        colonies: [colonyDoc],
-        domains: [rootDomainDoc],
-      })
-
-      await expect(
-        query({
-          query: gql`
-            query domain($colonyAddress: String!, $ethDomainId: Int!) {
-              domain(colonyAddress: $colonyAddress, ethDomainId: $ethDomainId) {
-                ethDomainId
-                colonyAddress
-                name
-              }
-            }
-          `,
-          variables: {
-            colonyAddress: colonyDoc.colonyAddress,
-            ethDomainId: 1,
-          },
-        }),
-      ).resolves.toMatchObject({
-        data: {
-          domain: {
-            ethDomainId: 1,
-            colonyAddress: colonyDoc.colonyAddress,
-          },
-        },
-        errors: undefined,
-      })
-    })
-
     it('task', async () => {
       const taskDoc: Omit<TaskDoc, '_id'> = {
         colonyAddress: 'colony address',
@@ -319,17 +256,11 @@ describe('Apollo Server', () => {
             query task($id: String!) {
               task(id: $id) {
                 id
-                colony {
-                  id
-                }
                 assignedWorker {
                   id
                 }
                 creator {
                   id
-                }
-                domain {
-                  ethDomainId
                 }
                 payouts {
                   amount
@@ -346,17 +277,11 @@ describe('Apollo Server', () => {
         data: {
           task: {
             id,
-            colony: {
-              id: colonyDoc.colonyAddress,
-            },
             creator: {
               id: user1Doc.walletAddress,
             },
             assignedWorker: {
               id: user2Doc.walletAddress,
-            },
-            domain: {
-              ethDomainId: rootDomainDoc.ethDomainId,
             },
             payouts: [
               {
@@ -422,101 +347,6 @@ describe('Apollo Server', () => {
       ).resolves.toMatchObject({
         data: {
           systemInfo: systemInfoResult,
-        },
-        errors: undefined,
-      })
-    })
-  })
-
-  describe('Colony', () => {
-    it('tokens', async () => {
-      const colonyDoc = {
-        colonyAddress: 'colony address',
-        colonyName: 'colony name',
-        founderAddress: user1Doc.walletAddress,
-        taskIds: [],
-        nativeTokenAddress: token1Doc.address,
-        isNativeTokenExternal: false,
-        tokenAddresses: [token1Doc.address, token2Doc.address],
-      }
-
-      await insertDocs(db, {
-        tokens: [token1Doc, token2Doc, token3Doc],
-        colonies: [colonyDoc],
-      })
-
-      await expect(
-        query({
-          query: gql`
-            query colonyTokens($colonyAddress: String!) {
-              colony(address: $colonyAddress) {
-                tokenAddresses
-              }
-            }
-          `,
-          variables: { colonyAddress: colonyDoc.colonyAddress },
-        }),
-      ).resolves.toMatchObject({
-        data: {
-          colony: {
-            // token3 should not have been included because it is not
-            // in the tokenAddresses of this colony
-            tokenAddresses: [token1Doc.address, token2Doc.address],
-          },
-        },
-        errors: undefined,
-      })
-    })
-
-    it('suggestions', async () => {
-      await insertDocs(db, {
-        users: [user1Doc],
-        colonies: [colonyDoc],
-        suggestions: [suggestionDoc],
-      })
-
-      await expect(
-        query({
-          query: gql`
-            query colonyTokens($colonyAddress: String!) {
-              colony(address: $colonyAddress) {
-                suggestions {
-                  title
-                  colonyAddress
-                  ethDomainId
-                  creatorAddress
-                  upvotes
-                  status
-                  creator {
-                    profile {
-                      walletAddress
-                    }
-                  }
-                }
-              }
-            }
-          `,
-          variables: { colonyAddress: colonyDoc.colonyAddress },
-        }),
-      ).resolves.toMatchObject({
-        data: {
-          colony: {
-            suggestions: [
-              {
-                colonyAddress: suggestionDoc.colonyAddress,
-                ethDomainId: suggestionDoc.ethDomainId,
-                creatorAddress: suggestionDoc.creatorAddress,
-                upvotes: [],
-                title: suggestionDoc.title,
-                status: suggestionDoc.status,
-                creator: {
-                  profile: {
-                    walletAddress: user1Doc.walletAddress,
-                  },
-                },
-              },
-            ],
-          },
         },
         errors: undefined,
       })
@@ -641,9 +471,6 @@ describe('Apollo Server', () => {
             mutation subscribeToColony($input: SubscribeToColonyInput!) {
               subscribeToColony(input: $input) {
                 id
-                colonies {
-                  id
-                }
               }
             }
           `,
@@ -655,7 +482,6 @@ describe('Apollo Server', () => {
         data: {
           subscribeToColony: {
             id: user1Doc.walletAddress,
-            colonies: [{ id: colonyDoc.colonyAddress }],
           },
         },
         errors: undefined,
@@ -678,9 +504,6 @@ describe('Apollo Server', () => {
             ) {
               unsubscribeFromColony(input: $input) {
                 id
-                colonies {
-                  id
-                }
               }
             }
           `,
@@ -692,7 +515,6 @@ describe('Apollo Server', () => {
         data: {
           unsubscribeFromColony: {
             id: user1Doc.walletAddress,
-            colonies: [],
           },
         },
         errors: undefined,
@@ -732,103 +554,6 @@ describe('Apollo Server', () => {
       })
 
       expect(tryAuth).not.toHaveBeenCalled()
-    })
-
-    it('createColony', async () => {
-      await insertDocs(db, {
-        users: [user1Doc],
-      })
-
-      const createColonyInput = {
-        colonyAddress: 'colony address',
-        colonyName: 'c1',
-        displayName: 'Colony 1',
-        tokenAddress: '0xT',
-        tokenDecimals: 18,
-        tokenName: 'Token',
-        tokenIsExternal: false,
-        tokenSymbol: 'TKN',
-      }
-
-      await expect(
-        mutate({
-          mutation: gql`
-            mutation createColony($input: CreateColonyInput!) {
-              createColony(input: $input) {
-                id
-                colonyAddress
-                colonyName
-                displayName
-                isNativeTokenExternal
-                nativeTokenAddress
-                tokenAddresses
-              }
-            }
-          `,
-          variables: {
-            input: createColonyInput,
-          },
-        }),
-      ).resolves.toMatchObject({
-        data: {
-          createColony: {
-            id: createColonyInput.colonyAddress,
-            colonyAddress: colonyDoc.colonyAddress,
-            colonyName: createColonyInput.colonyName,
-            displayName: createColonyInput.displayName,
-            nativeTokenAddress: createColonyInput.tokenAddress,
-            isNativeTokenExternal: createColonyInput.tokenIsExternal,
-            tokenAddresses: [createColonyInput.tokenAddress],
-          },
-        },
-        errors: undefined,
-      })
-
-      expect(tryAuth).toHaveBeenCalled()
-      expect(auth.assertColonyExists).toHaveBeenCalledWith('colony address')
-    })
-
-    it('setColonyTokens', async () => {
-      await insertDocs(db, {
-        users: [user1Doc],
-        colonies: [colonyDoc],
-        tokens: [token1Doc, token2Doc],
-      })
-
-      const setColonyTokensInput = {
-        colonyAddress: colonyDoc.colonyAddress,
-        tokenAddresses: [token1Doc.address, token2Doc.address],
-      }
-
-      await expect(
-        mutate({
-          mutation: gql`
-            mutation setColonyTokens($input: SetColonyTokensInput!) {
-              setColonyTokens(input: $input) {
-                id
-                tokenAddresses
-              }
-            }
-          `,
-          variables: {
-            input: setColonyTokensInput,
-          },
-        }),
-      ).resolves.toMatchObject({
-        data: {
-          setColonyTokens: {
-            id: setColonyTokensInput.colonyAddress,
-            tokenAddresses: setColonyTokensInput.tokenAddresses,
-          },
-        },
-        errors: undefined,
-      })
-
-      expect(tryAuth).toHaveBeenCalled()
-      expect(auth.assertCanSetColonyTokens).toHaveBeenCalledWith({
-        colonyAddress: setColonyTokensInput.colonyAddress,
-        userAddress: user1Doc.walletAddress,
-      })
     })
 
     it('createTask', async () => {
