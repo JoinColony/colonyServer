@@ -348,7 +348,6 @@ export class ColonyMongoApi {
 
   async subscribeToColony(initiator: string, colonyAddress: string) {
     await this.tryGetUser(initiator)
-    await this.tryGetColony(colonyAddress)
 
     return this.updateUser(
       initiator,
