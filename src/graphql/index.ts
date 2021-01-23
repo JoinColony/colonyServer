@@ -14,7 +14,6 @@ import { ColonyAuthDataSource } from '../network/colonyAuthDataSource'
 import { TokenInfoDataSource } from '../external/tokenInfoDataSource'
 import { resolvers } from './resolvers'
 
-import Domain from './typeDefs/Domain'
 import Event from './typeDefs/Event'
 import Mutation from './typeDefs/Mutation'
 import Query from './typeDefs/Query'
@@ -60,7 +59,6 @@ export const createApolloServer = (db: Db, provider: Provider) => {
 
   return new ApolloServer({
     typeDefs: [
-      Domain,
       Event,
       Mutation,
       Query,

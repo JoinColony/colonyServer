@@ -12,18 +12,6 @@ export type Scalars = {
   GraphQLDateTime: any;
 };
 
-export type TempDomain = {
-   __typename?: 'TempDomain';
-  id: Scalars['String'];
-  createdAt: Scalars['GraphQLDateTime'];
-  colonyAddress: Scalars['String'];
-  ethDomainId: Scalars['Int'];
-  ethParentDomainId?: Maybe<Scalars['Int']>;
-  name: Scalars['String'];
-  parent?: Maybe<TempDomain>;
-  tasks: Array<Task>;
-};
-
 export type TaskEvent = {
   type: EventType;
   taskId: Scalars['String'];
@@ -346,13 +334,6 @@ export type SendTaskMessageInput = {
   message: Scalars['String'];
 };
 
-export type CreateDomainInput = {
-  colonyAddress: Scalars['String'];
-  ethDomainId: Scalars['Int'];
-  ethParentDomainId?: Maybe<Scalars['Int']>;
-  name: Scalars['String'];
-};
-
 export type EditDomainNameInput = {
   colonyAddress: Scalars['String'];
   ethDomainId: Scalars['Int'];
@@ -404,8 +385,6 @@ export type SendTransactionMessageInput = {
 
 export type Mutation = {
    __typename?: 'Mutation';
-  createDomain?: Maybe<TempDomain>;
-  editDomainName?: Maybe<TempDomain>;
   sendTaskMessage: Scalars['Boolean'];
   sendTransactionMessage: Scalars['Boolean'];
   markAllNotificationsAsRead: Scalars['Boolean'];
@@ -436,16 +415,6 @@ export type Mutation = {
   subscribeToColony?: Maybe<User>;
   unsubscribeFromColony?: Maybe<User>;
   setUserTokens?: Maybe<User>;
-};
-
-
-export type MutationCreateDomainArgs = {
-  input: CreateDomainInput;
-};
-
-
-export type MutationEditDomainNameArgs = {
-  input: EditDomainNameInput;
 };
 
 
@@ -609,8 +578,6 @@ export type Query = {
    __typename?: 'Query';
   user: User;
   subscribedUsers: Array<User>;
-  tempDomain: TempDomain;
-  tempDomains: Array<TempDomain>;
   task: Task;
   tokenInfo: TokenInfo;
   systemInfo: SystemInfo;
@@ -625,17 +592,6 @@ export type QueryUserArgs = {
 
 
 export type QuerySubscribedUsersArgs = {
-  colonyAddress: Scalars['String'];
-};
-
-
-export type QueryTempDomainArgs = {
-  colonyAddress: Scalars['String'];
-  ethDomainId: Scalars['Int'];
-};
-
-
-export type QueryTempDomainsArgs = {
   colonyAddress: Scalars['String'];
 };
 
@@ -658,13 +614,6 @@ export type QueryTransactionMessagesArgs = {
 export type QueryTransactionMessagesCountArgs = {
   colonyAddress: Scalars['String'];
 };
-
-export enum SubmissionStatus {
-  Open = 'Open',
-  Accepted = 'Accepted',
-  Rejected = 'Rejected',
-  Deleted = 'Deleted'
-}
 
 export enum SuggestionStatus {
   Open = 'Open',
@@ -713,7 +662,6 @@ export type Task = {
   colonyAddress: Scalars['String'];
   creator: User;
   creatorAddress: Scalars['String'];
-  domain: TempDomain;
   assignedWorker?: Maybe<User>;
   assignedWorkerAddress?: Maybe<Scalars['String']>;
   workInvites: Array<User>;
@@ -880,14 +828,13 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars['String']>,
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>,
-  TempDomain: ResolverTypeWrapper<TempDomain>,
-  Int: ResolverTypeWrapper<Scalars['Int']>,
   TaskEvent: ResolversTypes['AssignWorkerEvent'] | ResolversTypes['UnassignWorkerEvent'] | ResolversTypes['CancelTaskEvent'] | ResolversTypes['CreateTaskEvent'] | ResolversTypes['CreateWorkRequestEvent'] | ResolversTypes['FinalizeTaskEvent'] | ResolversTypes['SetTaskPendingEvent'] | ResolversTypes['RemoveTaskPayoutEvent'] | ResolversTypes['SendWorkInviteEvent'] | ResolversTypes['SetTaskDescriptionEvent'] | ResolversTypes['SetTaskDomainEvent'] | ResolversTypes['SetTaskDueDateEvent'] | ResolversTypes['SetTaskPayoutEvent'] | ResolversTypes['SetTaskSkillEvent'] | ResolversTypes['RemoveTaskSkillEvent'] | ResolversTypes['SetTaskTitleEvent'] | ResolversTypes['TaskMessageEvent'],
   ColonyEvent: ResolversTypes['CreateDomainEvent'],
   AssignWorkerEvent: ResolverTypeWrapper<AssignWorkerEvent>,
   UnassignWorkerEvent: ResolverTypeWrapper<UnassignWorkerEvent>,
   CancelTaskEvent: ResolverTypeWrapper<CancelTaskEvent>,
   CreateDomainEvent: ResolverTypeWrapper<CreateDomainEvent>,
+  Int: ResolverTypeWrapper<Scalars['Int']>,
   CreateTaskEvent: ResolverTypeWrapper<CreateTaskEvent>,
   CreateWorkRequestEvent: ResolverTypeWrapper<CreateWorkRequestEvent>,
   FinalizeTaskEvent: ResolverTypeWrapper<FinalizeTaskEvent>,
@@ -932,7 +879,6 @@ export type ResolversTypes = {
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
   MarkNotificationAsReadInput: MarkNotificationAsReadInput,
   SendTaskMessageInput: SendTaskMessageInput,
-  CreateDomainInput: CreateDomainInput,
   EditDomainNameInput: EditDomainNameInput,
   SetColonyTokensInput: SetColonyTokensInput,
   SetUserTokensInput: SetUserTokensInput,
@@ -947,7 +893,6 @@ export type ResolversTypes = {
   PersistentTaskStatus: PersistentTaskStatus,
   ProgramStatus: ProgramStatus,
   Query: ResolverTypeWrapper<{}>,
-  SubmissionStatus: SubmissionStatus,
   SuggestionStatus: SuggestionStatus,
   Suggestion: ResolverTypeWrapper<Suggestion>,
   SystemInfo: ResolverTypeWrapper<SystemInfo>,
@@ -967,14 +912,13 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   String: Scalars['String'],
   Boolean: Scalars['Boolean'],
-  TempDomain: TempDomain,
-  Int: Scalars['Int'],
   TaskEvent: ResolversParentTypes['AssignWorkerEvent'] | ResolversParentTypes['UnassignWorkerEvent'] | ResolversParentTypes['CancelTaskEvent'] | ResolversParentTypes['CreateTaskEvent'] | ResolversParentTypes['CreateWorkRequestEvent'] | ResolversParentTypes['FinalizeTaskEvent'] | ResolversParentTypes['SetTaskPendingEvent'] | ResolversParentTypes['RemoveTaskPayoutEvent'] | ResolversParentTypes['SendWorkInviteEvent'] | ResolversParentTypes['SetTaskDescriptionEvent'] | ResolversParentTypes['SetTaskDomainEvent'] | ResolversParentTypes['SetTaskDueDateEvent'] | ResolversParentTypes['SetTaskPayoutEvent'] | ResolversParentTypes['SetTaskSkillEvent'] | ResolversParentTypes['RemoveTaskSkillEvent'] | ResolversParentTypes['SetTaskTitleEvent'] | ResolversParentTypes['TaskMessageEvent'],
   ColonyEvent: ResolversParentTypes['CreateDomainEvent'],
   AssignWorkerEvent: AssignWorkerEvent,
   UnassignWorkerEvent: UnassignWorkerEvent,
   CancelTaskEvent: CancelTaskEvent,
   CreateDomainEvent: CreateDomainEvent,
+  Int: Scalars['Int'],
   CreateTaskEvent: CreateTaskEvent,
   CreateWorkRequestEvent: CreateWorkRequestEvent,
   FinalizeTaskEvent: FinalizeTaskEvent,
@@ -1019,7 +963,6 @@ export type ResolversParentTypes = {
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
   MarkNotificationAsReadInput: MarkNotificationAsReadInput,
   SendTaskMessageInput: SendTaskMessageInput,
-  CreateDomainInput: CreateDomainInput,
   EditDomainNameInput: EditDomainNameInput,
   SetColonyTokensInput: SetColonyTokensInput,
   SetUserTokensInput: SetUserTokensInput,
@@ -1034,7 +977,6 @@ export type ResolversParentTypes = {
   PersistentTaskStatus: PersistentTaskStatus,
   ProgramStatus: ProgramStatus,
   Query: {},
-  SubmissionStatus: SubmissionStatus,
   SuggestionStatus: SuggestionStatus,
   Suggestion: Suggestion,
   SystemInfo: SystemInfo,
@@ -1048,18 +990,6 @@ export type ResolversParentTypes = {
   UserProfile: UserProfile,
   GraphQLDateTime: Scalars['GraphQLDateTime'],
   EventType: EventType,
-};
-
-export type TempDomainResolvers<ContextType = any, ParentType extends ResolversParentTypes['TempDomain'] = ResolversParentTypes['TempDomain']> = {
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
-  colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
-  ethParentDomainId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>,
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  parent?: Resolver<Maybe<ResolversTypes['TempDomain']>, ParentType, ContextType>,
-  tasks?: Resolver<Array<ResolversTypes['Task']>, ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type TaskEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['TaskEvent'] = ResolversParentTypes['TaskEvent']> = {
@@ -1254,8 +1184,6 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
-  createDomain?: Resolver<Maybe<ResolversTypes['TempDomain']>, ParentType, ContextType, RequireFields<MutationCreateDomainArgs, 'input'>>,
-  editDomainName?: Resolver<Maybe<ResolversTypes['TempDomain']>, ParentType, ContextType, RequireFields<MutationEditDomainNameArgs, 'input'>>,
   sendTaskMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendTaskMessageArgs, 'input'>>,
   sendTransactionMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendTransactionMessageArgs, 'input'>>,
   markAllNotificationsAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
@@ -1291,8 +1219,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'address'>>,
   subscribedUsers?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QuerySubscribedUsersArgs, 'colonyAddress'>>,
-  tempDomain?: Resolver<ResolversTypes['TempDomain'], ParentType, ContextType, RequireFields<QueryTempDomainArgs, 'colonyAddress' | 'ethDomainId'>>,
-  tempDomains?: Resolver<Array<ResolversTypes['TempDomain']>, ParentType, ContextType, RequireFields<QueryTempDomainsArgs, 'colonyAddress'>>,
   task?: Resolver<ResolversTypes['Task'], ParentType, ContextType, RequireFields<QueryTaskArgs, 'id'>>,
   tokenInfo?: Resolver<ResolversTypes['TokenInfo'], ParentType, ContextType, RequireFields<QueryTokenInfoArgs, 'address'>>,
   systemInfo?: Resolver<ResolversTypes['SystemInfo'], ParentType, ContextType>,
@@ -1339,7 +1265,6 @@ export type TaskResolvers<ContextType = any, ParentType extends ResolversParentT
   colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>,
   creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  domain?: Resolver<ResolversTypes['TempDomain'], ParentType, ContextType>,
   assignedWorker?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>,
   assignedWorkerAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
   workInvites?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>,
@@ -1408,7 +1333,6 @@ export interface GraphQlDateTimeScalarConfig extends GraphQLScalarTypeConfig<Res
 }
 
 export type Resolvers<ContextType = any> = {
-  TempDomain?: TempDomainResolvers<ContextType>,
   TaskEvent?: TaskEventResolvers,
   ColonyEvent?: ColonyEventResolvers,
   AssignWorkerEvent?: AssignWorkerEventResolvers<ContextType>,

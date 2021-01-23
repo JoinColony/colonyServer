@@ -6,13 +6,6 @@ export const Task: TaskResolvers<ApolloContext> = {
   async creator({ creatorAddress }, input, { dataSources: { data } }) {
     return data.getUserByAddress(creatorAddress)
   },
-  async domain(
-    { colonyAddress, ethDomainId },
-    input,
-    { dataSources: { data } },
-  ) {
-    return data.getDomainByEthId(colonyAddress, ethDomainId)
-  },
   async assignedWorker(
     { assignedWorkerAddress },
     input,

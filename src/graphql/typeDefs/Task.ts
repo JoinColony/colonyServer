@@ -20,7 +20,6 @@ export default gql`
     colonyAddress: String!
     creator: User!
     creatorAddress: String!
-    domain: TempDomain!
     assignedWorker: User
     assignedWorkerAddress: String
     workInvites: [User!]!

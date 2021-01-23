@@ -4,8 +4,6 @@ export default gql`
   type Query {
     user(address: String!): User!
     subscribedUsers(colonyAddress: String!): [User!]!
-    tempDomain(colonyAddress: String!, ethDomainId: Int!): TempDomain!
-    tempDomains(colonyAddress: String!): [TempDomain!]!
     task(id: String!): Task!
     tokenInfo(address: String!): TokenInfo!
     systemInfo: SystemInfo!

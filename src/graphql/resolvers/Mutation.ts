@@ -420,42 +420,4 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     )
     return true
   },
-  // Domains
-  async createDomain(
-    parent,
-    { input: { ethDomainId, ethParentDomainId, name, colonyAddress } },
-    { userAddress, api, dataSources: { auth, data } },
-  ) {
-    await tryAuth(
-      auth.assertCanCreateDomain({
-        colonyAddress,
-        userAddress,
-        domainId: ethDomainId,
-        parentDomainId: ethParentDomainId,
-      }),
-    )
-    await api.createDomain(
-      userAddress,
-      colonyAddress,
-      ethDomainId,
-      ethParentDomainId,
-      name,
-    )
-    return data.getDomainByEthId(colonyAddress, ethDomainId)
-  },
-  async editDomainName(
-    parent,
-    { input: { ethDomainId, name, colonyAddress } },
-    { userAddress, api, dataSources: { auth, data } },
-  ) {
-    await tryAuth(
-      auth.assertCanEditDomainName({
-        colonyAddress,
-        userAddress,
-        domainId: ethDomainId,
-      }),
-    )
-    await api.editDomainName(userAddress, colonyAddress, ethDomainId, name)
-    return data.getDomainByEthId(colonyAddress, ethDomainId)
-  },
 }

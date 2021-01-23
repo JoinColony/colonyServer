@@ -17,24 +17,6 @@ export const Query: QueryResolvers<ApolloContext> = {
   ) {
     return data.getColonySubscribedUsers(colonyAddress)
   },
-  async tempDomain(
-    parent,
-    {
-      colonyAddress,
-      ethDomainId,
-    }: { colonyAddress: string; ethDomainId: number },
-    { dataSources: { data } },
-  ) {
-    return data.getDomainByEthId(colonyAddress, ethDomainId)
-  },
-  async tempDomains(
-    parent,
-    { colonyAddress }: { colonyAddress: string },
-    { dataSources: { data } },
-  ) {
-    return data.getColonyDomains(colonyAddress)
-  },
-
   // TODO task by ethPotId/colonyAddress
   async task(parent, { id }: { id: string }, { dataSources: { data } }) {
     return data.getTaskById(id)

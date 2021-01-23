@@ -131,13 +131,6 @@ export default gql`
     message: String!
   }
 
-  input CreateDomainInput {
-    colonyAddress: String!
-    ethDomainId: Int!
-    ethParentDomainId: Int
-    name: String!
-  }
-
   input EditDomainNameInput {
     colonyAddress: String!
     ethDomainId: Int!
@@ -188,9 +181,6 @@ export default gql`
   }
 
   type Mutation {
-    # Domains
-    createDomain(input: CreateDomainInput!): TempDomain
-    editDomainName(input: EditDomainNameInput!): TempDomain
     # Messages
     sendTaskMessage(input: SendTaskMessageInput!): Boolean!
     sendTransactionMessage(input: SendTransactionMessageInput!): Boolean!
