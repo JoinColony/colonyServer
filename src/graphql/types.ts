@@ -216,18 +216,6 @@ export type EditUserInput = {
   website?: Maybe<Scalars['String']>;
 };
 
-export type CreateColonyInput = {
-  colonyAddress: Scalars['String'];
-  colonyName: Scalars['String'];
-  displayName: Scalars['String'];
-  tokenAddress: Scalars['String'];
-  tokenName: Scalars['String'];
-  tokenSymbol: Scalars['String'];
-  tokenDecimals: Scalars['Int'];
-  tokenIsExternal: Scalars['Boolean'];
-  tokenIconHash?: Maybe<Scalars['String']>;
-};
-
 export type CreateTaskInput = {
   colonyAddress: Scalars['String'];
   ethDomainId: Scalars['Int'];
@@ -308,15 +296,6 @@ export type FinalizeTaskInput = {
   ethPotId: Scalars['Int'];
 };
 
-export type EditColonyProfileInput = {
-  colonyAddress: Scalars['String'];
-  avatarHash?: Maybe<Scalars['String']>;
-  description?: Maybe<Scalars['String']>;
-  displayName?: Maybe<Scalars['String']>;
-  guideline?: Maybe<Scalars['String']>;
-  website?: Maybe<Scalars['String']>;
-};
-
 export type SubscribeToColonyInput = {
   colonyAddress: Scalars['String'];
 };
@@ -338,11 +317,6 @@ export type EditDomainNameInput = {
   colonyAddress: Scalars['String'];
   ethDomainId: Scalars['Int'];
   name: Scalars['String'];
-};
-
-export type SetColonyTokensInput = {
-  tokenAddresses: Array<Maybe<Scalars['String']>>;
-  colonyAddress: Scalars['String'];
 };
 
 export type SetUserTokensInput = {
@@ -857,7 +831,6 @@ export type ResolversTypes = {
   LevelStatus: LevelStatus,
   CreateUserInput: CreateUserInput,
   EditUserInput: EditUserInput,
-  CreateColonyInput: CreateColonyInput,
   CreateTaskInput: CreateTaskInput,
   SetTaskDomainInput: SetTaskDomainInput,
   SetTaskSkillInput: SetTaskSkillInput,
@@ -874,13 +847,11 @@ export type ResolversTypes = {
   TaskIdInput: TaskIdInput,
   SetTaskPendingInput: SetTaskPendingInput,
   FinalizeTaskInput: FinalizeTaskInput,
-  EditColonyProfileInput: EditColonyProfileInput,
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
   MarkNotificationAsReadInput: MarkNotificationAsReadInput,
   SendTaskMessageInput: SendTaskMessageInput,
   EditDomainNameInput: EditDomainNameInput,
-  SetColonyTokensInput: SetColonyTokensInput,
   SetUserTokensInput: SetUserTokensInput,
   CreateSuggestionInput: CreateSuggestionInput,
   SetSuggestionStatusInput: SetSuggestionStatusInput,
@@ -941,7 +912,6 @@ export type ResolversParentTypes = {
   LevelStatus: LevelStatus,
   CreateUserInput: CreateUserInput,
   EditUserInput: EditUserInput,
-  CreateColonyInput: CreateColonyInput,
   CreateTaskInput: CreateTaskInput,
   SetTaskDomainInput: SetTaskDomainInput,
   SetTaskSkillInput: SetTaskSkillInput,
@@ -958,13 +928,11 @@ export type ResolversParentTypes = {
   TaskIdInput: TaskIdInput,
   SetTaskPendingInput: SetTaskPendingInput,
   FinalizeTaskInput: FinalizeTaskInput,
-  EditColonyProfileInput: EditColonyProfileInput,
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
   MarkNotificationAsReadInput: MarkNotificationAsReadInput,
   SendTaskMessageInput: SendTaskMessageInput,
   EditDomainNameInput: EditDomainNameInput,
-  SetColonyTokensInput: SetColonyTokensInput,
   SetUserTokensInput: SetUserTokensInput,
   CreateSuggestionInput: CreateSuggestionInput,
   SetSuggestionStatusInput: SetSuggestionStatusInput,

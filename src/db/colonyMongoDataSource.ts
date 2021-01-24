@@ -15,7 +15,6 @@ import {
 } from './types'
 import { CollectionNames } from './collections'
 import {
-  TempDomain,
   Event,
   Suggestion,
   SuggestionStatus,
@@ -30,8 +29,6 @@ import {
 const DEFAULT_TTL = { ttl: undefined }
 
 interface Collections {
-  colonies: CachedCollection<ColonyDoc>
-  domains: CachedCollection<DomainDoc>
   events: CachedCollection<EventDoc<any>>
   notifications: CachedCollection<NotificationDoc>
   suggestions: CachedCollection<SuggestionDoc>
@@ -46,8 +43,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
 
   constructor(db: Db) {
     super([
-      db.collection(CollectionNames.Colonies),
-      db.collection(CollectionNames.Domains),
       db.collection(CollectionNames.Events),
       db.collection(CollectionNames.Notifications),
       db.collection(CollectionNames.Suggestions),
@@ -60,28 +55,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   // This shouldn't be necessary, but there were problems with the GraphQL types
   initialize(config: DataSourceConfig<{}>): void {
     super.initialize(config)
-  }
-
-  // TODO consider extending API of MongoDataSource for document transformation
-  // @NOTE: This is where you add resolver fields to avoid super weird TS errors
-  // LOOK AT MEE I'M MR MESEEKS
-  private static transformColony({
-    _id,
-    tokenAddresses = [],
-    taskIds = [],
-    ...doc
-  }: ColonyDoc) {
-    return {
-      ...doc,
-      createdAt: _id.getTimestamp(),
-      id: doc.colonyAddress,
-      taskIds,
-      tokenAddresses,
-      tasks: [],
-      domains: [],
-      subscribedUsers: [],
-      suggestions: [],
-    }
   }
 
   private static transformUser({
@@ -147,15 +120,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
   }
 
-  private static transformDomain({ _id, ...doc }: DomainDoc): TempDomain {
-    return {
-      ...doc,
-      tasks: [],
-      id: _id.toHexString(),
-      createdAt: _id.getTimestamp(),
-    }
-  }
-
   private static transformSuggestion({
     _id,
     taskId,
@@ -185,7 +149,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       workInvites: [],
       workRequests: [],
       creator: undefined,
-      domain: undefined,
       payouts: payouts.map((payout) => ({ ...payout, token: undefined })),
       workRequestAddresses,
       workInviteAddresses,
@@ -205,27 +168,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       transactionHash,
       count: messages[transactionHash],
     }))
-  }
-
-  async getColonyByAddress(colonyAddress: string, ttl?: number) {
-    const query = { colonyAddress }
-    const [doc] = ttl
-      ? await this.collections.colonies.findManyByQuery(query, { ttl })
-      : [await this.collections.colonies.collection.findOne(query)]
-
-    if (!doc) {
-      throw new Error(`Colony with address '${colonyAddress}' not found`)
-    }
-
-    return ColonyMongoDataSource.transformColony(doc)
-  }
-
-  async getColoniesByAddress(colonyAddresses: string[], ttl?: number) {
-    const query = { colonyAddress: { $in: colonyAddresses } }
-    const docs = ttl
-      ? await this.collections.colonies.findManyByQuery(query, { ttl })
-      : await this.collections.colonies.collection.find(query).toArray()
-    return docs.map(ColonyMongoDataSource.transformColony)
   }
 
   async getTaskById(taskId: string, ttl?: number) {
@@ -275,32 +217,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       : await this.collections.tasks.collection.find(query).toArray()
 
     return docs.map(ColonyMongoDataSource.transformTask)
-  }
-
-  async getDomainByEthId(
-    colonyAddress: string,
-    ethDomainId: number,
-    ttl?: number,
-  ) {
-    const query = { colonyAddress, ethDomainId }
-    const [doc] = ttl
-      ? await this.collections.domains.findManyByQuery(query, { ttl })
-      : [await this.collections.domains.collection.findOne(query)]
-
-    if (!doc)
-      throw new Error(
-        `Domain with ID '${ethDomainId}' for colony '${colonyAddress}' not found`,
-      )
-
-    return ColonyMongoDataSource.transformDomain(doc)
-  }
-
-  async getColonyDomains(colonyAddress: string, ttl?: number) {
-    const query = { colonyAddress }
-    const docs = ttl
-      ? await this.collections.domains.findManyByQuery(query, { ttl })
-      : await this.collections.domains.collection.find(query).toArray()
-    return docs.map(ColonyMongoDataSource.transformDomain)
   }
 
   async getSuggestionById(id: string, ttl?: number) {
