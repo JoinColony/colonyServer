@@ -10,22 +10,12 @@ export const Query: QueryResolvers<ApolloContext> = {
   async user(parent, { address }, { dataSources: { data } }) {
     return data.getUserByAddress(address)
   },
-  async colony(
+  async subscribedUsers(
     parent,
-    { address }: { address: string },
+    { colonyAddress }: { colonyAddress: string },
     { dataSources: { data } },
   ) {
-    return data.getColonyByAddress(address)
-  },
-  async domain(
-    parent,
-    {
-      colonyAddress,
-      ethDomainId,
-    }: { colonyAddress: string; ethDomainId: number },
-    { dataSources: { data } },
-  ) {
-    return data.getDomainByEthId(colonyAddress, ethDomainId)
+    return data.getColonySubscribedUsers(colonyAddress)
   },
   // TODO task by ethPotId/colonyAddress
   async task(parent, { id }: { id: string }, { dataSources: { data } }) {

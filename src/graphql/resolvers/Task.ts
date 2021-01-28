@@ -3,18 +3,8 @@ import { TaskResolvers, TaskPayoutResolvers } from '../types'
 import { ColonyMongoDataSource } from '../../db/colonyMongoDataSource'
 
 export const Task: TaskResolvers<ApolloContext> = {
-  async colony({ colonyAddress }, input, { dataSources: { data } }) {
-    return data.getColonyByAddress(colonyAddress)
-  },
   async creator({ creatorAddress }, input, { dataSources: { data } }) {
     return data.getUserByAddress(creatorAddress)
-  },
-  async domain(
-    { colonyAddress, ethDomainId },
-    input,
-    { dataSources: { data } },
-  ) {
-    return data.getDomainByEthId(colonyAddress, ethDomainId)
   },
   async assignedWorker(
     { assignedWorkerAddress },

@@ -17,11 +17,9 @@ export default gql`
     dueDate: GraphQLDateTime
     finalizedAt: GraphQLDateTime
     title: String
-    colony: Colony!
     colonyAddress: String!
     creator: User!
     creatorAddress: String!
-    domain: Domain!
     assignedWorker: User
     assignedWorkerAddress: String
     workInvites: [User!]!

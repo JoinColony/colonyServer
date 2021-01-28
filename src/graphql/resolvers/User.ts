@@ -3,9 +3,6 @@ import { UserResolvers } from '../types'
 import { ETH_ADDRESS } from '../../constants'
 
 export const User: UserResolvers<ApolloContext> = {
-  async colonies({ colonyAddresses }, input, { dataSources: { data } }) {
-    return data.getColoniesByAddress(colonyAddresses)
-  },
   async tasks(
     { taskIds },
     input, // TODO allow restriction of query, e.g. by open tasks

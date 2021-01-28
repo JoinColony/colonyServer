@@ -13,18 +13,6 @@ export default gql`
     website: String
   }
 
-  input CreateColonyInput {
-    colonyAddress: String!
-    colonyName: String!
-    displayName: String!
-    tokenAddress: String!
-    tokenName: String!
-    tokenSymbol: String!
-    tokenDecimals: Int!
-    tokenIsExternal: Boolean!
-    tokenIconHash: String
-  }
-
   input CreateTaskInput {
     colonyAddress: String!
     ethDomainId: Int!
@@ -105,15 +93,6 @@ export default gql`
     ethPotId: Int!
   }
 
-  input EditColonyProfileInput {
-    colonyAddress: String!
-    avatarHash: String
-    description: String
-    displayName: String
-    guideline: String
-    website: String
-  }
-
   input SubscribeToColonyInput {
     colonyAddress: String!
   }
@@ -131,22 +110,10 @@ export default gql`
     message: String!
   }
 
-  input CreateDomainInput {
-    colonyAddress: String!
-    ethDomainId: Int!
-    ethParentDomainId: Int
-    name: String!
-  }
-
   input EditDomainNameInput {
     colonyAddress: String!
     ethDomainId: Int!
     name: String!
-  }
-
-  input SetColonyTokensInput {
-    tokenAddresses: [String]!
-    colonyAddress: String!
   }
 
   input SetUserTokensInput {
@@ -188,13 +155,6 @@ export default gql`
   }
 
   type Mutation {
-    # Colonies
-    createColony(input: CreateColonyInput!): Colony
-    editColonyProfile(input: EditColonyProfileInput!): Colony
-    setColonyTokens(input: SetColonyTokensInput!): Colony
-    # Domains
-    createDomain(input: CreateDomainInput!): Domain
-    editDomainName(input: EditDomainNameInput!): Domain
     # Messages
     sendTaskMessage(input: SendTaskMessageInput!): Boolean!
     sendTransactionMessage(input: SendTransactionMessageInput!): Boolean!

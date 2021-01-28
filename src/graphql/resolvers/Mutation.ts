@@ -1,8 +1,5 @@
 import { ApolloContext } from '../apolloTypes'
-import {
-  MutationResolvers,
-  SuggestionStatus,
-} from '../types'
+import { MutationResolvers, SuggestionStatus } from '../types'
 import { tryAuth } from './auth'
 
 export const Mutation: MutationResolvers<ApolloContext> = {
@@ -46,58 +43,6 @@ export const Mutation: MutationResolvers<ApolloContext> = {
   ) {
     await api.setUserTokens(userAddress, tokenAddresses)
     return data.getUserByAddress(userAddress)
-  },
-  // Colonies
-  async createColony(
-    parent,
-    {
-      input: {
-        colonyAddress,
-        colonyName,
-        displayName,
-        tokenAddress,
-        tokenName,
-        tokenSymbol,
-        tokenDecimals,
-        tokenIsExternal,
-        tokenIconHash,
-      },
-    },
-    { userAddress, api, dataSources: { data, auth } },
-  ) {
-    // No permissions-based auth call needed: anyone should be able to do this,
-    // but the colony needs to exist on-chain.
-    await tryAuth(auth.assertColonyExists(colonyAddress))
-
-    await api.createColony(
-      userAddress,
-      colonyAddress,
-      colonyName,
-      displayName,
-      tokenAddress,
-      tokenIsExternal,
-    )
-    return data.getColonyByAddress(colonyAddress)
-  },
-  async editColonyProfile(
-    parent,
-    { input: { colonyAddress, ...profile } },
-    { userAddress, api, dataSources: { data, auth } },
-  ) {
-    await tryAuth(
-      auth.assertCanEditColonyProfile({ colonyAddress, userAddress }),
-    )
-    await api.editColony(userAddress, colonyAddress, profile)
-    return data.getColonyByAddress(colonyAddress)
-  },
-  async setColonyTokens(
-    parent,
-    { input: { tokenAddresses, colonyAddress } },
-    { userAddress, api, dataSources: { data, auth } },
-  ) {
-    await tryAuth(auth.assertCanSetColonyTokens({ colonyAddress, userAddress }))
-    await api.setColonyTokens(userAddress, colonyAddress, tokenAddresses)
-    return data.getColonyByAddress(colonyAddress)
   },
   // Suggestions
   async createSuggestion(
@@ -474,43 +419,5 @@ export const Mutation: MutationResolvers<ApolloContext> = {
       message,
     )
     return true
-  },
-  // Domains
-  async createDomain(
-    parent,
-    { input: { ethDomainId, ethParentDomainId, name, colonyAddress } },
-    { userAddress, api, dataSources: { auth, data } },
-  ) {
-    await tryAuth(
-      auth.assertCanCreateDomain({
-        colonyAddress,
-        userAddress,
-        domainId: ethDomainId,
-        parentDomainId: ethParentDomainId,
-      }),
-    )
-    await api.createDomain(
-      userAddress,
-      colonyAddress,
-      ethDomainId,
-      ethParentDomainId,
-      name,
-    )
-    return data.getDomainByEthId(colonyAddress, ethDomainId)
-  },
-  async editDomainName(
-    parent,
-    { input: { ethDomainId, name, colonyAddress } },
-    { userAddress, api, dataSources: { auth, data } },
-  ) {
-    await tryAuth(
-      auth.assertCanEditDomainName({
-        colonyAddress,
-        userAddress,
-        domainId: ethDomainId,
-      }),
-    )
-    await api.editDomainName(userAddress, colonyAddress, ethDomainId, name)
-    return data.getDomainByEthId(colonyAddress, ethDomainId)
   },
 }

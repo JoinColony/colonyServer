@@ -11,7 +11,7 @@ import { toChecksumAddress } from 'web3-utils'
 import { ROOT_DOMAIN, AUTO_SUBSCRIBED_COLONIES } from '../constants'
 import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
-import { EventType, SuggestionStatus, SubmissionStatus } from '../graphql/types'
+import { EventType, SuggestionStatus } from '../graphql/types'
 import {
   ColonyDoc,
   DomainDoc,
@@ -41,9 +41,7 @@ export class ColonyMongoApi {
     }, {} as { $set?: {}; $unset?: {} })
   }
 
-  private readonly colonies: Collection<ColonyDoc>
   private readonly events: Collection<EventDoc<any>>
-  private readonly domains: Collection<DomainDoc>
   private readonly notifications: Collection<NotificationDoc>
   private readonly suggestions: Collection<SuggestionDoc>
   private readonly tasks: Collection<TaskDoc>
@@ -52,9 +50,7 @@ export class ColonyMongoApi {
   private readonly submissions: Collection<SubmissionDoc>
 
   constructor(db: Db) {
-    this.colonies = db.collection<ColonyDoc>(CollectionNames.Colonies)
     this.events = db.collection<EventDoc<any>>(CollectionNames.Events)
-    this.domains = db.collection<DomainDoc>(CollectionNames.Domains)
     this.notifications = db.collection<NotificationDoc>(
       CollectionNames.Notifications,
     )
@@ -75,19 +71,6 @@ export class ColonyMongoApi {
   ) {
     return this.users.updateOne(
       { $and: [{ walletAddress }, query] },
-      modifier,
-      options,
-    )
-  }
-
-  private async updateColony(
-    colonyAddress: string,
-    query: StrictRootQuerySelector<ColonyDoc>,
-    modifier: StrictUpdateQuery<ColonyDoc & { 'tokens.$.iconHash': string }>,
-    options?: UpdateOneOptions,
-  ) {
-    return this.colonies.updateOne(
-      { $and: [{ colonyAddress }, query] },
       modifier,
       options,
     )
@@ -136,20 +119,6 @@ export class ColonyMongoApi {
     )
   }
 
-  private async updateDomain(
-    colonyAddress: string,
-    ethDomainId: number,
-    query: StrictRootQuerySelector<DomainDoc>,
-    modifier: StrictUpdateQuery<DomainDoc>,
-    options?: UpdateOneOptions,
-  ) {
-    return this.domains.updateOne(
-      { $and: [{ colonyAddress, ethDomainId }, query] },
-      modifier,
-      options,
-    )
-  }
-
   private async tryGetSuggestion(id: string) {
     const suggestion = await this.suggestions.findOne(new ObjectID(id))
     assert.ok(!!suggestion, `Suggestion with ID '${id}' not found`)
@@ -166,21 +135,6 @@ export class ColonyMongoApi {
     const user = await this.users.findOne({ walletAddress })
     assert.ok(!!user, `User with address '${walletAddress}' not found`)
     return user
-  }
-
-  private async tryGetColony(colonyAddress: string) {
-    const colony = await this.colonies.findOne({ colonyAddress })
-    assert.ok(!!colony, `Colony with address '${colonyAddress}' not found`)
-    return colony
-  }
-
-  private async tryGetDomain(colonyAddress: string, ethDomainId: number) {
-    const domain = await this.domains.findOne({ colonyAddress, ethDomainId })
-    assert.ok(
-      !!domain,
-      `Domain with ID '${ethDomainId}' of colony '${colonyAddress}' not found`,
-    )
-    return domain
   }
 
   private async createNotification(eventId: ObjectID, users: string[]) {
@@ -247,69 +201,8 @@ export class ColonyMongoApi {
     return insertedId
   }
 
-  private async getAutoSubscribeColonies() {
-    const colonies = await Promise.all(
-      AUTO_SUBSCRIBED_COLONIES.map(async (colony: string) => {
-        try {
-          await this.tryGetColony(colony)
-        } catch (err) {
-          return null
-        }
-        return colony
-      }),
-    )
-    return colonies.filter(Boolean)
-  }
-
-  private async countAcceptedLevelSubmissions(
-    stepIds: LevelDoc['stepIds'],
-    creatorAddress: string,
-  ) {
-    const stepObjectIds = stepIds.map((stepId) => new ObjectID(stepId))
-    const query = {
-      _id: { $in: stepObjectIds },
-    }
-    const cursor = await this.persistentTasks.aggregate<{ count: number }>([
-      // 1. Find all persistent tasks matching the above query
-      { $match: query },
-      // 2. Look up all submissions for the given persistent tasks and the given user
-      {
-        $lookup: {
-          from: this.submissions.collectionName,
-          let: { persistentTaskId: '$_id' },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ['$persistentTaskId', '$$persistentTaskId'] },
-                    { $eq: ['$status', SubmissionStatus.Accepted] },
-                    { $eq: ['$creatorAddress', creatorAddress] },
-                  ],
-                },
-              },
-            },
-          ],
-          as: 'submissions',
-        },
-      },
-      // 3. Flatten all submissions arrays
-      { $unwind: '$submissions' },
-      // // 4. Count the aaccepted submissions
-      { $count: 'count' },
-    ])
-    const result = await cursor.next()
-    await cursor.close()
-    return result.count
-  }
-
   async createUser(walletAddress: string, username: string) {
     const doc = { walletAddress, username } as UserDoc
-
-    const colonyAddresses = await this.getAutoSubscribeColonies()
-    if (colonyAddresses.length) {
-      doc.colonyAddresses = colonyAddresses
-    }
 
     const exists = !!(await this.users.findOne({
       $or: [{ walletAddress }, { username }],
@@ -348,7 +241,6 @@ export class ColonyMongoApi {
 
   async subscribeToColony(initiator: string, colonyAddress: string) {
     await this.tryGetUser(initiator)
-    await this.tryGetColony(colonyAddress)
 
     return this.updateUser(
       initiator,
@@ -392,66 +284,6 @@ export class ColonyMongoApi {
     )
   }
 
-  async createColony(
-    initiator: string,
-    colonyAddress: string,
-    colonyName: string,
-    displayName: string,
-    tokenAddress: string,
-    tokenIsExternal: boolean,
-  ) {
-    await this.tryGetUser(initiator)
-
-    const doc: Omit<ColonyDoc, '_id'> = {
-      colonyAddress,
-      colonyName,
-      displayName,
-      founderAddress: initiator,
-      nativeTokenAddress: tokenAddress,
-      isNativeTokenExternal: tokenIsExternal,
-      tokenAddresses: [tokenAddress],
-      taskIds: [],
-    }
-
-    const exists = !!(await this.colonies.findOne({
-      $or: [{ colonyAddress }, { colonyName }],
-    }))
-    if (exists) {
-      throw new Error(
-        `Colony with address '${colonyAddress}' or name '${colonyName}' already exists`,
-      )
-    }
-
-    // An upsert is used even if it's not strictly necessary because
-    // it's not the job of a unique index to preserve data integrity.
-    await this.colonies.updateOne(doc, { $setOnInsert: doc }, { upsert: true })
-
-    await this.createDomain(initiator, colonyAddress, ROOT_DOMAIN, null, 'Root')
-
-    return this.subscribeToColony(initiator, colonyAddress)
-  }
-
-  async editColony(
-    initiator: string,
-    colonyAddress: string,
-    profile: {
-      avatarHash?: string | null
-      description?: string | null
-      displayName?: string | null
-      guideline?: string | null
-      website?: string | null
-    },
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetColony(colonyAddress)
-
-    return this.updateColony(
-      colonyAddress,
-      {},
-      ColonyMongoApi.createEditUpdater(profile),
-    )
-  }
-
   async setUserTokens(initiator: string, tokenAddresses: string[]) {
     await this.tryGetUser(initiator)
     const tokens = tokenAddresses
@@ -464,27 +296,6 @@ export class ColonyMongoApi {
     return this.updateUser(initiator, {}, { $set: { tokenAddresses: tokens } })
   }
 
-  async setColonyTokens(
-    initiator: string,
-    colonyAddress: string,
-    tokenAddresses: string[],
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetColony(colonyAddress)
-    const tokens = tokenAddresses
-      .filter((token) => !isETH(token))
-      /*
-       * @NOTE In all likelyhood the address that comes from the dApp is already checksummed
-       * But we'll checksum it again here as a precaution
-       */
-      .map((token) => toChecksumAddress(token))
-    return this.updateColony(
-      colonyAddress,
-      {},
-      { $set: { tokenAddresses: tokens } },
-    )
-  }
-
   async createTask(
     initiator: string,
     colonyAddress: string,
@@ -492,8 +303,6 @@ export class ColonyMongoApi {
     title?: string,
   ) {
     await this.tryGetUser(initiator)
-    await this.tryGetColony(colonyAddress)
-    await this.tryGetDomain(colonyAddress, ethDomainId)
 
     const insertedDoc = {
       colonyAddress,
@@ -510,11 +319,6 @@ export class ColonyMongoApi {
     const taskId = insertedId.toString()
 
     await this.subscribeToTask(initiator, taskId)
-    await this.updateColony(
-      colonyAddress,
-      {},
-      { $addToSet: { taskIds: taskId } },
-    )
 
     const eventId = await this.createEvent(initiator, EventType.CreateTask, {
       colonyAddress,
@@ -529,7 +333,6 @@ export class ColonyMongoApi {
   async setTaskDomain(initiator: string, taskId: string, ethDomainId: number) {
     await this.tryGetUser(initiator)
     const { colonyAddress } = await this.tryGetTask(taskId)
-    await this.tryGetDomain(colonyAddress, ethDomainId)
 
     await this.subscribeToTask(initiator, taskId)
     await this.createEvent(initiator, EventType.SetTaskDomain, {
@@ -900,76 +703,6 @@ export class ColonyMongoApi {
     return this.notifications.updateMany(filter, update)
   }
 
-  async createDomain(
-    initiator: string,
-    colonyAddress: string,
-    ethDomainId: number,
-    ethParentDomainId: number | undefined | null,
-    name: string,
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetColony(colonyAddress)
-
-    const isRoot = ethDomainId === ROOT_DOMAIN
-    const hasParent = typeof ethParentDomainId === 'number'
-
-    if (hasParent && isRoot) {
-      throw new Error('Unable to add root domain with a parent domain')
-    }
-    if (!hasParent && !isRoot) {
-      throw new Error('Unable to add non-root domain without a parent domain')
-    }
-
-    if (hasParent) {
-      await this.tryGetDomain(colonyAddress, ethParentDomainId)
-    }
-
-    const exists = !!(await this.domains.findOne({
-      colonyAddress,
-      ethDomainId,
-    }))
-    if (exists) {
-      throw new Error(
-        `Domain with ID '${ethDomainId}' already exists for colony '${colonyAddress}'`,
-      )
-    }
-
-    const eventId = await this.createEvent(initiator, EventType.CreateDomain, {
-      colonyAddress,
-      ethDomainId,
-      ethParentDomainId,
-      name,
-    })
-    await this.createColonyNotification(initiator, eventId, colonyAddress)
-
-    // An upsert is used even if it's not strictly necessary because
-    // it's not the job of a unique index to preserve data integrity.
-    return this.domains.updateOne(
-      { colonyAddress, ethDomainId, ethParentDomainId },
-      {
-        $setOnInsert: {
-          colonyAddress,
-          ethDomainId,
-          ethParentDomainId,
-          name,
-        },
-      },
-      { upsert: true },
-    )
-  }
-
-  async editDomainName(
-    initiator: string,
-    colonyAddress: string,
-    ethDomainId: number,
-    name: string,
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetDomain(colonyAddress, ethDomainId)
-
-    return this.updateDomain(colonyAddress, ethDomainId, {}, { $set: { name } })
-  }
-
   async sendTaskMessage(initiator: string, taskId: string, message: string) {
     await this.tryGetUser(initiator)
     const { colonyAddress } = await this.tryGetTask(taskId)
@@ -998,7 +731,6 @@ export class ColonyMongoApi {
     title: string,
   ) {
     await this.tryGetUser(initiator)
-    await this.tryGetColony(colonyAddress)
 
     const { insertedId } = await this.suggestions.insertOne({
       colonyAddress,

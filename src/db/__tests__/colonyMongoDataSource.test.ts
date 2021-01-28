@@ -2,9 +2,7 @@ import { MongoClient } from 'mongodb'
 import { CachedCollection } from 'apollo-datasource-mongo'
 
 import { ColonyMongoDataSource } from '../colonyMongoDataSource'
-import {
-  EventType,
-} from '../../graphql/types'
+import { EventType } from '../../graphql/types'
 
 describe('ColonyMongoDataSource', () => {
   let connection
@@ -27,8 +25,6 @@ describe('ColonyMongoDataSource', () => {
   })
 
   beforeEach(async () => {
-    await db.collection('colonies').deleteMany({})
-    await db.collection('domains').deleteMany({})
     await db.collection('events').deleteMany({})
     await db.collection('notifications').deleteMany({})
     await db.collection('suggestions').deleteMany({})
@@ -51,8 +47,6 @@ describe('ColonyMongoDataSource', () => {
 
   it('should have been initialized with collections', async () => {
     expect(data.collections).toMatchObject({
-      colonies: expect.any(CachedCollection),
-      domains: expect.any(CachedCollection),
       events: expect.any(CachedCollection),
       notifications: expect.any(CachedCollection),
       tasks: expect.any(CachedCollection),
