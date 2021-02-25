@@ -11,7 +11,6 @@ import Event from '../typeDefs/Event'
 import Mutation from '../typeDefs/Mutation'
 import Query from '../typeDefs/Query'
 import Suggestion from '../typeDefs/Suggestion'
-import Task from '../typeDefs/Task'
 import TokenInfo from '../typeDefs/TokenInfo'
 import SystemInfo from '../typeDefs/SystemInfo'
 import Transaction from '../typeDefs/Transaction'
@@ -20,7 +19,7 @@ import scalars from '../typeDefs/scalars'
 import { resolvers } from '../resolvers'
 import { tryAuth } from '../resolvers/auth'
 import { insertDocs } from '../../testUtils'
-import { SuggestionDoc, TaskDoc, UserDoc } from '../../db/types'
+import { SuggestionDoc, UserDoc } from '../../db/types'
 import { EventType, SuggestionStatus } from '../types'
 import { CollectionNames } from '../../db/collections'
 
@@ -32,7 +31,6 @@ const typeDefs = [
   Mutation,
   Query,
   Suggestion,
-  Task,
   TokenInfo,
   SystemInfo,
   Transaction,
@@ -45,25 +43,16 @@ let ctxUserAddress
 const user1Doc: Omit<UserDoc, '_id'> = {
   walletAddress: 'user 1 wallet address',
   username: 'user1',
-  taskIds: [],
   colonyAddresses: [],
   tokenAddresses: [],
 }
 const user2Doc: Omit<UserDoc, '_id'> = {
   walletAddress: 'user 2 wallet address',
   username: 'user2',
-  taskIds: [],
   colonyAddresses: [],
   tokenAddresses: [],
 }
-const taskDoc: Omit<TaskDoc, '_id'> = {
-  colonyAddress: 'colony address',
-  ethDomainId: 1,
-  creatorAddress: user1Doc.walletAddress,
-  payouts: [],
-  workInviteAddresses: [],
-  workRequestAddresses: [],
-}
+
 const suggestionDoc: Omit<SuggestionDoc, '_id'> = {
   colonyAddress: 'colony address',
   ethDomainId: 1,
@@ -117,7 +106,6 @@ describe('Apollo Server', () => {
     await db.collection(CollectionNames.Domains).deleteMany({})
     await db.collection(CollectionNames.Events).deleteMany({})
     await db.collection(CollectionNames.Notifications).deleteMany({})
-    await db.collection(CollectionNames.Tasks).deleteMany({})
     await db.collection(CollectionNames.Tokens).deleteMany({})
     await db.collection(CollectionNames.Users).deleteMany({})
   }
@@ -466,9 +454,6 @@ describe('Apollo Server', () => {
         users: [user1Doc, user2Doc],
         events: [
           { type: EventType.CreateDomain, sourceType: 'db', context: {} },
-          { type: EventType.CreateTask, sourceType: 'db', context: {} },
-          { type: EventType.CancelTask, sourceType: 'db', context: {} },
-          { type: EventType.FinalizeTask, sourceType: 'db', context: {} },
         ],
       })
 
@@ -538,35 +523,12 @@ describe('Apollo Server', () => {
           user: {
             id: ctxUserAddress,
             notifications: [
-              { id: id4, event: { type: EventType.FinalizeTask }, read: true },
-              { id: id2, event: { type: EventType.CreateTask }, read: true },
               { id: id1, event: { type: EventType.CreateDomain }, read: true },
             ],
           },
         },
         errors: undefined,
       })
-
-      // For the other user (user1): should be unread
-      ctxUserAddress = user2Doc.walletAddress
-      await expect(
-        query({
-          query: notificationsQuery,
-          variables: { address: user2Doc.walletAddress },
-        }),
-      ).resolves.toMatchObject({
-        data: {
-          user: {
-            id: user2Doc.walletAddress,
-            notifications: [
-              { id: id4, event: { type: EventType.FinalizeTask }, read: false },
-              { id: id3, event: { type: EventType.CancelTask }, read: false },
-            ],
-          },
-        },
-        errors: undefined,
-      })
-      ctxUserAddress = user1Doc.walletAddress
 
       expect(tryAuth).not.toHaveBeenCalled()
     })
