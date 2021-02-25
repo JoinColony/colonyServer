@@ -11,10 +11,8 @@ import {
 import {
   EventType,
   LevelStatus,
-  PersistentTaskStatus,
   ProgramStatus,
   SuggestionStatus,
-  TaskPayout,
 } from '../graphql/types'
 
 // Stricter than RootQuerySelector (only allows fields from T),
@@ -67,7 +65,6 @@ export interface ColonyDoc extends MongoDoc {
   nativeTokenAddress: string
   isNativeTokenExternal: boolean
   tokenAddresses: string[]
-  taskIds: string[]
 }
 
 export interface DomainDoc extends MongoDoc {
@@ -106,20 +103,8 @@ export interface LevelDoc extends MongoDoc {
   status: LevelStatus
 }
 
-export interface PersistentTaskDoc extends MongoDoc {
-  colonyAddress: string
-  creatorAddress: string
-  ethDomainId?: number
-  ethSkillId?: number
-  title?: string
-  description?: string
-  payouts: TaskPayout[]
-  status: PersistentTaskStatus
-}
-
 export interface SubmissionDoc extends MongoDoc {
   creatorAddress: string
-  persistentTaskId: ObjectID
   submission: string
   statusChangedAt: Date
 }
@@ -135,35 +120,7 @@ export interface SuggestionDoc extends MongoDoc {
   ethDomainId: number
   status: SuggestionStatus
   upvotes: string[]
-  taskId?: ObjectID
   title: string
-}
-
-export interface TaskDoc extends MongoDoc {
-  colonyAddress: string
-  creatorAddress: string
-  ethDomainId: number
-  ethPotId?: number
-  assignedWorkerAddress?: string
-  cancelledAt?: Date
-  description?: string
-  dueDate?: Date
-  ethSkillId?: number
-  finalizedAt?: Date
-  payouts: TaskPayout[]
-  title?: string
-  txHash?: string
-  workInviteAddresses: string[]
-  workRequestAddresses: string[]
-}
-
-export interface TokenDoc extends MongoDoc {
-  address: string
-  creatorAddress: string
-  decimals: number
-  iconHash?: string
-  name: string
-  symbol: string
 }
 
 export interface NotificationDoc extends MongoDoc {
@@ -177,7 +134,6 @@ export interface UserDoc extends MongoDoc {
   displayName?: string
   location?: string
   colonyAddresses: string[]
-  taskIds: string[]
   username: string
   walletAddress: string
   website?: string
