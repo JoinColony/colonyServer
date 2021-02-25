@@ -6,8 +6,6 @@ export default gql`
     createdAt: GraphQLDateTime!
     profile: UserProfile!
     colonyAddresses: [String!]!
-    tasks: [Task!]!
-    taskIds: [String!]!
     tokenAddresses: [String!]!
     notifications(read: Boolean): [Notification!]! # Only provided for the current user
   }
