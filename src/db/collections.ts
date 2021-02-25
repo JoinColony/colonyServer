@@ -5,12 +5,9 @@ import {
   EventDoc,
   LevelDoc,
   NotificationDoc,
-  PersistentTaskDoc,
   ProgramDoc,
   SubmissionDoc,
   SuggestionDoc,
-  TaskDoc,
-  TokenDoc,
   UserDoc,
 } from './types'
 import { ETH_ADDRESS } from '../constants'
@@ -21,11 +18,9 @@ export enum CollectionNames {
   Events = 'events',
   Levels = 'levels',
   Notifications = 'notifications',
-  PersistentTasks = 'persistentTasks',
   Programs = 'programs',
   Submissions = 'submissions',
   Suggestions = 'suggestions',
-  Tasks = 'tasks',
   Tokens = 'tokens',
   Users = 'users',
 }
@@ -210,175 +205,6 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       indexes: [
         ['colonyAddress', { unique: true }],
         ['colonyName', { unique: true }],
-      ],
-    },
-  ],
-  [
-    CollectionNames.Tasks,
-    {
-      create: {
-        validator: {
-          $jsonSchema: {
-            additionalProperties: false,
-            bsonType: 'object',
-            required: ['creatorAddress', 'colonyAddress', 'ethDomainId'],
-            properties: {
-              _id: { bsonType: 'objectId' },
-              assignedWorkerAddress: {
-                bsonType: 'string',
-                description: 'must be a string',
-                maxLength: 42,
-              },
-              colonyAddress: {
-                bsonType: 'string',
-                description: 'must be a string and is required',
-                maxLength: 42,
-              },
-              creatorAddress: {
-                bsonType: 'string',
-                description: 'must be a string and is required',
-                maxLength: 42,
-              },
-              ethDomainId: {
-                bsonType: 'number',
-                minimum: 1,
-              },
-              ethPotId: {
-                bsonType: 'number',
-                minimum: 1,
-              },
-              ethSkillId: {
-                bsonType: 'number',
-                minimum: 1,
-              },
-              dueDate: {
-                bsonType: 'date',
-              },
-              finalizedAt: {
-                bsonType: 'date',
-              },
-              title: {
-                bsonType: 'string',
-                maxLength: 200,
-              },
-              description: {
-                bsonType: 'string',
-                maxLength: 4000,
-              },
-              cancelledAt: {
-                bsonType: 'date',
-              },
-              txHash: {
-                bsonType: 'string',
-                maxLength: 100,
-              },
-              workRequestAddresses: {
-                bsonType: 'array',
-                uniqueItems: true,
-                items: {
-                  bsonType: 'string',
-                },
-              },
-              workInviteAddresses: {
-                bsonType: 'array',
-                uniqueItems: true,
-                items: {
-                  bsonType: 'string',
-                },
-              },
-              payouts: {
-                bsonType: 'array',
-                additionalProperties: false,
-                items: {
-                  bsonType: 'object',
-                  required: ['tokenAddress', 'amount'],
-                  properties: {
-                    tokenAddress: {
-                      bsonType: 'string',
-                    },
-                    amount: {
-                      bsonType: 'string',
-                    },
-                  },
-                },
-              },
-            } as SchemaFields<TaskDoc>,
-          },
-        },
-      },
-      indexes: [
-        ['colonyAddress', {}],
-        ['creatorAddress', {}],
-        ['ethDomainId', {}],
-        ['ethPotId', { sparse: true }],
-      ],
-    },
-  ],
-  [
-    CollectionNames.PersistentTasks,
-    {
-      create: {
-        validator: {
-          $jsonSchema: {
-            additionalProperties: false,
-            bsonType: 'object',
-            required: ['creatorAddress', 'colonyAddress', 'status'],
-            properties: {
-              _id: { bsonType: 'objectId' },
-              colonyAddress: {
-                bsonType: 'string',
-                description: 'must be a string and is required',
-                maxLength: 42,
-              },
-              creatorAddress: {
-                bsonType: 'string',
-                description: 'must be a string and is required',
-                maxLength: 42,
-              },
-              ethDomainId: {
-                bsonType: 'number',
-                minimum: 1,
-              },
-              ethSkillId: {
-                bsonType: 'number',
-                minimum: 1,
-              },
-              title: {
-                bsonType: 'string',
-                maxLength: 200,
-              },
-              description: {
-                bsonType: 'string',
-                maxLength: 4000,
-              },
-              payouts: {
-                bsonType: 'array',
-                additionalProperties: false,
-                items: {
-                  bsonType: 'object',
-                  required: ['tokenAddress', 'amount'],
-                  properties: {
-                    tokenAddress: {
-                      bsonType: 'string',
-                    },
-                    amount: {
-                      bsonType: 'string',
-                    },
-                  },
-                },
-              },
-              status: {
-                enum: ['Active', 'Closed', 'Deleted'],
-                maxLength: 100,
-              },
-            } as SchemaFields<PersistentTaskDoc>,
-          },
-        },
-      },
-      indexes: [
-        ['colonyAddress', {}],
-        ['ethDomainId', { sparse: true }],
-        ['status', {}],
       ],
     },
   ],
@@ -683,56 +509,6 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['status', {}],
         ['completedBy', {}],
       ],
-    },
-  ],
-  [
-    CollectionNames.Tokens,
-    {
-      create: {
-        validator: {
-          $jsonSchema: {
-            additionalProperties: false,
-            bsonType: 'object',
-            required: ['address', 'name', 'symbol', 'decimals'],
-            properties: {
-              _id: { bsonType: 'objectId' },
-              address: {
-                bsonType: 'string',
-                maxLength: 42,
-              },
-              creatorAddress: {
-                bsonType: 'string',
-                maxLength: 42,
-              },
-              name: {
-                bsonType: 'string',
-                maxLength: 100,
-              },
-              symbol: {
-                bsonType: 'string',
-                maxLength: 10,
-              },
-              decimals: {
-                bsonType: 'int',
-                minimum: 1,
-              },
-              iconHash: {
-                bsonType: 'string',
-              },
-            } as SchemaFields<TokenDoc>,
-          },
-        },
-      },
-      indexes: [['address', {}]],
-      seedDocs: [
-        {
-          name: 'xDai Token',
-          symbol: 'XDAI',
-          address: ETH_ADDRESS,
-          creatorAddress: '',
-          decimals: 18,
-        },
-      ] as TokenDoc[],
     },
   ],
   [
