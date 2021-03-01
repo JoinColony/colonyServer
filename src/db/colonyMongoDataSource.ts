@@ -9,6 +9,7 @@ import {
   EventDoc,
   NotificationDoc,
   SuggestionDoc,
+  TokenDoc,
   UserDoc,
 } from './types'
 import { CollectionNames } from './collections'
@@ -29,6 +30,7 @@ interface Collections {
   events: CachedCollection<EventDoc<any>>
   notifications: CachedCollection<NotificationDoc>
   suggestions: CachedCollection<SuggestionDoc>
+  tokens: CachedCollection<TokenDoc>
   users: CachedCollection<UserDoc>
 }
 
@@ -98,6 +100,14 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
         ...context,
         type, // For the sake of discriminating the union type in gql
       },
+    }
+  }
+
+  private static transformToken({ _id, ...doc }: TokenDoc): TokenInfo {
+    return {
+      ...doc,
+      id: doc.address,
+      verified: undefined,
     }
   }
 
@@ -226,6 +236,19 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return this.getUserNotifications(address, {
       users: { address, read: false },
     })
+  }
+
+  async getTokenByAddress(tokenAddress: string, ttl?: number) {
+    const query = { address: tokenAddress }
+    const [token] = ttl
+      ? await this.collections.tokens.findManyByQuery(query, { ttl })
+      : [await this.collections.tokens.collection.findOne(query)]
+  
+    if (!token) {
+      throw new Error(`Token with address '${tokenAddress}' not found`)
+    }
+  
+    return ColonyMongoDataSource.transformToken(token)
   }
 
   async getTransactionMessages(transactionHash: string, ttl?: number) {

@@ -123,6 +123,15 @@ export interface SuggestionDoc extends MongoDoc {
   title: string
 }
 
+export interface TokenDoc extends MongoDoc {
+  address: string
+  creatorAddress: string
+  decimals: number
+  iconHash?: string
+  name: string
+  symbol: string
+}
+
 export interface NotificationDoc extends MongoDoc {
   eventId: ObjectID
   users: { address: string; read?: boolean }[]

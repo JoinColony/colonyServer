@@ -8,6 +8,7 @@ import {
   ProgramDoc,
   SubmissionDoc,
   SuggestionDoc,
+  TokenDoc,
   UserDoc,
 } from './types'
 import { ETH_ADDRESS } from '../constants'
@@ -259,6 +260,56 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['ethDomainId', {}],
         ['ethParentDomainId', { sparse: true }],
       ],
+    },
+  ],
+  [
+    CollectionNames.Tokens,
+    {
+      create: {
+        validator: {
+          $jsonSchema: {
+            additionalProperties: false,
+            bsonType: 'object',
+            required: ['address', 'name', 'symbol', 'decimals'],
+            properties: {
+              _id: { bsonType: 'objectId' },
+              address: {
+                bsonType: 'string',
+                maxLength: 42,
+              },
+              creatorAddress: {
+                bsonType: 'string',
+                maxLength: 42,
+              },
+              name: {
+                bsonType: 'string',
+                maxLength: 100,
+              },
+              symbol: {
+                bsonType: 'string',
+                maxLength: 10,
+              },
+              decimals: {
+                bsonType: 'int',
+                minimum: 1,
+              },
+              iconHash: {
+                bsonType: 'string',
+              },
+            } as SchemaFields<TokenDoc>,
+          },
+        },
+      },
+      indexes: [['address', {}]],
+      seedDocs: [
+        {
+          name: 'xDai Token',
+          symbol: 'XDAI',
+          address: ETH_ADDRESS,
+          creatorAddress: '',
+          decimals: 18,
+        },
+      ] as TokenDoc[],
     },
   ],
   [
