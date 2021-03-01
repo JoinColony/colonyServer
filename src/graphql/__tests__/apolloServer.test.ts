@@ -449,7 +449,7 @@ describe('Apollo Server', () => {
 
     it('markAllNotificationsAsRead', async () => {
       const {
-        events: [eventId1, eventId2, eventId3, eventId4],
+        events: [eventId1],
       } = await insertDocs(db, {
         users: [user1Doc, user2Doc],
         events: [
@@ -459,27 +459,12 @@ describe('Apollo Server', () => {
 
       // Notifications for user1/user2
       const {
-        notifications: [id1, id2, id3, id4],
+        notifications: [id1],
       } = await insertDocs(db, {
         notifications: [
           {
             eventId: new ObjectID(eventId1),
             users: [{ address: ctxUserAddress, read: false }],
-          },
-          {
-            eventId: new ObjectID(eventId2),
-            users: [{ address: ctxUserAddress, read: false }],
-          },
-          {
-            eventId: new ObjectID(eventId3),
-            users: [{ address: user2Doc.walletAddress, read: false }],
-          },
-          {
-            eventId: new ObjectID(eventId4),
-            users: [
-              { address: ctxUserAddress, read: true },
-              { address: user2Doc.walletAddress, read: false },
-            ],
           },
         ],
       })
