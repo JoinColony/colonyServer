@@ -339,12 +339,8 @@ export type UserProfile = {
 
 
 export enum EventType {
-  AssignWorker = 'AssignWorker',
   CreateDomain = 'CreateDomain',
-  CreateWorkRequest = 'CreateWorkRequest',
   NewUser = 'NewUser',
-  SendWorkInvite = 'SendWorkInvite',
-  UnassignWorker = 'UnassignWorker',
   TransactionMessage = 'TransactionMessage'
 }
 
