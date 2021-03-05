@@ -103,6 +103,17 @@ export interface LevelDoc extends MongoDoc {
   status: LevelStatus
 }
 
+export interface PersistentTaskDoc extends MongoDoc {
+  colonyAddress: string
+  creatorAddress: string
+  ethDomainId?: number
+  ethSkillId?: number
+  title?: string
+  description?: string
+  payouts: any[]
+  status: any
+}
+
 export interface SubmissionDoc extends MongoDoc {
   creatorAddress: string
   submission: string
@@ -121,6 +132,24 @@ export interface SuggestionDoc extends MongoDoc {
   status: SuggestionStatus
   upvotes: string[]
   title: string
+}
+
+export interface TaskDoc extends MongoDoc {
+  colonyAddress: string
+  creatorAddress: string
+  ethDomainId: number
+  ethPotId?: number
+  assignedWorkerAddress?: string
+  cancelledAt?: Date
+  description?: string
+  dueDate?: Date
+  ethSkillId?: number
+  finalizedAt?: Date
+  payouts: any[]
+  title?: string
+  txHash?: string
+  workInviteAddresses: string[]
+  workRequestAddresses: string[]
 }
 
 export interface TokenDoc extends MongoDoc {
