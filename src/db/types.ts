@@ -11,10 +11,8 @@ import {
 import {
   EventType,
   LevelStatus,
-  PersistentTaskStatus,
   ProgramStatus,
   SuggestionStatus,
-  TaskPayout,
 } from '../graphql/types'
 
 // Stricter than RootQuerySelector (only allows fields from T),
@@ -67,7 +65,6 @@ export interface ColonyDoc extends MongoDoc {
   nativeTokenAddress: string
   isNativeTokenExternal: boolean
   tokenAddresses: string[]
-  taskIds: string[]
 }
 
 export interface DomainDoc extends MongoDoc {
@@ -113,13 +110,12 @@ export interface PersistentTaskDoc extends MongoDoc {
   ethSkillId?: number
   title?: string
   description?: string
-  payouts: TaskPayout[]
-  status: PersistentTaskStatus
+  payouts: any[]
+  status: any
 }
 
 export interface SubmissionDoc extends MongoDoc {
   creatorAddress: string
-  persistentTaskId: ObjectID
   submission: string
   statusChangedAt: Date
 }
@@ -135,7 +131,6 @@ export interface SuggestionDoc extends MongoDoc {
   ethDomainId: number
   status: SuggestionStatus
   upvotes: string[]
-  taskId?: ObjectID
   title: string
 }
 
@@ -150,7 +145,7 @@ export interface TaskDoc extends MongoDoc {
   dueDate?: Date
   ethSkillId?: number
   finalizedAt?: Date
-  payouts: TaskPayout[]
+  payouts: any[]
   title?: string
   txHash?: string
   workInviteAddresses: string[]
@@ -177,7 +172,6 @@ export interface UserDoc extends MongoDoc {
   displayName?: string
   location?: string
   colonyAddresses: string[]
-  taskIds: string[]
   username: string
   walletAddress: string
   website?: string

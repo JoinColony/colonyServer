@@ -13,41 +13,6 @@ export default gql`
     website: String
   }
 
-  input CreateTaskInput {
-    colonyAddress: String!
-    ethDomainId: Int!
-  }
-
-  input SetTaskDomainInput {
-    id: String!
-    ethDomainId: Int!
-  }
-
-  input SetTaskSkillInput {
-    id: String!
-    ethSkillId: Int!
-  }
-
-  input RemoveTaskSkillInput {
-    id: String!
-    ethSkillId: Int!
-  }
-
-  input SetTaskTitleInput {
-    id: String!
-    title: String!
-  }
-
-  input SetTaskDescriptionInput {
-    id: String!
-    description: String!
-  }
-
-  input SetTaskDueDateInput {
-    id: String!
-    dueDate: GraphQLDateTime
-  }
-
   input CreateWorkRequestInput {
     id: String!
   }
@@ -55,18 +20,6 @@ export default gql`
   input SendWorkInviteInput {
     id: String!
     workerAddress: String!
-  }
-
-  input SetTaskPayoutInput {
-    id: String!
-    amount: String!
-    tokenAddress: String!
-  }
-
-  input RemoveTaskPayoutInput {
-    id: String!
-    amount: String!
-    tokenAddress: String!
   }
 
   input AssignWorkerInput {
@@ -79,20 +32,6 @@ export default gql`
     workerAddress: String!
   }
 
-  input TaskIdInput {
-    id: String!
-  }
-
-  input SetTaskPendingInput {
-    id: String!
-    txHash: String!
-  }
-
-  input FinalizeTaskInput {
-    id: String!
-    ethPotId: Int!
-  }
-
   input SubscribeToColonyInput {
     colonyAddress: String!
   }
@@ -103,11 +42,6 @@ export default gql`
 
   input MarkNotificationAsReadInput {
     id: String!
-  }
-
-  input SendTaskMessageInput {
-    id: String!
-    message: String!
   }
 
   input EditDomainNameInput {
@@ -139,10 +73,6 @@ export default gql`
     id: String!
   }
 
-  input CreateTaskFromSuggestionInput {
-    id: String!
-  }
-
   input Payout {
     amount: String!
     tokenAddress: String!
@@ -156,7 +86,6 @@ export default gql`
 
   type Mutation {
     # Messages
-    sendTaskMessage(input: SendTaskMessageInput!): Boolean!
     sendTransactionMessage(input: SendTransactionMessageInput!): Boolean!
     # Notifications
     markAllNotificationsAsRead: Boolean!
@@ -168,24 +97,6 @@ export default gql`
     removeUpvoteFromSuggestion(
       input: RemoveUpvoteFromSuggestionInput!
     ): Suggestion
-    # Tasks
-    assignWorker(input: AssignWorkerInput!): Task
-    cancelTask(input: TaskIdInput!): Task
-    createTask(input: CreateTaskInput!): Task
-    createTaskFromSuggestion(input: CreateTaskFromSuggestionInput!): Task
-    createWorkRequest(input: CreateWorkRequestInput!): Task
-    finalizeTask(input: FinalizeTaskInput!): Task
-    removeTaskPayout(input: RemoveTaskPayoutInput!): Task
-    sendWorkInvite(input: SendWorkInviteInput!): Task
-    setTaskDomain(input: SetTaskDomainInput!): Task
-    setTaskDescription(input: SetTaskDescriptionInput!): Task
-    setTaskDueDate(input: SetTaskDueDateInput!): Task
-    setTaskPayout(input: SetTaskPayoutInput!): Task
-    setTaskPending(input: SetTaskPendingInput!): Task
-    setTaskSkill(input: SetTaskSkillInput!): Task
-    removeTaskSkill(input: RemoveTaskSkillInput!): Task
-    setTaskTitle(input: SetTaskTitleInput!): Task
-    unassignWorker(input: UnassignWorkerInput!): Task
     # Users
     createUser(input: CreateUserInput!): User # TODO find out why we can't use an exclamation mark here
     editUser(input: EditUserInput!): User

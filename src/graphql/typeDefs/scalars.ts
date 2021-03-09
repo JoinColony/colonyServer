@@ -5,23 +5,10 @@ export default gql`
 
   enum EventType {
     AssignWorker
-    CancelTask
     CreateDomain
-    CreateTask
     CreateWorkRequest
-    FinalizeTask
     NewUser
-    RemoveTaskPayout
     SendWorkInvite
-    SetTaskDescription
-    SetTaskDomain
-    SetTaskDueDate
-    SetTaskPayout
-    SetTaskPending
-    SetTaskSkill
-    RemoveTaskSkill
-    SetTaskTitle
-    TaskMessage
     UnassignWorker
     TransactionMessage
   }

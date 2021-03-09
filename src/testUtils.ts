@@ -7,9 +7,8 @@ import {
   EventDoc,
   NotificationDoc,
   SuggestionDoc,
-  TaskDoc,
-  TokenDoc,
   UserDoc,
+  TokenDoc,
 } from './db/types'
 
 const insertMany = async <T>(
@@ -33,7 +32,6 @@ interface DocsToInsert {
   events?: Partial<EventDoc<any>>[]
   notifications?: Partial<NotificationDoc>[]
   suggestions?: Partial<SuggestionDoc>[]
-  tasks?: Partial<TaskDoc>[]
   tokens?: Partial<TokenDoc>[]
   users?: Partial<UserDoc>[]
 }
@@ -44,7 +42,6 @@ interface InsertedDocs {
   events: string[]
   notifications: string[]
   suggestions: string[]
-  tasks: string[]
   tokens: string[]
   users: string[]
 }
@@ -85,7 +82,6 @@ export const insertDocs = async (
       events: [],
       notifications: [],
       suggestions: [],
-      tasks: [],
       tokens: [],
       users: [],
     },

@@ -20,10 +20,8 @@ import {
   StrictRootQuerySelector,
   StrictUpdateQuery,
   SuggestionDoc,
-  TaskDoc,
   UserDoc,
   SubmissionDoc,
-  PersistentTaskDoc,
   LevelDoc,
 } from './types'
 import { CollectionNames } from './collections'
@@ -44,9 +42,7 @@ export class ColonyMongoApi {
   private readonly events: Collection<EventDoc<any>>
   private readonly notifications: Collection<NotificationDoc>
   private readonly suggestions: Collection<SuggestionDoc>
-  private readonly tasks: Collection<TaskDoc>
   private readonly users: Collection<UserDoc>
-  private readonly persistentTasks: Collection<PersistentTaskDoc>
   private readonly submissions: Collection<SubmissionDoc>
 
   constructor(db: Db) {
@@ -54,12 +50,8 @@ export class ColonyMongoApi {
     this.notifications = db.collection<NotificationDoc>(
       CollectionNames.Notifications,
     )
-    this.persistentTasks = db.collection<PersistentTaskDoc>(
-      CollectionNames.PersistentTasks,
-    )
     this.submissions = db.collection<SubmissionDoc>(CollectionNames.Submissions)
     this.suggestions = db.collection<SuggestionDoc>(CollectionNames.Suggestions)
-    this.tasks = db.collection<TaskDoc>(CollectionNames.Tasks)
     this.users = db.collection<UserDoc>(CollectionNames.Users)
   }
 
@@ -76,59 +68,10 @@ export class ColonyMongoApi {
     )
   }
 
-  private async updateTask(
-    taskId: string,
-    query: StrictRootQuerySelector<TaskDoc>,
-    modifier: StrictUpdateQuery<TaskDoc>,
-    options?: UpdateOneOptions,
-  ) {
-    const idFilter = { _id: new ObjectID(taskId) }
-
-    // Ensure that the task does not enter an illegal state; if either
-    // cancelledAt or finalizedAt is set, no further writes should be allowed
-    if (
-      !!(await this.tasks.findOne({
-        $and: [
-          idFilter,
-          query,
-          {
-            $or: [
-              { cancelledAt: { $exists: true } },
-              { finalizedAt: { $exists: true } },
-            ],
-          },
-        ],
-      }))
-    ) {
-      throw new Error(
-        `Unable to update task with ID '${taskId}': task is cancelled or finalized`,
-      )
-    }
-
-    return this.tasks.updateOne(
-      {
-        $and: [
-          idFilter,
-          query,
-          // This query is still necessary for data integrity
-          { cancelledAt: { $exists: false }, finalizedAt: { $exists: false } },
-        ],
-      },
-      modifier,
-      options,
-    )
-  }
-
   private async tryGetSuggestion(id: string) {
     const suggestion = await this.suggestions.findOne(new ObjectID(id))
     assert.ok(!!suggestion, `Suggestion with ID '${id}' not found`)
     return suggestion
-  }
-
-  private async tryGetTask(taskId: string) {
-    const task = await this.tasks.findOne(new ObjectID(taskId))
-    assert.ok(!!task, `Task with ID '${taskId}' not found`)
-    return task
   }
 
   private async tryGetUser(walletAddress: string) {
@@ -154,20 +97,6 @@ export class ColonyMongoApi {
         $setOnInsert: doc,
       } as StrictRootQuerySelector<NotificationDoc>,
       { upsert: true },
-    )
-  }
-
-  private async createTaskNotification(
-    initiator: string,
-    eventId: ObjectID,
-    taskId: string,
-  ) {
-    const users = await this.users
-      .find({ taskIds: taskId, walletAddress: { $ne: initiator } })
-      .toArray()
-    return this.createNotification(
-      eventId,
-      users.map(({ walletAddress }) => walletAddress),
     )
   }
 
@@ -261,29 +190,6 @@ export class ColonyMongoApi {
     )
   }
 
-  async subscribeToTask(initiator: string, taskId: string) {
-    await this.tryGetUser(initiator)
-    await this.tryGetTask(taskId)
-
-    return this.updateUser(
-      initiator,
-      // @ts-ignore This is too fiddly to type, for now
-      { taskIds: { $ne: taskId } },
-      { $addToSet: { taskIds: taskId } },
-    )
-  }
-
-  async unsubscribeFromTask(initiator: string, taskId: string) {
-    await this.tryGetUser(initiator)
-
-    return this.updateUser(
-      initiator,
-      // @ts-ignore This is too fiddly to type, for now
-      { taskIds: taskId },
-      { $pull: { taskIds: taskId } },
-    )
-  }
-
   async setUserTokens(initiator: string, tokenAddresses: string[]) {
     await this.tryGetUser(initiator)
     const tokens = tokenAddresses
@@ -294,377 +200,6 @@ export class ColonyMongoApi {
        */
       .map((token) => toChecksumAddress(token))
     return this.updateUser(initiator, {}, { $set: { tokenAddresses: tokens } })
-  }
-
-  async createTask(
-    initiator: string,
-    colonyAddress: string,
-    ethDomainId: number,
-    title?: string,
-  ) {
-    await this.tryGetUser(initiator)
-
-    const insertedDoc = {
-      colonyAddress,
-      creatorAddress: initiator,
-      ethDomainId,
-      payouts: [],
-    } as TaskDoc
-
-    if (title) {
-      insertedDoc.title = title
-    }
-
-    const { insertedId } = await this.tasks.insertOne(insertedDoc)
-    const taskId = insertedId.toString()
-
-    await this.subscribeToTask(initiator, taskId)
-
-    const eventId = await this.createEvent(initiator, EventType.CreateTask, {
-      colonyAddress,
-      ethDomainId,
-      taskId,
-    })
-    await this.createColonyNotification(initiator, eventId, colonyAddress)
-
-    return taskId
-  }
-
-  async setTaskDomain(initiator: string, taskId: string, ethDomainId: number) {
-    await this.tryGetUser(initiator)
-    const { colonyAddress } = await this.tryGetTask(taskId)
-
-    await this.subscribeToTask(initiator, taskId)
-    await this.createEvent(initiator, EventType.SetTaskDomain, {
-      taskId,
-      ethDomainId,
-      colonyAddress,
-    })
-    return this.updateTask(taskId, {}, { $set: { ethDomainId } })
-  }
-
-  async setTaskTitle(initiator: string, taskId: string, title: string) {
-    await this.tryGetUser(initiator)
-    const { colonyAddress } = await this.tryGetTask(taskId)
-
-    await this.subscribeToTask(initiator, taskId)
-    await this.createEvent(initiator, EventType.SetTaskTitle, {
-      taskId,
-      title,
-      colonyAddress,
-    })
-    return this.updateTask(taskId, {}, { $set: { title } })
-  }
-
-  async setTaskDescription(
-    initiator: string,
-    taskId: string,
-    description: string,
-  ) {
-    await this.tryGetUser(initiator)
-    const { colonyAddress } = await this.tryGetTask(taskId)
-
-    await this.subscribeToTask(initiator, taskId)
-    await this.createEvent(initiator, EventType.SetTaskDescription, {
-      taskId,
-      description,
-      colonyAddress,
-    })
-    return this.updateTask(taskId, {}, { $set: { description } })
-  }
-
-  async setTaskDueDate(
-    initiator: string,
-    taskId: string,
-    dueDate: string | null,
-  ) {
-    await this.tryGetUser(initiator)
-    const { colonyAddress } = await this.tryGetTask(taskId)
-
-    await this.subscribeToTask(initiator, taskId)
-    await this.createEvent(initiator, EventType.SetTaskDueDate, {
-      taskId,
-      dueDate,
-      colonyAddress,
-    })
-    return this.updateTask(
-      taskId,
-      {},
-      dueDate
-        ? { $set: { dueDate: new Date(dueDate) } }
-        : { $unset: { dueDate: '' } },
-    )
-  }
-
-  async setTaskSkill(initiator: string, taskId: string, ethSkillId: number) {
-    await this.tryGetUser(initiator)
-    const { colonyAddress } = await this.tryGetTask(taskId)
-
-    await this.subscribeToTask(initiator, taskId)
-    await this.createEvent(initiator, EventType.SetTaskSkill, {
-      taskId,
-      ethSkillId,
-      colonyAddress,
-    })
-    return this.updateTask(taskId, {}, { $set: { ethSkillId } })
-  }
-
-  async removeTaskSkill(initiator: string, taskId: string, ethSkillId: number) {
-    await this.tryGetUser(initiator)
-    const { colonyAddress } = await this.tryGetTask(taskId)
-
-    await this.subscribeToTask(initiator, taskId)
-    await this.createEvent(initiator, EventType.RemoveTaskSkill, {
-      taskId,
-      ethSkillId,
-      colonyAddress,
-    })
-    return this.updateTask(taskId, {}, { $unset: { ethSkillId: '' } })
-  }
-
-  async createWorkRequest(initiator: string, taskId: string) {
-    await this.tryGetUser(initiator)
-    const {
-      workRequestAddresses = [],
-      creatorAddress,
-      colonyAddress,
-    } = await this.tryGetTask(taskId)
-
-    await this.subscribeToTask(initiator, taskId)
-
-    if (workRequestAddresses.includes(initiator)) {
-      throw new Error(
-        `Unable to create work request for '${initiator}'; work request already exists`,
-      )
-    }
-
-    const eventId = await this.createEvent(
-      initiator,
-      EventType.CreateWorkRequest,
-      {
-        taskId,
-        colonyAddress,
-      },
-    )
-    await this.createNotification(eventId, [creatorAddress])
-
-    return this.updateTask(
-      taskId,
-      {},
-      { $addToSet: { workRequestAddresses: initiator } },
-    )
-  }
-
-  async sendWorkInvite(
-    initiator: string,
-    taskId: string,
-    workerAddress: string,
-  ) {
-    await this.tryGetUser(initiator)
-    const { workInviteAddresses = [], colonyAddress } = await this.tryGetTask(
-      taskId,
-    )
-
-    await this.subscribeToTask(initiator, taskId)
-
-    if (workInviteAddresses.includes(workerAddress)) {
-      throw new Error(
-        `Unable to send work invite for '${workerAddress}'; work invite already sent`,
-      )
-    }
-
-    const eventId = await this.createEvent(
-      initiator,
-      EventType.SendWorkInvite,
-      {
-        taskId,
-        workerAddress,
-        colonyAddress,
-      },
-    )
-    await this.createNotification(eventId, [workerAddress])
-
-    return this.updateTask(
-      taskId,
-      {},
-      { $addToSet: { workInviteAddresses: workerAddress } },
-    )
-  }
-
-  async setTaskPayout(
-    initiator: string,
-    taskId: string,
-    amount: string,
-    tokenAddress: string,
-  ) {
-    await this.tryGetUser(initiator)
-    const { colonyAddress } = await this.tryGetTask(taskId)
-
-    await this.subscribeToTask(initiator, taskId)
-    const payout = { amount, tokenAddress }
-    const eventId = await this.createEvent(initiator, EventType.SetTaskPayout, {
-      taskId,
-      amount,
-      tokenAddress,
-      colonyAddress,
-    })
-    await this.createTaskNotification(initiator, eventId, taskId)
-    return this.updateTask(taskId, {}, { $addToSet: { payouts: payout } })
-  }
-
-  async removeTaskPayout(
-    initiator: string,
-    taskId: string,
-    amount: string,
-    tokenAddress: string,
-  ) {
-    await this.tryGetUser(initiator)
-    const { colonyAddress } = await this.tryGetTask(taskId)
-
-    await this.subscribeToTask(initiator, taskId)
-    const payout = { amount, tokenAddress }
-    const eventId = await this.createEvent(
-      initiator,
-      EventType.RemoveTaskPayout,
-      {
-        taskId,
-        amount,
-        tokenAddress,
-        colonyAddress,
-      },
-    )
-    await this.createTaskNotification(initiator, eventId, taskId)
-    return this.updateTask(taskId, {}, { $pull: { payouts: payout } })
-  }
-
-  async assignWorker(initiator: string, taskId: string, workerAddress: string) {
-    await this.tryGetUser(initiator)
-    const { colonyAddress } = await this.tryGetTask(taskId)
-
-    /*
-     * @NOTE Subscribe both the intiator (Ie: user with admin role) and the assigned worker to the task.
-     * This way we ensure that the asignee always gets notified
-     */
-    await this.subscribeToTask(initiator, taskId)
-    const workerExists = !!(await this.users.findOne({
-      walletAddress: workerAddress,
-    }))
-    if (workerExists) {
-      await this.subscribeToTask(workerAddress, taskId)
-    }
-
-    const eventId = await this.createEvent(initiator, EventType.AssignWorker, {
-      taskId,
-      workerAddress,
-      colonyAddress,
-    })
-    if (workerExists) {
-      await this.createNotification(eventId, [workerAddress])
-    }
-    return this.updateTask(
-      taskId,
-      {},
-      { $set: { assignedWorkerAddress: workerAddress } },
-    )
-  }
-
-  async unassignWorker(
-    initiator: string,
-    taskId: string,
-    workerAddress: string,
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetUser(workerAddress)
-    const { colonyAddress } = await this.tryGetTask(taskId)
-
-    /*
-     * @NOTE Only attempt to subscribe the initiator to the task
-     * This is is because the assignee is already asigned to this task, but the
-     * initiator (ie: user with admin role) might not be
-     */
-    await this.subscribeToTask(initiator, taskId)
-
-    const eventId = await this.createEvent(
-      initiator,
-      EventType.UnassignWorker,
-      {
-        taskId,
-        workerAddress,
-        colonyAddress,
-      },
-    )
-    await this.createNotification(eventId, [workerAddress])
-    return this.updateTask(
-      taskId,
-      { assignedWorkerAddress: workerAddress },
-      { $unset: { assignedWorkerAddress: '' } },
-    )
-  }
-
-  async setTaskPending(
-    initiator: string,
-    { taskId, txHash }: { taskId: string; txHash: string },
-  ) {
-    await this.tryGetUser(initiator)
-    const {
-      colonyAddress,
-      finalizedAt,
-      txHash: existingTxHash,
-    } = await this.tryGetTask(taskId)
-
-    if (finalizedAt || existingTxHash) {
-      throw new Error(`Task with ID ${taskId} is already (being) finalized`)
-    }
-
-    await this.createEvent(initiator, EventType.SetTaskPending, {
-      taskId,
-      colonyAddress,
-      txHash,
-    })
-    return this.updateTask(taskId, {}, { $set: { txHash } })
-  }
-
-  async finalizeTask(
-    initiator: string,
-    { taskId, ethPotId }: { taskId: string; ethPotId: number },
-  ) {
-    await this.tryGetUser(initiator)
-    const task = await this.tryGetTask(taskId)
-    const { colonyAddress } = task
-
-    if (
-      !(task.payouts && task.payouts.length > 0) ||
-      !task.assignedWorkerAddress
-    ) {
-      throw new Error(
-        `Unable to finalize task with ID '${taskId}: assigned worker and payout required'`,
-      )
-    }
-
-    await this.subscribeToTask(initiator, taskId)
-    const eventId = await this.createEvent(initiator, EventType.FinalizeTask, {
-      taskId,
-      colonyAddress,
-    })
-    await this.createTaskNotification(initiator, eventId, taskId)
-    return this.updateTask(
-      taskId,
-      {},
-      { $set: { finalizedAt: new Date(), ethPotId } },
-    )
-  }
-
-  async cancelTask(initiator: string, taskId: string) {
-    await this.tryGetUser(initiator)
-    const { colonyAddress } = await this.tryGetTask(taskId)
-
-    await this.subscribeToTask(initiator, taskId)
-    const eventId = await this.createEvent(initiator, EventType.CancelTask, {
-      taskId,
-      colonyAddress,
-    })
-    await this.createTaskNotification(initiator, eventId, taskId)
-    return this.updateTask(taskId, {}, { $set: { cancelledAt: new Date() } })
   }
 
   async markNotificationAsRead(initiator: string, id: string) {
@@ -703,27 +238,6 @@ export class ColonyMongoApi {
     return this.notifications.updateMany(filter, update)
   }
 
-  async sendTaskMessage(initiator: string, taskId: string, message: string) {
-    await this.tryGetUser(initiator)
-    const { colonyAddress } = await this.tryGetTask(taskId)
-
-    await this.subscribeToTask(initiator, taskId)
-    const eventId = await this.createEvent(initiator, EventType.TaskMessage, {
-      taskId,
-      message,
-      colonyAddress,
-    })
-
-    const { username: currentUsername } = await this.tryGetUser(initiator)
-    const mentioned = matchUsernames(message).filter(
-      (username) => username !== currentUsername,
-    )
-    const users = (
-      await this.users.find({ username: { $in: mentioned } }).toArray()
-    ).map(({ walletAddress }) => walletAddress)
-    await this.createNotification(eventId, users)
-  }
-
   async createSuggestion(
     initiator: string,
     colonyAddress: string,
@@ -748,11 +262,9 @@ export class ColonyMongoApi {
     initiator: string,
     id: string,
     {
-      taskId,
       ...edit
     }: {
       status?: SuggestionStatus
-      taskId?: string | null
       title?: string | null
     },
   ) {
@@ -760,7 +272,6 @@ export class ColonyMongoApi {
     await this.tryGetSuggestion(id)
     const update = ColonyMongoApi.createEditUpdater({
       ...edit,
-      taskId: taskId ? new ObjectID(taskId) : undefined,
     })
     return this.suggestions.updateOne({ _id: new ObjectID(id) }, update)
   }

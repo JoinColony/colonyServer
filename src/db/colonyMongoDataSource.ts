@@ -9,7 +9,6 @@ import {
   EventDoc,
   NotificationDoc,
   SuggestionDoc,
-  TaskDoc,
   TokenDoc,
   UserDoc,
 } from './types'
@@ -18,7 +17,6 @@ import {
   Event,
   Suggestion,
   SuggestionStatus,
-  Task,
   TokenInfo,
   User,
   EventType,
@@ -32,7 +30,6 @@ interface Collections {
   events: CachedCollection<EventDoc<any>>
   notifications: CachedCollection<NotificationDoc>
   suggestions: CachedCollection<SuggestionDoc>
-  tasks: CachedCollection<TaskDoc>
   tokens: CachedCollection<TokenDoc>
   users: CachedCollection<UserDoc>
 }
@@ -46,7 +43,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       db.collection(CollectionNames.Events),
       db.collection(CollectionNames.Notifications),
       db.collection(CollectionNames.Suggestions),
-      db.collection(CollectionNames.Tasks),
       db.collection(CollectionNames.Tokens),
       db.collection(CollectionNames.Users),
     ])
@@ -60,7 +56,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   private static transformUser({
     _id,
     colonyAddresses = [],
-    taskIds = [],
     tokenAddresses = [],
     ...profile
   }: UserDoc): User {
@@ -68,10 +63,8 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       id: profile.walletAddress,
       createdAt: _id.getTimestamp(),
       notifications: [],
-      tasks: [],
       colonyAddresses,
       tokenAddresses,
-      taskIds,
       profile,
     }
   }
@@ -82,10 +75,8 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       id: address,
       createdAt: new Date(0),
       notifications: [],
-      tasks: [],
       colonyAddresses: [],
       tokenAddresses: [],
-      taskIds: [],
       profile: {
         walletAddress: address,
       },
@@ -122,7 +113,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
 
   private static transformSuggestion({
     _id,
-    taskId,
     ...doc
   }: SuggestionDoc): Suggestion {
     return {
@@ -130,28 +120,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       id: _id.toHexString(),
       createdAt: _id.getTimestamp(),
       creator: undefined,
-      taskId: taskId ? taskId.toHexString() : undefined,
-    }
-  }
-
-  private static transformTask({
-    workInviteAddresses = [],
-    workRequestAddresses = [],
-    payouts = [],
-    _id,
-    ...doc
-  }: TaskDoc): Task {
-    return {
-      ...doc,
-      id: _id.toHexString(),
-      createdAt: _id.getTimestamp(),
-      events: [],
-      workInvites: [],
-      workRequests: [],
-      creator: undefined,
-      payouts: payouts.map((payout) => ({ ...payout, token: undefined })),
-      workRequestAddresses,
-      workInviteAddresses,
     }
   }
 
@@ -168,55 +136,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       transactionHash,
       count: messages[transactionHash],
     }))
-  }
-
-  async getTaskById(taskId: string, ttl?: number) {
-    const doc = ttl
-      ? await this.collections.tasks.findOneById(taskId, { ttl })
-      : await this.collections.tasks.collection.findOne({
-          _id: new ObjectID(taskId),
-        })
-
-    if (!doc) throw new Error(`Task with id '${taskId}' not found`)
-
-    return ColonyMongoDataSource.transformTask(doc)
-  }
-
-  async getTaskByEthId(colonyAddress: string, ethPotId: number, ttl?: number) {
-    const query = { colonyAddress, ethPotId }
-    const [doc] = ttl
-      ? await this.collections.tasks.findManyByQuery(query, { ttl })
-      : [await this.collections.tasks.collection.findOne(query)]
-
-    if (!doc)
-      throw new Error(
-        `Task with potId '${ethPotId}' for colony '${colonyAddress}' not found`,
-      )
-
-    return ColonyMongoDataSource.transformTask(doc)
-  }
-
-  async getTasksById(taskIds: string[], ttl?: number) {
-    const docs = ttl
-      ? await this.collections.tasks.findManyByIds(taskIds, { ttl })
-      : await this.collections.tasks.collection
-          .find({ _id: { $in: taskIds.map((id) => new ObjectID(id)) } })
-          .toArray()
-
-    return docs.map(ColonyMongoDataSource.transformTask)
-  }
-
-  async getTasksByEthDomainId(
-    colonyAddress: string,
-    ethDomainId: number,
-    ttl?: number,
-  ) {
-    const query = { colonyAddress, ethDomainId }
-    const docs = ttl
-      ? await this.collections.tasks.findManyByQuery(query, { ttl })
-      : await this.collections.tasks.collection.find(query).toArray()
-
-    return docs.map(ColonyMongoDataSource.transformTask)
   }
 
   async getSuggestionById(id: string, ttl?: number) {
@@ -319,24 +238,16 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     })
   }
 
-  async getTaskEvents(taskId: string, ttl?: number) {
-    const query = { 'context.taskId': taskId }
-    const events = ttl
-      ? await this.collections.events.findManyByQuery(query, { ttl })
-      : await this.collections.events.collection.find(query).toArray()
-    return events.map(ColonyMongoDataSource.transformEvent)
-  }
-
   async getTokenByAddress(tokenAddress: string, ttl?: number) {
     const query = { address: tokenAddress }
     const [token] = ttl
       ? await this.collections.tokens.findManyByQuery(query, { ttl })
       : [await this.collections.tokens.collection.findOne(query)]
-
+  
     if (!token) {
       throw new Error(`Token with address '${tokenAddress}' not found`)
     }
-
+  
     return ColonyMongoDataSource.transformToken(token)
   }
 
