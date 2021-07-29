@@ -5,6 +5,9 @@ import {
   ValidationError,
 } from 'apollo-server-express'
 import { Db } from 'mongodb'
+import { execute, subscribe } from 'graphql';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 
 import { isDevelopment } from '../env'
 import { getAddressFromToken } from '../auth'
@@ -23,6 +26,18 @@ import SystemInfo from './typeDefs/SystemInfo'
 import User from './typeDefs/User'
 import Transaction from './typeDefs/Transaction'
 import scalars from './typeDefs/scalars'
+
+const typeDefs = [
+  Event,
+  Mutation,
+  Query,
+  Suggestion,
+  TokenInfo,
+  SystemInfo,
+  User,
+  scalars,
+  Transaction,
+];
 
 const authenticate = (token: string) => {
   let user
@@ -57,17 +72,7 @@ export const createApolloServer = (db: Db, provider: Provider) => {
   const tokenInfo = new TokenInfoDataSource(provider)
 
   return new ApolloServer({
-    typeDefs: [
-      Event,
-      Mutation,
-      Query,
-      Suggestion,
-      TokenInfo,
-      SystemInfo,
-      User,
-      scalars,
-      Transaction,
-    ],
+    typeDefs,
     resolvers,
     formatError: (err) => {
       // MongoDB json schema validation
@@ -90,3 +95,12 @@ export const createApolloServer = (db: Db, provider: Provider) => {
     },
   })
 }
+
+export const createSubscriptionServer = (server, path) => {
+  const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+  return new SubscriptionServer(
+    { schema, execute, subscribe },
+    { server, path },
+  );
+};

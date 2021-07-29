@@ -4,10 +4,11 @@ import { json } from 'body-parser'
 import cors from 'cors'
 import { getChallenge, verifyEthSignature } from 'etherpass'
 import { getAddress } from 'ethers/utils'
+import { createServer } from 'http'
 
 config()
 
-import { createApolloServer } from './graphql'
+import { createApolloServer, createSubscriptionServer } from './graphql'
 import { getTokenForAddress } from './auth'
 import { connect } from './db/connect'
 import { provider } from './network/provider'
@@ -42,12 +43,17 @@ const startServer = async () => {
   })
 
   apolloServer.applyMiddleware({ app })
+  const websocketServer = createServer(app)
 
-  app.listen(port, () => {
+  websocketServer.listen(port, () => {
+    createSubscriptionServer(websocketServer, apolloServer.graphqlPath)
     console.log(`Started on port ${port}`)
     if (isDevelopment) {
       console.log(
         `GraphQL at http://localhost:${port}${apolloServer.graphqlPath}`,
+      )
+      console.log(
+        `Subscriptions at ws://localhost:${port}${apolloServer.graphqlPath}`,
       )
     }
   })
