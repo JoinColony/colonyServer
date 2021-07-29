@@ -45,6 +45,8 @@ const typeDefs = [
   Transaction,
 ]
 
+let dataSources = {}
+
 const resolvers = {
   ...queryResolvers,
   Subscription: subscriptionResolvers(pubSubInstance),
@@ -82,6 +84,8 @@ export const createApolloServer = (db: Db, provider: Provider) => {
   const auth = new ColonyAuthDataSource(provider)
   const tokenInfo = new TokenInfoDataSource(provider)
 
+  dataSources = { data, auth, tokenInfo }
+
   return new ApolloServer({
     typeDefs,
     resolvers,
@@ -94,7 +98,7 @@ export const createApolloServer = (db: Db, provider: Provider) => {
       // be manipulated in other ways, so long as it's returned.
       return err
     },
-    dataSources: () => ({ auth, data, tokenInfo }),
+    dataSources: () => dataSources,
     context: ({ req }) => {
       const token = (req.headers['x-access-token'] ||
         req.headers['authorization']) as string
@@ -108,10 +112,21 @@ export const createApolloServer = (db: Db, provider: Provider) => {
 }
 
 export const createSubscriptionServer = (server, path) => {
-  const schema = makeExecutableSchema({ typeDefs, resolvers })
+  const schema = makeExecutableSchema({
+    typeDefs,
+    resolvers,
+  })
 
   return new SubscriptionServer(
-    { schema, execute, subscribe },
+    {
+      schema,
+      execute,
+      subscribe,
+      onOperation: (message, params) => ({
+        ...params,
+        context: { dataSources: { ...dataSources } },
+      }),
+    },
     { server, path },
   )
 }
