@@ -27,6 +27,7 @@ import {
 } from './types'
 import { CollectionNames } from './collections'
 import { matchUsernames } from './matchers'
+import { ColonyMongoDataSource } from './colonyMongoDataSource'
 
 export class ColonyMongoApi {
   private static createEditUpdater(edit: Record<string, any>) {
@@ -315,15 +316,7 @@ export class ColonyMongoApi {
         colonyAddress,
       },
     )
-    const messages = await this.events
-      .find({ 'context.transactionHash': transactionHash })
-      .toArray()
-    this.pubsub.publish('TRANSACTION_MESSAGE_ADDED', {
-      transactionMessages: {
-        transactionHash,
-        messages,
-      },
-    })
+    this.pubsub.publish('TRANSACTION_MESSAGE_ADDED', { transactionHash })
     return newTransactionMessageId
   }
 }
