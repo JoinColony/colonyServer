@@ -317,6 +317,7 @@ export class ColonyMongoApi {
     )
     this.pubsub.publish(SubscriptionLabel.TransactionMessageAdded, {
       transactionHash,
+      colonyAddress,
     })
     return newTransactionMessageId
   }

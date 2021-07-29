@@ -1,4 +1,4 @@
-import { getTransactionMessages } from './Query'
+import { getTransactionMessages, getTransactionMessagesCount } from './Query'
 import { SubscriptionLabel } from '../subscriptionTypes'
 
 export const subscription = (pubsub) => ({
@@ -9,6 +9,8 @@ export const subscription = (pubsub) => ({
       pubsub.asyncIterator(SubscriptionLabel.TransactionMessageAdded),
   },
   transactionMessagesCount: {
+    resolve: async ({ colonyAddress }, args, { dataSources: { data } }) =>
+      await getTransactionMessagesCount(colonyAddress, data),
     subscribe: () =>
       pubsub.asyncIterator(SubscriptionLabel.TransactionMessageAdded),
   },
