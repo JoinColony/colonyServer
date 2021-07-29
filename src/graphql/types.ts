@@ -258,6 +258,22 @@ export type QueryTransactionMessagesCountArgs = {
   colonyAddress: Scalars['String'];
 };
 
+export type Subscription = {
+   __typename?: 'Subscription';
+  transactionMessages: TransactionMessages;
+  transactionMessagesCount: TransactionMessagesCount;
+};
+
+
+export type SubscriptionTransactionMessagesArgs = {
+  transactionHash: Scalars['String'];
+};
+
+
+export type SubscriptionTransactionMessagesCountArgs = {
+  colonyAddress: Scalars['String'];
+};
+
 export enum SuggestionStatus {
   Open = 'Open',
   NotPlanned = 'NotPlanned',
@@ -339,8 +355,12 @@ export type UserProfile = {
 
 
 export enum EventType {
+  AssignWorker = 'AssignWorker',
   CreateDomain = 'CreateDomain',
+  CreateWorkRequest = 'CreateWorkRequest',
   NewUser = 'NewUser',
+  SendWorkInvite = 'SendWorkInvite',
+  UnassignWorker = 'UnassignWorker',
   TransactionMessage = 'TransactionMessage'
 }
 
@@ -448,6 +468,7 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<{}>,
   ProgramStatus: ProgramStatus,
   Query: ResolverTypeWrapper<{}>,
+  Subscription: ResolverTypeWrapper<{}>,
   SuggestionStatus: SuggestionStatus,
   Suggestion: ResolverTypeWrapper<Suggestion>,
   SystemInfo: ResolverTypeWrapper<SystemInfo>,
@@ -494,6 +515,7 @@ export type ResolversParentTypes = {
   Mutation: {},
   ProgramStatus: ProgramStatus,
   Query: {},
+  Subscription: {},
   SuggestionStatus: SuggestionStatus,
   Suggestion: Suggestion,
   SystemInfo: SystemInfo,
@@ -580,6 +602,11 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   transactionMessagesCount?: Resolver<ResolversTypes['TransactionMessagesCount'], ParentType, ContextType, RequireFields<QueryTransactionMessagesCountArgs, 'colonyAddress'>>,
 };
 
+export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
+  transactionMessages?: SubscriptionResolver<ResolversTypes['TransactionMessages'], "transactionMessages", ParentType, ContextType, RequireFields<SubscriptionTransactionMessagesArgs, 'transactionHash'>>,
+  transactionMessagesCount?: SubscriptionResolver<ResolversTypes['TransactionMessagesCount'], "transactionMessagesCount", ParentType, ContextType, RequireFields<SubscriptionTransactionMessagesCountArgs, 'colonyAddress'>>,
+};
+
 export type SuggestionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Suggestion'] = ResolversParentTypes['Suggestion']> = {
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
@@ -661,6 +688,7 @@ export type Resolvers<ContextType = any> = {
   Notification?: NotificationResolvers<ContextType>,
   Mutation?: MutationResolvers<ContextType>,
   Query?: QueryResolvers<ContextType>,
+  Subscription?: SubscriptionResolvers<ContextType>,
   Suggestion?: SuggestionResolvers<ContextType>,
   SystemInfo?: SystemInfoResolvers<ContextType>,
   TokenInfo?: TokenInfoResolvers<ContextType>,

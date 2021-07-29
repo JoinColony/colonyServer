@@ -5,9 +5,10 @@ import {
   ValidationError,
 } from 'apollo-server-express'
 import { Db } from 'mongodb'
-import { execute, subscribe } from 'graphql';
-import { SubscriptionServer } from 'subscriptions-transport-ws';
-import { makeExecutableSchema } from '@graphql-tools/schema';
+import { execute, subscribe } from 'graphql'
+import { SubscriptionServer } from 'subscriptions-transport-ws'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { PubSub } from 'graphql-subscriptions'
 
 import { isDevelopment } from '../env'
 import { getAddressFromToken } from '../auth'
@@ -15,7 +16,8 @@ import { ColonyMongoApi } from '../db/colonyMongoApi'
 import { ColonyMongoDataSource } from '../db/colonyMongoDataSource'
 import { ColonyAuthDataSource } from '../network/colonyAuthDataSource'
 import { TokenInfoDataSource } from '../external/tokenInfoDataSource'
-import { resolvers } from './resolvers'
+import { resolvers as queryResolvers } from './resolvers'
+import { subscription as subscriptionResolvers } from './resolvers/Subscription'
 
 import Event from './typeDefs/Event'
 import Mutation from './typeDefs/Mutation'
@@ -26,18 +28,27 @@ import SystemInfo from './typeDefs/SystemInfo'
 import User from './typeDefs/User'
 import Transaction from './typeDefs/Transaction'
 import scalars from './typeDefs/scalars'
+import Subscriptions from './typeDefs/Subscriptions'
+
+const pubSubInstance = new PubSub()
 
 const typeDefs = [
   Event,
   Mutation,
   Query,
+  Subscriptions,
   Suggestion,
   TokenInfo,
   SystemInfo,
   User,
   scalars,
   Transaction,
-];
+]
+
+const resolvers = {
+  ...queryResolvers,
+  Subscription: subscriptionResolvers(pubSubInstance),
+}
 
 const authenticate = (token: string) => {
   let user
@@ -66,7 +77,7 @@ const authenticate = (token: string) => {
 }
 
 export const createApolloServer = (db: Db, provider: Provider) => {
-  const api = new ColonyMongoApi(db)
+  const api = new ColonyMongoApi(db, pubSubInstance)
   const data = new ColonyMongoDataSource(db)
   const auth = new ColonyAuthDataSource(provider)
   const tokenInfo = new TokenInfoDataSource(provider)
@@ -97,10 +108,10 @@ export const createApolloServer = (db: Db, provider: Provider) => {
 }
 
 export const createSubscriptionServer = (server, path) => {
-  const schema = makeExecutableSchema({ typeDefs, resolvers });
+  const schema = makeExecutableSchema({ typeDefs, resolvers })
 
   return new SubscriptionServer(
     { schema, execute, subscribe },
     { server, path },
-  );
-};
+  )
+}
