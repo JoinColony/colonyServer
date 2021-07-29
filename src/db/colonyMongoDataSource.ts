@@ -83,13 +83,14 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
   }
 
-  private static transformEvent<C extends object>({
+  static transformEvent<C extends object>({
     _id,
     context,
     type,
     ...doc
   }: EventDoc<C>): Event {
     const id = _id.toHexString()
+    console.log(doc)
     return {
       ...doc,
       id,
@@ -243,11 +244,11 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     const [token] = ttl
       ? await this.collections.tokens.findManyByQuery(query, { ttl })
       : [await this.collections.tokens.collection.findOne(query)]
-  
+
     if (!token) {
       throw new Error(`Token with address '${tokenAddress}' not found`)
     }
-  
+
     return ColonyMongoDataSource.transformToken(token)
   }
 

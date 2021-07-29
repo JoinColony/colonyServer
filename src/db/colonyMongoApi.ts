@@ -7,6 +7,7 @@ import {
   UpdateOneOptions,
 } from 'mongodb'
 import { toChecksumAddress } from 'web3-utils'
+import { PubSub } from 'graphql-subscriptions'
 
 import { ROOT_DOMAIN, AUTO_SUBSCRIBED_COLONIES } from '../constants'
 import { isETH } from '../utils'
@@ -44,8 +45,9 @@ export class ColonyMongoApi {
   private readonly suggestions: Collection<SuggestionDoc>
   private readonly users: Collection<UserDoc>
   private readonly submissions: Collection<SubmissionDoc>
+  private readonly pubsub: PubSub
 
-  constructor(db: Db) {
+  constructor(db: Db, pubsub: PubSub) {
     this.events = db.collection<EventDoc<any>>(CollectionNames.Events)
     this.notifications = db.collection<NotificationDoc>(
       CollectionNames.Notifications,
@@ -53,6 +55,7 @@ export class ColonyMongoApi {
     this.submissions = db.collection<SubmissionDoc>(CollectionNames.Submissions)
     this.suggestions = db.collection<SuggestionDoc>(CollectionNames.Suggestions)
     this.users = db.collection<UserDoc>(CollectionNames.Users)
+    this.pubsub = pubsub
   }
 
   private async updateUser(
@@ -303,10 +306,24 @@ export class ColonyMongoApi {
     message: string,
   ) {
     await this.tryGetUser(initiator)
-    return this.createEvent(initiator, EventType.TransactionMessage, {
-      transactionHash,
-      message,
-      colonyAddress,
+    const newTransactionMessageId = await this.createEvent(
+      initiator,
+      EventType.TransactionMessage,
+      {
+        transactionHash,
+        message,
+        colonyAddress,
+      },
+    )
+    const messages = await this.events
+      .find({ 'context.transactionHash': transactionHash })
+      .toArray()
+    this.pubsub.publish('TRANSACTION_MESSAGE_ADDED', {
+      transactionMessages: {
+        transactionHash,
+        messages,
+      },
     })
+    return newTransactionMessageId
   }
 }
