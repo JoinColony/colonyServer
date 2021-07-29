@@ -3,6 +3,7 @@ import { createTestClient } from 'apollo-server-testing'
 import { MongoClient, ObjectID } from 'mongodb'
 import fs from 'fs'
 import path from 'path'
+import { PubSub } from 'graphql-subscriptions'
 
 import { ColonyMongoApi } from '../../db/colonyMongoApi'
 import { ColonyMongoDataSource } from '../../db/colonyMongoDataSource'
@@ -100,6 +101,7 @@ describe('Apollo Server', () => {
   let api
   let data
   let auth
+  let pubsub
 
   const removeAll = async () => {
     await db.collection(CollectionNames.Colonies).deleteMany({})
@@ -116,8 +118,9 @@ describe('Apollo Server', () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     })
+    pubsub = new PubSub()
     db = await connection.db()
-    api = new ColonyMongoApi(db)
+    api = new ColonyMongoApi(db, pubsub)
     data = new ColonyMongoDataSource(db)
     auth = new ColonyAuthDataSource({} as any)
     await removeAll()
