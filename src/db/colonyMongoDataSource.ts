@@ -90,7 +90,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     ...doc
   }: EventDoc<C>): Event {
     const id = _id.toHexString()
-    console.log(doc)
     return {
       ...doc,
       id,
