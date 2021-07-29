@@ -12,6 +12,7 @@ import { PubSub } from 'graphql-subscriptions'
 import { ROOT_DOMAIN, AUTO_SUBSCRIBED_COLONIES } from '../constants'
 import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
+import { SubscriptionLabel } from '../graphql/subscriptionTypes'
 import { EventType, SuggestionStatus } from '../graphql/types'
 import {
   ColonyDoc,
@@ -26,8 +27,6 @@ import {
   LevelDoc,
 } from './types'
 import { CollectionNames } from './collections'
-import { matchUsernames } from './matchers'
-import { ColonyMongoDataSource } from './colonyMongoDataSource'
 
 export class ColonyMongoApi {
   private static createEditUpdater(edit: Record<string, any>) {
@@ -316,7 +315,9 @@ export class ColonyMongoApi {
         colonyAddress,
       },
     )
-    this.pubsub.publish('TRANSACTION_MESSAGE_ADDED', { transactionHash })
+    this.pubsub.publish(SubscriptionLabel.TransactionMessageAdded, {
+      transactionHash,
+    })
     return newTransactionMessageId
   }
 }
