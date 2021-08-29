@@ -122,6 +122,27 @@ export const createSubscriptionServer = (server, path) => {
       schema,
       execute,
       subscribe,
+      /*
+       * Subscriptions JWT Authentication
+       *
+       * In theory this works just as with the query/mutation authentication,
+       * however, unlike the request based model of queries/mutations, once
+       * the websocket connection is open it will stay open (an re-connect),
+       * meaning the wallet address with which you first subscribed will
+       * stay the same for the whole session.
+       *
+       * This gets a bit complicated with ethereal wallets (which are temporary),
+       * but on the other hand this is just read-only public data, this whole
+       * authentication setup was done for consistency purpouses only.
+       *
+       * But beware, if you actually need to guard something against unauthorized
+       * reads, you will need to make sure, you use the correct wallet address
+       * when first subscribing and opening the websocket connection
+       */
+      onConnect: ({ authorization }: { authorization?: string } = {}) => {
+        const userAddress = authenticate(authorization)
+        return { userAddress }
+      },
       onOperation: (message, params) => ({
         ...params,
         context: { dataSources: { ...dataSources } },
