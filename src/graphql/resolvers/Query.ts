@@ -21,6 +21,10 @@ export const getTransactionMessagesCount = async (colonyAddress, data) => {
   }
 }
 
+export const getSubscribedUsers = async (colonyAddress, data) => {
+  return await data.getColonySubscribedUsers(colonyAddress)
+}
+
 export const Query: QueryResolvers<ApolloContext> = {
   async user(parent, { address }, { dataSources: { data } }) {
     return data.getUserByAddress(address)
@@ -30,7 +34,7 @@ export const Query: QueryResolvers<ApolloContext> = {
     { colonyAddress }: { colonyAddress: string },
     { dataSources: { data } },
   ) {
-    return data.getColonySubscribedUsers(colonyAddress)
+    return await getSubscribedUsers(colonyAddress, data)
   },
   async tokenInfo(
     parent,

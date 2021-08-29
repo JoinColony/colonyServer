@@ -174,23 +174,33 @@ export class ColonyMongoApi {
   async subscribeToColony(initiator: string, colonyAddress: string) {
     await this.tryGetUser(initiator)
 
-    return this.updateUser(
+    const subscribedUser = await this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
       { colonyAddresses: { $ne: colonyAddress } },
       { $addToSet: { colonyAddresses: colonyAddress } },
     )
+    this.pubsub.publish(SubscriptionLabel.ColonySubscriptionUpdated, {
+      colonyAddress,
+    })
+
+    return subscribedUser
   }
 
   async unsubscribeFromColony(initiator: string, colonyAddress: string) {
     await this.tryGetUser(initiator)
 
-    return this.updateUser(
+    const unsubscribedUser = await this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
       { colonyAddresses: colonyAddress },
       { $pull: { colonyAddresses: colonyAddress } },
     )
+    this.pubsub.publish(SubscriptionLabel.ColonySubscriptionUpdated, {
+      colonyAddress,
+    })
+
+    return unsubscribedUser
   }
 
   async setUserTokens(initiator: string, tokenAddresses: string[]) {

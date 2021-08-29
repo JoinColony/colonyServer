@@ -1,6 +1,10 @@
 import { v4 as uuidv4 } from 'uuid'
 
-import { getTransactionMessages, getTransactionMessagesCount } from './Query'
+import {
+  getTransactionMessages,
+  getTransactionMessagesCount,
+  getSubscribedUsers,
+} from './Query'
 import { SubscriptionLabel } from '../subscriptionTypes'
 
 /*
@@ -54,4 +58,21 @@ export const subscription = (pubsub) => ({
       ])
     },
   },
-})
+  subscribedUsers: {
+    resolve: async ({ colonyAddress }, args, { dataSources: { data } }) =>
+      await getSubscribedUsers(colonyAddress, data),
+    subscribe: (args, { colonyAddress }) => {
+      /*
+       * @NOTE We need a client id to publish the subscription to, otherwise
+       * each new client subscription will reset and re-send all the subscription
+       * data out again
+       */
+      const id = uuidv4()
+      process.nextTick(() => pubsub.publish(id, { colonyAddress }))
+      return pubsub.asyncIterator([
+        id,
+        SubscriptionLabel.ColonySubscriptionUpdated,
+      ])
+    },
+  },
+});
