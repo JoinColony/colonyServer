@@ -6,6 +6,25 @@ import { NetworkTokenInfo } from '../../external/tokenInfoDataSource'
 import { SystemDataSource } from '../../external/systemDataSource'
 import { getTokenDecimalsWithFallback } from '../../utils'
 
+export const getTransactionMessages = async (transactionHash, data) => {
+  const messages = await data.getTransactionMessages(transactionHash)
+  return {
+    transactionHash,
+    messages,
+  }
+}
+
+export const getTransactionMessagesCount = async (colonyAddress, data) => {
+  const messagesCount = await data.getTransactionMessagesCount(colonyAddress)
+  return {
+    colonyTransactionMessages: messagesCount,
+  }
+}
+
+export const getSubscribedUsers = async (colonyAddress, data) => {
+  return await data.getColonySubscribedUsers(colonyAddress)
+}
+
 export const Query: QueryResolvers<ApolloContext> = {
   async user(parent, { address }, { dataSources: { data } }) {
     return data.getUserByAddress(address)
@@ -15,7 +34,7 @@ export const Query: QueryResolvers<ApolloContext> = {
     { colonyAddress }: { colonyAddress: string },
     { dataSources: { data } },
   ) {
-    return data.getColonySubscribedUsers(colonyAddress)
+    return await getSubscribedUsers(colonyAddress, data)
   },
   async tokenInfo(
     parent,
@@ -64,20 +83,13 @@ export const Query: QueryResolvers<ApolloContext> = {
     { transactionHash }: { transactionHash: string },
     { dataSources: { data } },
   ) {
-    const messages = await data.getTransactionMessages(transactionHash)
-    return {
-      transactionHash,
-      messages,
-    }
+    return await getTransactionMessages(transactionHash, data)
   },
   async transactionMessagesCount(
     parent,
     { colonyAddress }: { colonyAddress: string },
     { dataSources: { data } },
   ) {
-    const messagesCount = await data.getTransactionMessagesCount(colonyAddress)
-    return {
-      colonyTransactionMessages: messagesCount,
-    }
+    return await getTransactionMessagesCount(colonyAddress, data)
   },
 }

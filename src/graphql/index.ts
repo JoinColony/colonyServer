@@ -5,6 +5,10 @@ import {
   ValidationError,
 } from 'apollo-server-express'
 import { Db } from 'mongodb'
+import { execute, subscribe } from 'graphql'
+import { SubscriptionServer } from 'subscriptions-transport-ws'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { PubSub } from 'graphql-subscriptions'
 
 import { isDevelopment } from '../env'
 import { getAddressFromToken } from '../auth'
@@ -12,7 +16,8 @@ import { ColonyMongoApi } from '../db/colonyMongoApi'
 import { ColonyMongoDataSource } from '../db/colonyMongoDataSource'
 import { ColonyAuthDataSource } from '../network/colonyAuthDataSource'
 import { TokenInfoDataSource } from '../external/tokenInfoDataSource'
-import { resolvers } from './resolvers'
+import { resolvers as queryResolvers } from './resolvers'
+import { subscription as subscriptionResolvers } from './resolvers/Subscription'
 
 import Event from './typeDefs/Event'
 import Mutation from './typeDefs/Mutation'
@@ -23,6 +28,29 @@ import SystemInfo from './typeDefs/SystemInfo'
 import User from './typeDefs/User'
 import Transaction from './typeDefs/Transaction'
 import scalars from './typeDefs/scalars'
+import Subscriptions from './typeDefs/Subscriptions'
+
+const pubSubInstance = new PubSub()
+
+const typeDefs = [
+  Event,
+  Mutation,
+  Query,
+  Subscriptions,
+  Suggestion,
+  TokenInfo,
+  SystemInfo,
+  User,
+  scalars,
+  Transaction,
+]
+
+let dataSources = {}
+
+const resolvers = {
+  ...queryResolvers,
+  Subscription: subscriptionResolvers(pubSubInstance),
+}
 
 const authenticate = (token: string) => {
   let user
@@ -51,23 +79,15 @@ const authenticate = (token: string) => {
 }
 
 export const createApolloServer = (db: Db, provider: Provider) => {
-  const api = new ColonyMongoApi(db)
+  const api = new ColonyMongoApi(db, pubSubInstance)
   const data = new ColonyMongoDataSource(db)
   const auth = new ColonyAuthDataSource(provider)
   const tokenInfo = new TokenInfoDataSource(provider)
 
+  dataSources = { data, auth, tokenInfo }
+
   return new ApolloServer({
-    typeDefs: [
-      Event,
-      Mutation,
-      Query,
-      Suggestion,
-      TokenInfo,
-      SystemInfo,
-      User,
-      scalars,
-      Transaction,
-    ],
+    typeDefs,
     resolvers,
     formatError: (err) => {
       // MongoDB json schema validation
@@ -78,7 +98,7 @@ export const createApolloServer = (db: Db, provider: Provider) => {
       // be manipulated in other ways, so long as it's returned.
       return err
     },
-    dataSources: () => ({ auth, data, tokenInfo }),
+    dataSources: () => dataSources,
     context: ({ req }) => {
       const token = (req.headers['x-access-token'] ||
         req.headers['authorization']) as string
@@ -89,4 +109,45 @@ export const createApolloServer = (db: Db, provider: Provider) => {
       }
     },
   })
+}
+
+export const createSubscriptionServer = (server, path) => {
+  const schema = makeExecutableSchema({
+    typeDefs,
+    resolvers,
+  })
+
+  return new SubscriptionServer(
+    {
+      schema,
+      execute,
+      subscribe,
+      /*
+       * Subscriptions JWT Authentication
+       *
+       * In theory this works just as with the query/mutation authentication,
+       * however, unlike the request based model of queries/mutations, once
+       * the websocket connection is open it will stay open (an re-connect),
+       * meaning the wallet address with which you first subscribed will
+       * stay the same for the whole session.
+       *
+       * This gets a bit complicated with ethereal wallets (which are temporary),
+       * but on the other hand this is just read-only public data, this whole
+       * authentication setup was done for consistency purpouses only.
+       *
+       * But beware, if you actually need to guard something against unauthorized
+       * reads, you will need to make sure, you use the correct wallet address
+       * when first subscribing and opening the websocket connection
+       */
+      onConnect: ({ authorization }: { authorization?: string } = {}) => {
+        const userAddress = authenticate(authorization)
+        return { userAddress }
+      },
+      onOperation: (message, params) => ({
+        ...params,
+        context: { dataSources: { ...dataSources } },
+      }),
+    },
+    { server, path },
+  )
 }

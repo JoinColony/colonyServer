@@ -7,10 +7,12 @@ import {
   UpdateOneOptions,
 } from 'mongodb'
 import { toChecksumAddress } from 'web3-utils'
+import { PubSub } from 'graphql-subscriptions'
 
 import { ROOT_DOMAIN, AUTO_SUBSCRIBED_COLONIES } from '../constants'
 import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
+import { SubscriptionLabel } from '../graphql/subscriptionTypes'
 import { EventType, SuggestionStatus } from '../graphql/types'
 import {
   ColonyDoc,
@@ -25,7 +27,6 @@ import {
   LevelDoc,
 } from './types'
 import { CollectionNames } from './collections'
-import { matchUsernames } from './matchers'
 
 export class ColonyMongoApi {
   private static createEditUpdater(edit: Record<string, any>) {
@@ -44,8 +45,9 @@ export class ColonyMongoApi {
   private readonly suggestions: Collection<SuggestionDoc>
   private readonly users: Collection<UserDoc>
   private readonly submissions: Collection<SubmissionDoc>
+  private readonly pubsub: PubSub
 
-  constructor(db: Db) {
+  constructor(db: Db, pubsub: PubSub) {
     this.events = db.collection<EventDoc<any>>(CollectionNames.Events)
     this.notifications = db.collection<NotificationDoc>(
       CollectionNames.Notifications,
@@ -53,6 +55,7 @@ export class ColonyMongoApi {
     this.submissions = db.collection<SubmissionDoc>(CollectionNames.Submissions)
     this.suggestions = db.collection<SuggestionDoc>(CollectionNames.Suggestions)
     this.users = db.collection<UserDoc>(CollectionNames.Users)
+    this.pubsub = pubsub
   }
 
   private async updateUser(
@@ -171,23 +174,33 @@ export class ColonyMongoApi {
   async subscribeToColony(initiator: string, colonyAddress: string) {
     await this.tryGetUser(initiator)
 
-    return this.updateUser(
+    const subscribedUser = await this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
       { colonyAddresses: { $ne: colonyAddress } },
       { $addToSet: { colonyAddresses: colonyAddress } },
     )
+    this.pubsub.publish(SubscriptionLabel.ColonySubscriptionUpdated, {
+      colonyAddress,
+    })
+
+    return subscribedUser
   }
 
   async unsubscribeFromColony(initiator: string, colonyAddress: string) {
     await this.tryGetUser(initiator)
 
-    return this.updateUser(
+    const unsubscribedUser = await this.updateUser(
       initiator,
       // @ts-ignore This is too fiddly to type, for now
       { colonyAddresses: colonyAddress },
       { $pull: { colonyAddresses: colonyAddress } },
     )
+    this.pubsub.publish(SubscriptionLabel.ColonySubscriptionUpdated, {
+      colonyAddress,
+    })
+
+    return unsubscribedUser
   }
 
   async setUserTokens(initiator: string, tokenAddresses: string[]) {
@@ -303,10 +316,19 @@ export class ColonyMongoApi {
     message: string,
   ) {
     await this.tryGetUser(initiator)
-    return this.createEvent(initiator, EventType.TransactionMessage, {
+    const newTransactionMessageId = await this.createEvent(
+      initiator,
+      EventType.TransactionMessage,
+      {
+        transactionHash,
+        message,
+        colonyAddress,
+      },
+    )
+    this.pubsub.publish(SubscriptionLabel.TransactionMessageAdded, {
       transactionHash,
-      message,
       colonyAddress,
     })
+    return newTransactionMessageId
   }
 }
