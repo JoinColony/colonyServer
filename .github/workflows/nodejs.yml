@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.16.3]
+        node-version: [14.18.0]
 
     steps:
     - uses: actions/checkout@v2
@@ -35,6 +35,8 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - name: npm
+      run: npm i -g npm@8 --registry=https://registry.npmjs.org
     - run: npm ci
     - run: npm run typecheck
     - run: npm test
