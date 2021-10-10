@@ -1,6 +1,6 @@
 {
   "name": "colonyServer",
-  "version": "1.4.2",
+  "version": "1.5.1",
   "description": "",
   "engines": {
     "node": "14.18",
