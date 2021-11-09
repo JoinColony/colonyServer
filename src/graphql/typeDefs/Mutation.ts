@@ -54,25 +54,6 @@ export default gql`
     tokenAddresses: [String!]!
   }
 
-  input CreateSuggestionInput {
-    colonyAddress: String!
-    ethDomainId: Int!
-    title: String!
-  }
-
-  input SetSuggestionStatusInput {
-    id: String!
-    status: SuggestionStatus!
-  }
-
-  input AddUpvoteToSuggestionInput {
-    id: String!
-  }
-
-  input RemoveUpvoteFromSuggestionInput {
-    id: String!
-  }
-
   input Payout {
     amount: String!
     tokenAddress: String!
@@ -90,13 +71,6 @@ export default gql`
     # Notifications
     markAllNotificationsAsRead: Boolean!
     markNotificationAsRead(input: MarkNotificationAsReadInput!): Boolean!
-    # Suggestions
-    createSuggestion(input: CreateSuggestionInput!): Suggestion
-    setSuggestionStatus(input: SetSuggestionStatusInput!): Suggestion
-    addUpvoteToSuggestion(input: AddUpvoteToSuggestionInput!): Suggestion
-    removeUpvoteFromSuggestion(
-      input: RemoveUpvoteFromSuggestionInput!
-    ): Suggestion
     # Users
     createUser(input: CreateUserInput!): User # TODO find out why we can't use an exclamation mark here
     editUser(input: EditUserInput!): User
