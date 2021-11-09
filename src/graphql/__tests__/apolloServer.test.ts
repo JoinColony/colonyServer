@@ -11,7 +11,6 @@ import { ColonyAuthDataSource } from '../../network/colonyAuthDataSource'
 import Event from '../typeDefs/Event'
 import Mutation from '../typeDefs/Mutation'
 import Query from '../typeDefs/Query'
-import Suggestion from '../typeDefs/Suggestion'
 import TokenInfo from '../typeDefs/TokenInfo'
 import SystemInfo from '../typeDefs/SystemInfo'
 import Transaction from '../typeDefs/Transaction'
@@ -20,8 +19,8 @@ import scalars from '../typeDefs/scalars'
 import { resolvers } from '../resolvers'
 import { tryAuth } from '../resolvers/auth'
 import { insertDocs } from '../../testUtils'
-import { SuggestionDoc, UserDoc } from '../../db/types'
-import { EventType, SuggestionStatus } from '../types'
+import { UserDoc } from '../../db/types'
+import { EventType } from '../types'
 import { CollectionNames } from '../../db/collections'
 
 jest.mock('../../network/colonyAuthDataSource')
@@ -31,7 +30,6 @@ const typeDefs = [
   Event,
   Mutation,
   Query,
-  Suggestion,
   TokenInfo,
   SystemInfo,
   Transaction,
@@ -54,14 +52,6 @@ const user2Doc: Omit<UserDoc, '_id'> = {
   tokenAddresses: [],
 }
 
-const suggestionDoc: Omit<SuggestionDoc, '_id'> = {
-  colonyAddress: 'colony address',
-  ethDomainId: 1,
-  creatorAddress: user1Doc.walletAddress,
-  upvotes: [],
-  status: SuggestionStatus.Open,
-  title: 'Take this!',
-}
 const token1Doc = {
   address: '0x06441dEaF11D60d77e5e42d4f644C64Ca05C2Fc1',
   creatorAddress: user1Doc.walletAddress,

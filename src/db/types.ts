@@ -8,12 +8,7 @@ import {
   SetFields,
 } from 'mongodb'
 
-import {
-  EventType,
-  LevelStatus,
-  ProgramStatus,
-  SuggestionStatus,
-} from '../graphql/types'
+import { EventType, LevelStatus, ProgramStatus } from '../graphql/types'
 
 // Stricter than RootQuerySelector (only allows fields from T),
 // but doesn't allow dot-notation fields.
@@ -123,6 +118,13 @@ export interface SubmissionDoc extends MongoDoc {
 export interface ProgramSubmissionDoc extends MongoDoc {
   levelId: ObjectID
   submission: SubmissionDoc
+}
+
+enum SuggestionStatus {
+  Open = 'Open',
+  NotPlanned = 'NotPlanned',
+  Accepted = 'Accepted',
+  Deleted = 'Deleted',
 }
 
 export interface SuggestionDoc extends MongoDoc {

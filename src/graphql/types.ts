@@ -116,25 +116,6 @@ export type SetUserTokensInput = {
   tokenAddresses: Array<Scalars['String']>;
 };
 
-export type CreateSuggestionInput = {
-  colonyAddress: Scalars['String'];
-  ethDomainId: Scalars['Int'];
-  title: Scalars['String'];
-};
-
-export type SetSuggestionStatusInput = {
-  id: Scalars['String'];
-  status: SuggestionStatus;
-};
-
-export type AddUpvoteToSuggestionInput = {
-  id: Scalars['String'];
-};
-
-export type RemoveUpvoteFromSuggestionInput = {
-  id: Scalars['String'];
-};
-
 export type Payout = {
   amount: Scalars['String'];
   tokenAddress: Scalars['String'];
@@ -151,10 +132,6 @@ export type Mutation = {
   sendTransactionMessage: Scalars['Boolean'];
   markAllNotificationsAsRead: Scalars['Boolean'];
   markNotificationAsRead: Scalars['Boolean'];
-  createSuggestion?: Maybe<Suggestion>;
-  setSuggestionStatus?: Maybe<Suggestion>;
-  addUpvoteToSuggestion?: Maybe<Suggestion>;
-  removeUpvoteFromSuggestion?: Maybe<Suggestion>;
   createUser?: Maybe<User>;
   editUser?: Maybe<User>;
   subscribeToColony?: Maybe<User>;
@@ -170,26 +147,6 @@ export type MutationSendTransactionMessageArgs = {
 
 export type MutationMarkNotificationAsReadArgs = {
   input: MarkNotificationAsReadInput;
-};
-
-
-export type MutationCreateSuggestionArgs = {
-  input: CreateSuggestionInput;
-};
-
-
-export type MutationSetSuggestionStatusArgs = {
-  input: SetSuggestionStatusInput;
-};
-
-
-export type MutationAddUpvoteToSuggestionArgs = {
-  input: AddUpvoteToSuggestionInput;
-};
-
-
-export type MutationRemoveUpvoteFromSuggestionArgs = {
-  input: RemoveUpvoteFromSuggestionInput;
 };
 
 
@@ -262,6 +219,7 @@ export type Subscription = {
    __typename?: 'Subscription';
   transactionMessages: TransactionMessages;
   transactionMessagesCount: TransactionMessagesCount;
+  subscribedUsers: Array<User>;
 };
 
 
@@ -274,24 +232,9 @@ export type SubscriptionTransactionMessagesCountArgs = {
   colonyAddress: Scalars['String'];
 };
 
-export enum SuggestionStatus {
-  Open = 'Open',
-  NotPlanned = 'NotPlanned',
-  Accepted = 'Accepted',
-  Deleted = 'Deleted'
-}
 
-export type Suggestion = {
-   __typename?: 'Suggestion';
-  id: Scalars['String'];
-  createdAt: Scalars['GraphQLDateTime'];
+export type SubscriptionSubscribedUsersArgs = {
   colonyAddress: Scalars['String'];
-  creatorAddress: Scalars['String'];
-  creator: User;
-  ethDomainId: Scalars['Int'];
-  status: SuggestionStatus;
-  title: Scalars['String'];
-  upvotes: Array<Scalars['String']>;
 };
 
 export type SystemInfo = {
@@ -459,18 +402,12 @@ export type ResolversTypes = {
   MarkNotificationAsReadInput: MarkNotificationAsReadInput,
   EditDomainNameInput: EditDomainNameInput,
   SetUserTokensInput: SetUserTokensInput,
-  CreateSuggestionInput: CreateSuggestionInput,
-  SetSuggestionStatusInput: SetSuggestionStatusInput,
-  AddUpvoteToSuggestionInput: AddUpvoteToSuggestionInput,
-  RemoveUpvoteFromSuggestionInput: RemoveUpvoteFromSuggestionInput,
   Payout: Payout,
   SendTransactionMessageInput: SendTransactionMessageInput,
   Mutation: ResolverTypeWrapper<{}>,
   ProgramStatus: ProgramStatus,
   Query: ResolverTypeWrapper<{}>,
   Subscription: ResolverTypeWrapper<{}>,
-  SuggestionStatus: SuggestionStatus,
-  Suggestion: ResolverTypeWrapper<Suggestion>,
   SystemInfo: ResolverTypeWrapper<SystemInfo>,
   TokenInfo: ResolverTypeWrapper<TokenInfo>,
   TransactionMessages: ResolverTypeWrapper<TransactionMessages>,
@@ -506,18 +443,12 @@ export type ResolversParentTypes = {
   MarkNotificationAsReadInput: MarkNotificationAsReadInput,
   EditDomainNameInput: EditDomainNameInput,
   SetUserTokensInput: SetUserTokensInput,
-  CreateSuggestionInput: CreateSuggestionInput,
-  SetSuggestionStatusInput: SetSuggestionStatusInput,
-  AddUpvoteToSuggestionInput: AddUpvoteToSuggestionInput,
-  RemoveUpvoteFromSuggestionInput: RemoveUpvoteFromSuggestionInput,
   Payout: Payout,
   SendTransactionMessageInput: SendTransactionMessageInput,
   Mutation: {},
   ProgramStatus: ProgramStatus,
   Query: {},
   Subscription: {},
-  SuggestionStatus: SuggestionStatus,
-  Suggestion: Suggestion,
   SystemInfo: SystemInfo,
   TokenInfo: TokenInfo,
   TransactionMessages: TransactionMessages,
@@ -582,10 +513,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   sendTransactionMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendTransactionMessageArgs, 'input'>>,
   markAllNotificationsAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
   markNotificationAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationMarkNotificationAsReadArgs, 'input'>>,
-  createSuggestion?: Resolver<Maybe<ResolversTypes['Suggestion']>, ParentType, ContextType, RequireFields<MutationCreateSuggestionArgs, 'input'>>,
-  setSuggestionStatus?: Resolver<Maybe<ResolversTypes['Suggestion']>, ParentType, ContextType, RequireFields<MutationSetSuggestionStatusArgs, 'input'>>,
-  addUpvoteToSuggestion?: Resolver<Maybe<ResolversTypes['Suggestion']>, ParentType, ContextType, RequireFields<MutationAddUpvoteToSuggestionArgs, 'input'>>,
-  removeUpvoteFromSuggestion?: Resolver<Maybe<ResolversTypes['Suggestion']>, ParentType, ContextType, RequireFields<MutationRemoveUpvoteFromSuggestionArgs, 'input'>>,
   createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>,
   editUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationEditUserArgs, 'input'>>,
   subscribeToColony?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSubscribeToColonyArgs, 'input'>>,
@@ -605,19 +532,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   transactionMessages?: SubscriptionResolver<ResolversTypes['TransactionMessages'], "transactionMessages", ParentType, ContextType, RequireFields<SubscriptionTransactionMessagesArgs, 'transactionHash'>>,
   transactionMessagesCount?: SubscriptionResolver<ResolversTypes['TransactionMessagesCount'], "transactionMessagesCount", ParentType, ContextType, RequireFields<SubscriptionTransactionMessagesCountArgs, 'colonyAddress'>>,
-};
-
-export type SuggestionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Suggestion'] = ResolversParentTypes['Suggestion']> = {
-  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  createdAt?: Resolver<ResolversTypes['GraphQLDateTime'], ParentType, ContextType>,
-  colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  creatorAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>,
-  ethDomainId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>,
-  status?: Resolver<ResolversTypes['SuggestionStatus'], ParentType, ContextType>,
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
-  upvotes?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>,
-  __isTypeOf?: isTypeOfResolverFn<ParentType>,
+  subscribedUsers?: SubscriptionResolver<Array<ResolversTypes['User']>, "subscribedUsers", ParentType, ContextType, RequireFields<SubscriptionSubscribedUsersArgs, 'colonyAddress'>>,
 };
 
 export type SystemInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['SystemInfo'] = ResolversParentTypes['SystemInfo']> = {
@@ -689,7 +604,6 @@ export type Resolvers<ContextType = any> = {
   Mutation?: MutationResolvers<ContextType>,
   Query?: QueryResolvers<ContextType>,
   Subscription?: SubscriptionResolvers<ContextType>,
-  Suggestion?: SuggestionResolvers<ContextType>,
   SystemInfo?: SystemInfoResolvers<ContextType>,
   TokenInfo?: TokenInfoResolvers<ContextType>,
   TransactionMessages?: TransactionMessagesResolvers<ContextType>,
