@@ -22,7 +22,6 @@ import { subscription as subscriptionResolvers } from './resolvers/Subscription'
 import Event from './typeDefs/Event'
 import Mutation from './typeDefs/Mutation'
 import Query from './typeDefs/Query'
-import Suggestion from './typeDefs/Suggestion'
 import TokenInfo from './typeDefs/TokenInfo'
 import SystemInfo from './typeDefs/SystemInfo'
 import User from './typeDefs/User'
@@ -37,7 +36,6 @@ const typeDefs = [
   Mutation,
   Query,
   Subscriptions,
-  Suggestion,
   TokenInfo,
   SystemInfo,
   User,
