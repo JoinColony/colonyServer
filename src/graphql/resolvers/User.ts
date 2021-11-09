@@ -3,16 +3,6 @@ import { UserResolvers } from '../types'
 import { ETH_ADDRESS } from '../../constants'
 
 export const User: UserResolvers<ApolloContext> = {
-  async colonies({ colonyAddresses }, input, { dataSources: { data } }) {
-    return data.getColoniesByAddress(colonyAddresses)
-  },
-  async tasks(
-    { taskIds },
-    input, // TODO allow restriction of query, e.g. by open tasks
-    { dataSources: { data } },
-  ) {
-    return data.getTasksById(taskIds)
-  },
   async notifications(
     { id },
     { read }: { read?: boolean },
@@ -28,8 +18,5 @@ export const User: UserResolvers<ApolloContext> = {
     } else {
       return data.getAllUserNotifications(userAddress)
     }
-  },
-  completedLevels({ id }, { colonyAddress }, { dataSources: { data } }) {
-    return data.getUserCompletedLevels(id, colonyAddress)
   },
 }

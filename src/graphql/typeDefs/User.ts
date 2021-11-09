@@ -5,13 +5,9 @@ export default gql`
     id: String! # wallet address
     createdAt: GraphQLDateTime!
     profile: UserProfile!
-    colonies: [Colony!]!
     colonyAddresses: [String!]!
-    tasks: [Task!]!
-    taskIds: [String!]!
     tokenAddresses: [String!]!
     notifications(read: Boolean): [Notification!]! # Only provided for the current user
-    completedLevels(colonyAddress: String!): [Level!]!
   }
 
   type UserProfile {

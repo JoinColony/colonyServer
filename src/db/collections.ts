@@ -508,6 +508,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['initiatorAddress', {}],
         ['context.colonyAddress', { sparse: true }],
         ['context.taskId', { sparse: true }],
+        ['context.transactionHash', { sparse: true }],
       ],
     },
   ],
@@ -725,8 +726,8 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       indexes: [['address', {}]],
       seedDocs: [
         {
-          name: 'Ether',
-          symbol: 'ETH',
+          name: 'xDai Token',
+          symbol: 'XDAI',
           address: ETH_ADDRESS,
           creatorAddress: '',
           decimals: 18,
