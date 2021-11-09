@@ -3,33 +3,13 @@ import { MongoDataSource } from 'apollo-datasource-mongo'
 import { CachedCollection } from 'apollo-datasource-mongo/dist/cache'
 import { DataSource, DataSourceConfig } from 'apollo-datasource'
 
-import {
-  ColonyDoc,
-  DomainDoc,
-  EventDoc,
-  NotificationDoc,
-  SuggestionDoc,
-  TokenDoc,
-  UserDoc,
-} from './types'
+import { EventDoc, NotificationDoc, TokenDoc, UserDoc } from './types'
 import { CollectionNames } from './collections'
-import {
-  Event,
-  Suggestion,
-  SuggestionStatus,
-  TokenInfo,
-  User,
-  EventType,
-} from '../graphql/types'
-
-// TODO re-enable cache
-// const DEFAULT_TTL = { ttl: 10000 }
-const DEFAULT_TTL = { ttl: undefined }
+import { Event, TokenInfo, User, EventType } from '../graphql/types'
 
 interface Collections {
   events: CachedCollection<EventDoc<any>>
   notifications: CachedCollection<NotificationDoc>
-  suggestions: CachedCollection<SuggestionDoc>
   tokens: CachedCollection<TokenDoc>
   users: CachedCollection<UserDoc>
 }
@@ -42,7 +22,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     super([
       db.collection(CollectionNames.Events),
       db.collection(CollectionNames.Notifications),
-      db.collection(CollectionNames.Suggestions),
       db.collection(CollectionNames.Tokens),
       db.collection(CollectionNames.Users),
     ])
@@ -111,18 +90,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }
   }
 
-  private static transformSuggestion({
-    _id,
-    ...doc
-  }: SuggestionDoc): Suggestion {
-    return {
-      ...doc,
-      id: _id.toHexString(),
-      createdAt: _id.getTimestamp(),
-      creator: undefined,
-    }
-  }
-
   private static transformTransactionMessagesCount(
     transactionMessages: EventDoc<{ transactionHash: string }>[] = [],
   ): Array<{ transactionHash: string; count: number }> {
@@ -136,26 +103,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       transactionHash,
       count: messages[transactionHash],
     }))
-  }
-
-  async getSuggestionById(id: string, ttl?: number) {
-    const doc = ttl
-      ? await this.collections.suggestions.findOneById(id, { ttl })
-      : await this.collections.suggestions.collection.findOne({
-          _id: new ObjectID(id),
-        })
-
-    if (!doc) throw new Error(`Suggestion with id '${id}' not found`)
-
-    return ColonyMongoDataSource.transformSuggestion(doc)
-  }
-
-  async getColonySuggestions(colonyAddress: string, ttl?: number) {
-    const query = { colonyAddress, status: { $ne: SuggestionStatus.Deleted } }
-    const docs = ttl
-      ? await this.collections.suggestions.findManyByQuery(query, { ttl })
-      : await this.collections.suggestions.collection.find(query).toArray()
-    return docs.map(ColonyMongoDataSource.transformSuggestion)
   }
 
   async getUserByAddress(walletAddress: string, ttl?: number) {

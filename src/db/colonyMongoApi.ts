@@ -9,22 +9,16 @@ import {
 import { toChecksumAddress } from 'web3-utils'
 import { PubSub } from 'graphql-subscriptions'
 
-import { ROOT_DOMAIN, AUTO_SUBSCRIBED_COLONIES } from '../constants'
 import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
 import { SubscriptionLabel } from '../graphql/subscriptionTypes'
-import { EventType, SuggestionStatus } from '../graphql/types'
+import { EventType } from '../graphql/types'
 import {
-  ColonyDoc,
-  DomainDoc,
   EventDoc,
   NotificationDoc,
   StrictRootQuerySelector,
   StrictUpdateQuery,
-  SuggestionDoc,
   UserDoc,
-  SubmissionDoc,
-  LevelDoc,
 } from './types'
 import { CollectionNames } from './collections'
 
@@ -42,9 +36,7 @@ export class ColonyMongoApi {
 
   private readonly events: Collection<EventDoc<any>>
   private readonly notifications: Collection<NotificationDoc>
-  private readonly suggestions: Collection<SuggestionDoc>
   private readonly users: Collection<UserDoc>
-  private readonly submissions: Collection<SubmissionDoc>
   private readonly pubsub: PubSub
 
   constructor(db: Db, pubsub: PubSub) {
@@ -52,8 +44,6 @@ export class ColonyMongoApi {
     this.notifications = db.collection<NotificationDoc>(
       CollectionNames.Notifications,
     )
-    this.submissions = db.collection<SubmissionDoc>(CollectionNames.Submissions)
-    this.suggestions = db.collection<SuggestionDoc>(CollectionNames.Suggestions)
     this.users = db.collection<UserDoc>(CollectionNames.Users)
     this.pubsub = pubsub
   }
@@ -69,12 +59,6 @@ export class ColonyMongoApi {
       modifier,
       options,
     )
-  }
-
-  private async tryGetSuggestion(id: string) {
-    const suggestion = await this.suggestions.findOne(new ObjectID(id))
-    assert.ok(!!suggestion, `Suggestion with ID '${id}' not found`)
-    return suggestion
   }
 
   private async tryGetUser(walletAddress: string) {
@@ -249,64 +233,6 @@ export class ColonyMongoApi {
     > = { $set: { 'users.$.read': true } }
 
     return this.notifications.updateMany(filter, update)
-  }
-
-  async createSuggestion(
-    initiator: string,
-    colonyAddress: string,
-    ethDomainId: number,
-    title: string,
-  ) {
-    await this.tryGetUser(initiator)
-
-    const { insertedId } = await this.suggestions.insertOne({
-      colonyAddress,
-      creatorAddress: initiator,
-      ethDomainId,
-      status: SuggestionStatus.Open,
-      upvotes: [initiator],
-      title,
-    })
-
-    return insertedId.toString()
-  }
-
-  async editSuggestion(
-    initiator: string,
-    id: string,
-    {
-      ...edit
-    }: {
-      status?: SuggestionStatus
-      title?: string | null
-    },
-  ) {
-    await this.tryGetUser(initiator)
-    await this.tryGetSuggestion(id)
-    const update = ColonyMongoApi.createEditUpdater({
-      ...edit,
-    })
-    return this.suggestions.updateOne({ _id: new ObjectID(id) }, update)
-  }
-
-  async addUpvoteToSuggestion(initiator: string, id: string) {
-    // This effectively limits upvotes to users with a registered ENS name
-    await this.tryGetUser(initiator)
-    await this.tryGetSuggestion(id)
-    return this.suggestions.updateOne(
-      { _id: new ObjectID(id) },
-      { $addToSet: { upvotes: initiator } },
-    )
-  }
-
-  async removeUpvoteFromSuggestion(initiator: string, id: string) {
-    // This effectively limits upvotes to users with a registered ENS name
-    await this.tryGetUser(initiator)
-    await this.tryGetSuggestion(id)
-    return this.suggestions.updateOne(
-      { _id: new ObjectID(id) },
-      { $pull: { upvotes: initiator } },
-    )
   }
 
   async sendTransactionMessage(
