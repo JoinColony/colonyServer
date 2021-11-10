@@ -35,6 +35,7 @@ export type TransactionMessageEvent = {
   transactionHash: Scalars['String'];
   message: Scalars['String'];
   colonyAddress: Scalars['String'];
+  deleted?: Maybe<Scalars['Boolean']>;
 };
 
 export type EventContext = CreateDomainEvent | NewUserEvent | TransactionMessageEvent;
@@ -483,6 +484,7 @@ export type TransactionMessageEventResolvers<ContextType = any, ParentType exten
   transactionHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  deleted?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>,
   __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 

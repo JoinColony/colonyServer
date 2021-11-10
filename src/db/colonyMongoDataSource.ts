@@ -198,6 +198,10 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return ColonyMongoDataSource.transformToken(token)
   }
 
+  /*
+   * @TODO Filter out deleted comments and comments by users who are banned,
+   * if the user doesn't have permissions to view them (they still need to be returned for admins)
+   */
   async getTransactionMessages(transactionHash: string, ttl?: number) {
     const query = { 'context.transactionHash': transactionHash }
     const events = ttl
@@ -206,6 +210,10 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return events.map(ColonyMongoDataSource.transformEvent)
   }
 
+  /*
+   * @TODO Filter out deleted comments and comments by users who are banned,
+   * if the user doesn't have permissions to view them (they still need to be returned for admins)
+   */
   async getTransactionMessagesCount(colonyAddress: string, ttl?: number) {
     const query = {
       'context.colonyAddress': colonyAddress,

@@ -249,6 +249,7 @@ export class ColonyMongoApi {
         transactionHash,
         message,
         colonyAddress,
+        deleted: false,
       },
     )
     this.pubsub.publish(SubscriptionLabel.TransactionMessageAdded, {

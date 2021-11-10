@@ -1,7 +1,6 @@
 import { gql } from 'apollo-server-express'
 
 export default gql`
-
   interface ColonyEvent {
     type: EventType!
     colonyAddress: String
@@ -22,10 +21,11 @@ export default gql`
     transactionHash: String!
     message: String!
     colonyAddress: String!
+    deleted: Boolean
   }
 
   union EventContext =
-    | CreateDomainEvent
+      CreateDomainEvent
     | NewUserEvent
     | TransactionMessageEvent
 
