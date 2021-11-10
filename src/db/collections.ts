@@ -3,6 +3,7 @@ import {
   ColonyDoc,
   DomainDoc,
   EventDoc,
+  EventBansDoc,
   LevelDoc,
   NotificationDoc,
   PersistentTaskDoc,
@@ -18,6 +19,7 @@ import { ETH_ADDRESS } from '../constants'
 export enum CollectionNames {
   Colonies = 'colonies',
   Domains = 'domains',
+  EventBans = 'eventBans',
   Events = 'events',
   Levels = 'levels',
   Notifications = 'notifications',
@@ -510,6 +512,38 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         ['context.taskId', { sparse: true }],
         ['context.transactionHash', { sparse: true }],
       ],
+    },
+  ],
+  [
+    CollectionNames.EventBans,
+    {
+      create: {
+        validator: {
+          $jsonSchema: {
+            additionalProperties: false,
+            bsonType: 'object',
+            required: ['colonyAddress'],
+            properties: {
+              _id: { bsonType: 'objectId' },
+              colonyAddress: {
+                bsonType: 'string',
+                description: 'must be a string and is required',
+                maxLength: 42,
+              },
+              bannedWalletAddresses: {
+                bsonType: 'array',
+                description: 'must be an array of user addresses',
+                uniqueItems: true,
+                additionalProperties: false,
+                items: {
+                  bsonType: 'string',
+                },
+              },
+            } as SchemaFields<EventBansDoc>,
+          },
+        },
+      },
+      indexes: [['colonyAddress', { unique: true }]],
     },
   ],
   [
