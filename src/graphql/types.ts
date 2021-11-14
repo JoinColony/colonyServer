@@ -130,6 +130,7 @@ export type SendTransactionMessageInput = {
 
 export type DeleteTransactionMessageInput = {
   id: Scalars['String'];
+  colonyAddress: Scalars['String'];
 };
 
 export type Mutation = {

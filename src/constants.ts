@@ -1,3 +1,8 @@
+export const ROOT_DOMAIN = 1
+
+/*
+ * @TODO Remove and replace with AddressZero from ethers/utils
+ */
 export const ETH_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 /*

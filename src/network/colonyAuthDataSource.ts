@@ -1,4 +1,3 @@
-import assert from 'assert'
 import { DataSource } from 'apollo-datasource'
 import { Provider } from 'ethers/providers'
 
@@ -7,6 +6,7 @@ import { IColonyFactory } from './contracts/IColonyFactory'
 import { IColonyNetwork } from './contracts/IColonyNetwork'
 import { IColonyNetworkFactory } from './contracts/IColonyNetworkFactory'
 import { disableAuthCheck } from '../env'
+import { ROOT_DOMAIN } from '../constants'
 
 enum ColonyRoles {
   Recovery,
@@ -22,21 +22,19 @@ type ColonyAddress = string
 type UserAddress = string
 type DomainId = number
 
-enum AuthChecks {}
+enum AuthChecks {
+  DeleteComment = 'DeleteComment',
+}
 
-enum AuthTypes {}
+enum AuthTypes {
+  Colony,
+}
 
 interface ColonyAuthArgs {
   userAddress: UserAddress
   colonyAddress: ColonyAddress
+  domainId?: DomainId
 }
-
-interface DomainAuthArgs extends ColonyAuthArgs {
-  domainId: DomainId
-}
-
-// TODO extend with { taskId: TaskID } for taskId-specific auth checks, if needed
-type TaskAuthArgs = DomainAuthArgs
 
 interface AuthDeclaration {
   description: string
@@ -44,7 +42,14 @@ interface AuthDeclaration {
   type: AuthTypes
 }
 
-const AUTH_DECLARATIONS: Record<AuthChecks, AuthDeclaration> = {}
+const AUTH_DECLARATIONS: Record<AuthChecks, AuthDeclaration> = {
+  // Comment
+  DeleteComment: {
+    description: "Delete a user's comment",
+    roles: [ColonyRoles.Root, ColonyRoles.Administration],
+    type: AuthTypes.Colony,
+  },
+}
 
 // TODO detect and support different Colony versions
 class ColoniesMap extends Map<ColonyAddress, IColony> {
@@ -68,32 +73,13 @@ class ColoniesMap extends Map<ColonyAddress, IColony> {
 export class ColonyAuthDataSource extends DataSource<any> {
   private static notAuthorizedMessage(
     description: string,
-    {
-      userAddress,
-      colonyAddress,
-      ...args
-    }: ColonyAuthArgs | DomainAuthArgs | TaskAuthArgs,
+    { userAddress, colonyAddress }: ColonyAuthArgs,
   ) {
-    let message = `${description} not authorized for user '${userAddress}' on colony '${colonyAddress}'`
-
-    if ((args as DomainAuthArgs).domainId) {
-      message += ` with domain '${(args as DomainAuthArgs).domainId}'`
-    }
-
-    return message
+    return `${description} not authorized for user '${userAddress}' on colony '${colonyAddress}'`
   }
 
-  private static async assertIsAuthorized(
-    authPromise: Promise<boolean>,
-    description: string,
-    args: ColonyAuthArgs | DomainAuthArgs | TaskAuthArgs,
-  ) {
-    const isAuthorized = await authPromise
-    assert.ok(
-      isAuthorized,
-      ColonyAuthDataSource.notAuthorizedMessage(description, args),
-    )
-    return isAuthorized
+  private static async assertIsAuthorized(authPromise: Promise<boolean>) {
+    return authPromise
   }
 
   private readonly colonies: ColoniesMap
@@ -112,7 +98,7 @@ export class ColonyAuthDataSource extends DataSource<any> {
 
   private async hasRole(
     role: ColonyRoles,
-    { userAddress, colonyAddress, domainId }: DomainAuthArgs,
+    { userAddress, colonyAddress, domainId }: ColonyAuthArgs,
   ) {
     if (disableAuthCheck) {
       return true
@@ -122,10 +108,21 @@ export class ColonyAuthDataSource extends DataSource<any> {
       .hasUserRole(userAddress, domainId, role)
   }
 
-  private async hasSomeRole(roles: ColonyRoles[], args: DomainAuthArgs) {
+  private async hasSomeRole(roles: ColonyRoles[], args: ColonyAuthArgs) {
     const userRoles = await Promise.all(
       roles.map((role) => this.hasRole(role, args)),
     )
     return userRoles.some(Boolean)
+  }
+
+  private async assertForColony(check: AuthChecks, args: ColonyAuthArgs) {
+    const { roles } = AUTH_DECLARATIONS[check]
+    return ColonyAuthDataSource.assertIsAuthorized(
+      this.hasSomeRole(roles, { ...args, domainId: ROOT_DOMAIN }),
+    )
+  }
+
+  async assertCanDeleteComment(args: ColonyAuthArgs) {
+    return this.assertForColony(AuthChecks.DeleteComment, args)
   }
 }

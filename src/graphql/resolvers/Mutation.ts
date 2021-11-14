@@ -1,5 +1,6 @@
 import { ApolloContext } from '../apolloTypes'
 import { MutationResolvers } from '../types'
+import { checkAuth } from './auth'
 
 export const Mutation: MutationResolvers<ApolloContext> = {
   // Users
@@ -74,10 +75,16 @@ export const Mutation: MutationResolvers<ApolloContext> = {
   },
   async deleteTransactionMessage(
     parent,
-    { input: { id } },
-    { userAddress, api, dataSources: { data } },
+    { input: { id, colonyAddress } },
+    { userAddress, api, dataSources: { data, auth } },
   ) {
-    await api.deleteTransactionMessage(userAddress, id)
+    const adminOverride = await checkAuth(
+      auth.assertCanDeleteComment({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.deleteTransactionMessage(userAddress, id, adminOverride)
     return true
   },
 }

@@ -67,6 +67,7 @@ export default gql`
 
   input DeleteTransactionMessageInput {
     id: String!
+    colonyAddress: String!
   }
 
   type Mutation {

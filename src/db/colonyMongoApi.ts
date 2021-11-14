@@ -269,11 +269,21 @@ export class ColonyMongoApi {
     return newTransactionMessageId
   }
 
-  async deleteTransactionMessage(initiator: string, id: string) {
+  async deleteTransactionMessage(
+    initiator: string,
+    id: string,
+    adminOverride: boolean = false,
+  ) {
     await this.tryGetUser(initiator)
     const comment = await this.tryGetComment(id)
 
-    // assert.ok(initiator === comment.initiatorAddress || , `User with address '${walletAddress}' not found`)
+    if (!adminOverride) {
+      assert.ok(
+        initiator === comment.initiatorAddress,
+        `User '${initiator}' connot delete a comment they do not own`,
+      )
+    }
+
     const filter: StrictRootQuerySelector<EventDoc<TransactionMessageEvent>> = {
       _id: new ObjectID(id),
     }
