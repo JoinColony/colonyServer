@@ -1,4 +1,5 @@
 import { CollectionCreateOptions, IndexOptions } from 'mongodb'
+import { AddressZero } from 'ethers/constants'
 import {
   ColonyDoc,
   DomainDoc,
@@ -14,7 +15,6 @@ import {
   TokenDoc,
   UserDoc,
 } from './types'
-import { ETH_ADDRESS } from '../constants'
 
 export enum CollectionNames {
   Colonies = 'colonies',
@@ -762,7 +762,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         {
           name: 'xDai Token',
           symbol: 'XDAI',
-          address: ETH_ADDRESS,
+          address: AddressZero,
           creatorAddress: '',
           decimals: 18,
         },

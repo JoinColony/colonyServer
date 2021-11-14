@@ -1,6 +1,5 @@
 import { ApolloContext } from '../apolloTypes'
 import { UserResolvers } from '../types'
-import { ETH_ADDRESS } from '../../constants'
 
 export const User: UserResolvers<ApolloContext> = {
   async notifications(
