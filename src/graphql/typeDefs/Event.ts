@@ -22,6 +22,7 @@ export default gql`
     message: String!
     colonyAddress: String!
     deleted: Boolean
+    adminDelete: Boolean
   }
 
   union EventContext =

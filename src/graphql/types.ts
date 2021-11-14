@@ -36,6 +36,7 @@ export type TransactionMessageEvent = {
   message: Scalars['String'];
   colonyAddress: Scalars['String'];
   deleted?: Maybe<Scalars['Boolean']>;
+  adminDelete?: Maybe<Scalars['Boolean']>;
 };
 
 export type EventContext = CreateDomainEvent | NewUserEvent | TransactionMessageEvent;
@@ -498,6 +499,7 @@ export type TransactionMessageEventResolvers<ContextType = any, ParentType exten
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   deleted?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>,
+  adminDelete?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>,
   __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 

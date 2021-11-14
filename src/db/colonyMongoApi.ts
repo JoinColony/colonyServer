@@ -260,6 +260,7 @@ export class ColonyMongoApi {
         message,
         colonyAddress,
         deleted: false,
+        adminDelete: false,
       },
     )
     this.pubsub.publish(SubscriptionLabel.TransactionMessageAdded, {
@@ -288,9 +289,17 @@ export class ColonyMongoApi {
       _id: new ObjectID(id),
     }
 
-    return this.events.updateOne(filter, {
+    let set = {
       $set: { 'context.deleted': true },
-    } as StrictUpdateQuery<EventDoc<TransactionMessageEvent>>)
+    } as StrictUpdateQuery<EventDoc<TransactionMessageEvent>>
+
+    if (adminOverride) {
+      set = {
+        $set: { 'context.adminDelete': true },
+      } as StrictUpdateQuery<EventDoc<TransactionMessageEvent>>
+    }
+
+    return this.events.updateOne(filter, set)
     /*
      * @TODO Don't forget about subscriptions
      */
