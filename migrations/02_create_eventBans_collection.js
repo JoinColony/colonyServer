@@ -25,8 +25,17 @@ db.createCollection(
             uniqueItems: true,
             additionalProperties: false,
             items: {
-              bsonType: 'string',
-            }
+              bsonType: 'object',
+              required: ['userAddress', 'eventId'],
+              properties: {
+                userAddress: {
+                  bsonType: 'string',
+                },
+                eventId: {
+                  bsonType: 'objectId',
+                },
+              },
+            },
           }
         }
       }

@@ -536,7 +536,16 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
                 uniqueItems: true,
                 additionalProperties: false,
                 items: {
-                  bsonType: 'string',
+                  bsonType: 'object',
+                  required: ['userAddress', 'eventId'],
+                  properties: {
+                    userAddress: {
+                      bsonType: 'string',
+                    },
+                    eventId: {
+                      bsonType: 'objectId',
+                    },
+                  },
                 },
               },
             } as SchemaFields<EventBansDoc>,
