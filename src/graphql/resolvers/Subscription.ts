@@ -38,6 +38,7 @@ export const subscription = (pubsub) => ({
       return pubsub.asyncIterator([
         id,
         SubscriptionLabel.TransactionMessageAdded,
+        SubscriptionLabel.TransactionMessageDeleted,
       ])
     },
   },
@@ -55,6 +56,7 @@ export const subscription = (pubsub) => ({
       return pubsub.asyncIterator([
         id,
         SubscriptionLabel.TransactionMessageAdded,
+        SubscriptionLabel.TransactionMessageDeleted,
       ])
     },
   },
@@ -75,4 +77,4 @@ export const subscription = (pubsub) => ({
       ])
     },
   },
-});
+})

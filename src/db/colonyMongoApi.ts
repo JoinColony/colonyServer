@@ -276,11 +276,14 @@ export class ColonyMongoApi {
     adminOverride: boolean = false,
   ) {
     await this.tryGetUser(initiator)
-    const comment = await this.tryGetComment(id)
+    const {
+      initiatorAddress,
+      context: { transactionHash, colonyAddress },
+    } = await this.tryGetComment(id)
 
     if (!adminOverride) {
       assert.ok(
-        initiator === comment.initiatorAddress,
+        initiator === initiatorAddress,
         `User '${initiator}' connot delete a comment they do not own`,
       )
     }
@@ -299,9 +302,11 @@ export class ColonyMongoApi {
       } as StrictUpdateQuery<EventDoc<TransactionMessageEvent>>
     }
 
+    this.pubsub.publish(SubscriptionLabel.TransactionMessageDeleted, {
+      transactionHash,
+      colonyAddress,
+    })
+
     return this.events.updateOne(filter, set)
-    /*
-     * @TODO Don't forget about subscriptions
-     */
   }
 }
