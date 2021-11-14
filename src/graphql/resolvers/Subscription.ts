@@ -39,6 +39,8 @@ export const subscription = (pubsub) => ({
         id,
         SubscriptionLabel.TransactionMessageAdded,
         SubscriptionLabel.TransactionMessageDeleted,
+        SubscriptionLabel.UserWasBanned,
+        SubscriptionLabel.UserWasUnBanned,
       ])
     },
   },
@@ -57,6 +59,8 @@ export const subscription = (pubsub) => ({
         id,
         SubscriptionLabel.TransactionMessageAdded,
         SubscriptionLabel.TransactionMessageDeleted,
+        SubscriptionLabel.UserWasBanned,
+        SubscriptionLabel.UserWasUnBanned,
       ])
     },
   },

@@ -13,25 +13,6 @@ export default gql`
     website: String
   }
 
-  input CreateWorkRequestInput {
-    id: String!
-  }
-
-  input SendWorkInviteInput {
-    id: String!
-    workerAddress: String!
-  }
-
-  input AssignWorkerInput {
-    id: String!
-    workerAddress: String!
-  }
-
-  input UnassignWorkerInput {
-    id: String!
-    workerAddress: String!
-  }
-
   input SubscribeToColonyInput {
     colonyAddress: String!
   }
@@ -44,19 +25,8 @@ export default gql`
     id: String!
   }
 
-  input EditDomainNameInput {
-    colonyAddress: String!
-    ethDomainId: Int!
-    name: String!
-  }
-
   input SetUserTokensInput {
     tokenAddresses: [String!]!
-  }
-
-  input Payout {
-    amount: String!
-    tokenAddress: String!
   }
 
   input SendTransactionMessageInput {
@@ -70,10 +40,18 @@ export default gql`
     colonyAddress: String!
   }
 
+  input BanTransactionMessagesInput {
+    colonyAddress: String!
+    userAddress: String!
+    eventId: String!
+  }
+
   type Mutation {
     # Messages
     sendTransactionMessage(input: SendTransactionMessageInput!): Boolean!
     deleteTransactionMessage(input: DeleteTransactionMessageInput!): Boolean!
+    # Banning
+    banUserTransactionMessages(input: BanTransactionMessagesInput!): Boolean!
     # Notifications
     markAllNotificationsAsRead: Boolean!
     markNotificationAsRead(input: MarkNotificationAsReadInput!): Boolean!

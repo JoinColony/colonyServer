@@ -23,7 +23,8 @@ type UserAddress = string
 type DomainId = number
 
 enum AuthChecks {
-  DeleteComment = 'DeleteComment',
+  DeleteCommentAsAdmin = 'DeleteCommentAsAdmin',
+  BanUser = 'BanUser',
 }
 
 enum AuthTypes {
@@ -44,8 +45,14 @@ interface AuthDeclaration {
 
 const AUTH_DECLARATIONS: Record<AuthChecks, AuthDeclaration> = {
   // Comment
-  DeleteComment: {
-    description: "Delete a user's comment",
+  DeleteCommentAsAdmin: {
+    description: "Delete a user's comment with admin privilesges",
+    roles: [ColonyRoles.Root, ColonyRoles.Administration],
+    type: AuthTypes.Colony,
+  },
+  // User banning / unbanning
+  BanUser: {
+    description: 'Ban a user from commenting on a colony again',
     roles: [ColonyRoles.Root, ColonyRoles.Administration],
     type: AuthTypes.Colony,
   },
@@ -123,6 +130,10 @@ export class ColonyAuthDataSource extends DataSource<any> {
   }
 
   async assertCanDeleteComment(args: ColonyAuthArgs) {
-    return this.assertForColony(AuthChecks.DeleteComment, args)
+    return this.assertForColony(AuthChecks.DeleteCommentAsAdmin, args)
+  }
+
+  async assertCanBanUser(args: ColonyAuthArgs) {
+    return this.assertForColony(AuthChecks.BanUser, args)
   }
 }

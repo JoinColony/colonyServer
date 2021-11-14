@@ -1,6 +1,6 @@
 import { ApolloContext } from '../apolloTypes'
 import { MutationResolvers } from '../types'
-import { checkAuth } from './auth'
+import { checkAuth, tryAuth } from './auth'
 
 export const Mutation: MutationResolvers<ApolloContext> = {
   // Users
@@ -59,7 +59,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     await api.markAllNotificationsAsRead(userAddress)
     return true
   },
-  // Messages
+  // Messages (Comments)
   async sendTransactionMessage(
     parent,
     { input: { transactionHash, message, colonyAddress } },
@@ -85,6 +85,26 @@ export const Mutation: MutationResolvers<ApolloContext> = {
       }),
     )
     await api.deleteTransactionMessage(userAddress, id, adminOverride)
+    return true
+  },
+  // Messages (Comments) User Banning
+  async banUserTransactionMessages(
+    parent,
+    { input: { colonyAddress, userAddress, eventId } },
+    { userAddress: initiatorAddress, api, dataSources: { data, auth } },
+  ) {
+    await tryAuth(
+      auth.assertCanBanUser({
+        colonyAddress,
+        userAddress: initiatorAddress,
+      }),
+    )
+    await api.banUserTransactionMessages(
+      initiatorAddress,
+      colonyAddress,
+      userAddress,
+      eventId,
+    )
     return true
   },
 }

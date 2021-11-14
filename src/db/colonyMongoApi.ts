@@ -14,6 +14,7 @@ import { EventContextOfType } from '../graphql/eventContext'
 import { SubscriptionLabel } from '../graphql/subscriptionTypes'
 import { EventType, TransactionMessageEvent } from '../graphql/types'
 import {
+  EventBansDoc,
   EventDoc,
   NotificationDoc,
   StrictRootQuerySelector,
@@ -35,12 +36,14 @@ export class ColonyMongoApi {
   }
 
   private readonly events: Collection<EventDoc<any>>
+  private readonly eventBans: Collection<EventBansDoc>
   private readonly notifications: Collection<NotificationDoc>
   private readonly users: Collection<UserDoc>
   private readonly pubsub: PubSub
 
   constructor(db: Db, pubsub: PubSub) {
     this.events = db.collection<EventDoc<any>>(CollectionNames.Events)
+    this.eventBans = db.collection<EventBansDoc>(CollectionNames.EventBans)
     this.notifications = db.collection<NotificationDoc>(
       CollectionNames.Notifications,
     )
@@ -308,5 +311,50 @@ export class ColonyMongoApi {
     })
 
     return this.events.updateOne(filter, set)
+  }
+
+  /*
+   * Ban Hammers
+   */
+
+  async banUserTransactionMessages(
+    initiator: string,
+    colonyAddress: string,
+    userAddress: string,
+    eventId: string,
+  ) {
+    await this.tryGetUser(initiator)
+    await this.tryGetComment(eventId)
+    /*
+     * @TODO Maybe check if the user is banned beforehand before re-banning him
+     * This optimization will cut down on database operations
+     * However for the time being it's good enough
+     */
+
+    /*
+     * Ensure the colony entry always exists (creates a new one if it doesn't)
+     */
+    await this.eventBans.updateOne(
+      { colonyAddress },
+      { $setOnInsert: { colonyAddress } },
+      { upsert: true },
+    )
+
+    /*
+     * Add the banned user, and the reason for the ban
+     */
+    const bannedUser = await this.eventBans.updateOne(
+      { $and: [{ colonyAddress }, { colonyAddress }] },
+      {
+        $addToSet: {
+          bannedWalletAddresses: {
+            userAddress,
+            eventId: ObjectID(eventId),
+          },
+        },
+      },
+    )
+
+    return bannedUser
   }
 }
