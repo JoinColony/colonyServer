@@ -72,4 +72,12 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     )
     return true
   },
+  async deleteTransactionMessage(
+    parent,
+    { input: { id } },
+    { userAddress, api, dataSources: { data } },
+  ) {
+    await api.deleteTransactionMessage(userAddress, id)
+    return true
+  },
 }

@@ -65,9 +65,14 @@ export default gql`
     colonyAddress: String!
   }
 
+  input DeleteTransactionMessageInput {
+    id: String!
+  }
+
   type Mutation {
     # Messages
     sendTransactionMessage(input: SendTransactionMessageInput!): Boolean!
+    deleteTransactionMessage(input: DeleteTransactionMessageInput!): Boolean!
     # Notifications
     markAllNotificationsAsRead: Boolean!
     markNotificationAsRead(input: MarkNotificationAsReadInput!): Boolean!

@@ -128,9 +128,14 @@ export type SendTransactionMessageInput = {
   colonyAddress: Scalars['String'];
 };
 
+export type DeleteTransactionMessageInput = {
+  id: Scalars['String'];
+};
+
 export type Mutation = {
    __typename?: 'Mutation';
   sendTransactionMessage: Scalars['Boolean'];
+  deleteTransactionMessage: Scalars['Boolean'];
   markAllNotificationsAsRead: Scalars['Boolean'];
   markNotificationAsRead: Scalars['Boolean'];
   createUser?: Maybe<User>;
@@ -143,6 +148,11 @@ export type Mutation = {
 
 export type MutationSendTransactionMessageArgs = {
   input: SendTransactionMessageInput;
+};
+
+
+export type MutationDeleteTransactionMessageArgs = {
+  input: DeleteTransactionMessageInput;
 };
 
 
@@ -405,6 +415,7 @@ export type ResolversTypes = {
   SetUserTokensInput: SetUserTokensInput,
   Payout: Payout,
   SendTransactionMessageInput: SendTransactionMessageInput,
+  DeleteTransactionMessageInput: DeleteTransactionMessageInput,
   Mutation: ResolverTypeWrapper<{}>,
   ProgramStatus: ProgramStatus,
   Query: ResolverTypeWrapper<{}>,
@@ -446,6 +457,7 @@ export type ResolversParentTypes = {
   SetUserTokensInput: SetUserTokensInput,
   Payout: Payout,
   SendTransactionMessageInput: SendTransactionMessageInput,
+  DeleteTransactionMessageInput: DeleteTransactionMessageInput,
   Mutation: {},
   ProgramStatus: ProgramStatus,
   Query: {},
@@ -513,6 +525,7 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   sendTransactionMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendTransactionMessageArgs, 'input'>>,
+  deleteTransactionMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteTransactionMessageArgs, 'input'>>,
   markAllNotificationsAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
   markNotificationAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationMarkNotificationAsReadArgs, 'input'>>,
   createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>,

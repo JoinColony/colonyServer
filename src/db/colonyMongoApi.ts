@@ -12,7 +12,7 @@ import { PubSub } from 'graphql-subscriptions'
 import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
 import { SubscriptionLabel } from '../graphql/subscriptionTypes'
-import { EventType } from '../graphql/types'
+import { EventType, TransactionMessageEvent } from '../graphql/types'
 import {
   EventDoc,
   NotificationDoc,
@@ -65,6 +65,12 @@ export class ColonyMongoApi {
     const user = await this.users.findOne({ walletAddress })
     assert.ok(!!user, `User with address '${walletAddress}' not found`)
     return user
+  }
+
+  private async tryGetComment(id: string) {
+    const eventMessage = await this.events.findOne(ObjectID(id))
+    assert.ok(!!eventMessage, `Comment "${id}" does not exist`)
+    return eventMessage
   }
 
   private async createNotification(eventId: ObjectID, users: string[]) {
@@ -235,6 +241,10 @@ export class ColonyMongoApi {
     return this.notifications.updateMany(filter, update)
   }
 
+  /*
+   * Comments
+   */
+
   async sendTransactionMessage(
     initiator: string,
     transactionHash: string,
@@ -257,5 +267,22 @@ export class ColonyMongoApi {
       colonyAddress,
     })
     return newTransactionMessageId
+  }
+
+  async deleteTransactionMessage(initiator: string, id: string) {
+    await this.tryGetUser(initiator)
+    const comment = await this.tryGetComment(id)
+
+    // assert.ok(initiator === comment.initiatorAddress || , `User with address '${walletAddress}' not found`)
+    const filter: StrictRootQuerySelector<EventDoc<TransactionMessageEvent>> = {
+      _id: new ObjectID(id),
+    }
+
+    return this.events.updateOne(filter, {
+      $set: { 'context.deleted': true },
+    } as StrictUpdateQuery<EventDoc<TransactionMessageEvent>>)
+    /*
+     * @TODO Don't forget about subscriptions
+     */
   }
 }
