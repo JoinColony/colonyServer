@@ -107,4 +107,22 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     )
     return true
   },
+  async unbanUserTransactionMessages(
+    parent,
+    { input: { colonyAddress, userAddress } },
+    { userAddress: initiatorAddress, api, dataSources: { data, auth } },
+  ) {
+    await tryAuth(
+      auth.assertCanBanUser({
+        colonyAddress,
+        userAddress: initiatorAddress,
+      }),
+    )
+    await api.unbanUserTransactionMessages(
+      initiatorAddress,
+      colonyAddress,
+      userAddress,
+    )
+    return true
+  },
 }

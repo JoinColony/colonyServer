@@ -3,12 +3,19 @@ import { MongoDataSource } from 'apollo-datasource-mongo'
 import { CachedCollection } from 'apollo-datasource-mongo/dist/cache'
 import { DataSource, DataSourceConfig } from 'apollo-datasource'
 
-import { EventDoc, NotificationDoc, TokenDoc, UserDoc } from './types'
+import {
+  EventBansDoc,
+  EventDoc,
+  NotificationDoc,
+  TokenDoc,
+  UserDoc,
+} from './types'
 import { CollectionNames } from './collections'
 import { Event, TokenInfo, User, EventType } from '../graphql/types'
 
 interface Collections {
   events: CachedCollection<EventDoc<any>>
+  eventBans: CachedCollection<EventBansDoc>
   notifications: CachedCollection<NotificationDoc>
   tokens: CachedCollection<TokenDoc>
   users: CachedCollection<UserDoc>
@@ -21,6 +28,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   constructor(db: Db) {
     super([
       db.collection(CollectionNames.Events),
+      db.collection(CollectionNames.EventBans),
       db.collection(CollectionNames.Notifications),
       db.collection(CollectionNames.Tokens),
       db.collection(CollectionNames.Users),

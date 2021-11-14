@@ -46,12 +46,20 @@ export default gql`
     eventId: String!
   }
 
+  input UnBanTransactionMessagesInput {
+    colonyAddress: String!
+    userAddress: String!
+  }
+
   type Mutation {
     # Messages
     sendTransactionMessage(input: SendTransactionMessageInput!): Boolean!
     deleteTransactionMessage(input: DeleteTransactionMessageInput!): Boolean!
     # Banning
     banUserTransactionMessages(input: BanTransactionMessagesInput!): Boolean!
+    unbanUserTransactionMessages(
+      input: UnBanTransactionMessagesInput!
+    ): Boolean!
     # Notifications
     markAllNotificationsAsRead: Boolean!
     markNotificationAsRead(input: MarkNotificationAsReadInput!): Boolean!

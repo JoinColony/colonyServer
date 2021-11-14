@@ -76,6 +76,39 @@ export class ColonyMongoApi {
     return eventMessage
   }
 
+  private async tryGetBannedUser(
+    colonyAddress: string,
+    walletAddress: string,
+    banned = true,
+  ) {
+    const bannedUser = await this.eventBans.findOne({
+      colonyAddress,
+      'bannedWalletAddresses.userAddress': walletAddress,
+    })
+
+    if (!banned) {
+      assert.ok(
+        bannedUser,
+        `User '${walletAddress}' is not currently banned from commenting`,
+      )
+    } else {
+      assert.ok(
+        !bannedUser,
+        `User '${walletAddress}' is already banned from commenting`,
+      )
+    }
+
+    const { userAddress, eventId } =
+      bannedUser?.bannedWalletAddresses.find(
+        ({ userAddress }) => userAddress === walletAddress,
+      ) || {}
+
+    return {
+      userAddress,
+      eventId,
+    }
+  }
+
   private async createNotification(eventId: ObjectID, users: string[]) {
     // No point in creating a notification for no users
     if (users.length === 0) return null
@@ -324,12 +357,10 @@ export class ColonyMongoApi {
     eventId: string,
   ) {
     await this.tryGetUser(initiator)
-    await this.tryGetComment(eventId)
-    /*
-     * @TODO Maybe check if the user is banned beforehand before re-banning him
-     * This optimization will cut down on database operations
-     * However for the time being it's good enough
-     */
+    const {
+      context: { transactionHash },
+    } = await this.tryGetComment(eventId)
+    await this.tryGetBannedUser(colonyAddress, userAddress)
 
     /*
      * Ensure the colony entry always exists (creates a new one if it doesn't)
@@ -355,6 +386,57 @@ export class ColonyMongoApi {
       },
     )
 
+    /*
+     * Update the subscriptions
+     */
+    this.pubsub.publish(SubscriptionLabel.UserWasBanned, {
+      transactionHash,
+      colonyAddress,
+    })
+
     return bannedUser
+  }
+
+  async unbanUserTransactionMessages(
+    initiator: string,
+    colonyAddress: string,
+    userAddress: string,
+  ) {
+    await this.tryGetUser(initiator)
+    const { eventId } = await this.tryGetBannedUser(
+      colonyAddress,
+      userAddress,
+      false,
+    )
+    const {
+      context: { transactionHash },
+    } = await this.tryGetComment(eventId)
+
+    /*
+     * Ensure the colony entry always exists (creates a new one if it doesn't)
+     */
+    await this.eventBans.updateOne(
+      { colonyAddress },
+      { $setOnInsert: { colonyAddress } },
+      { upsert: true },
+    )
+
+    /*
+     * Remove the previously banned user
+     */
+    const unBannedUser = await this.eventBans.updateOne(
+      { $and: [{ colonyAddress }, { colonyAddress }] },
+      { $pull: { bannedWalletAddresses: { userAddress } } },
+    )
+
+    /*
+     * Update the subscriptions
+     */
+    this.pubsub.publish(SubscriptionLabel.UserWasUnBanned, {
+      transactionHash,
+      colonyAddress,
+    })
+
+    return unBannedUser
   }
 }
