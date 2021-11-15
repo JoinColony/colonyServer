@@ -206,22 +206,35 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return ColonyMongoDataSource.transformToken(token)
   }
 
-  /*
-   * @TODO Filter out deleted comments and comments by users who are banned,
-   * if the user doesn't have permissions to view them (they still need to be returned for admins)
-   */
-  async getTransactionMessages(transactionHash: string, ttl?: number) {
-    const query = { 'context.transactionHash': transactionHash }
-    const events = ttl
-      ? await this.collections.events.findManyByQuery(query, { ttl })
-      : await this.collections.events.collection.find(query).toArray()
+  async getTransactionMessages(transactionHash: string) {
+    const events = await this.collections.events.collection
+      .aggregate([
+        { $match: { 'context.transactionHash': transactionHash } },
+        {
+          $lookup: {
+            from: this.collections.eventBans.collection.collectionName,
+            localField: 'initiatorAddress',
+            foreignField: 'bannedWalletAddresses.userAddress',
+            as: 'eventBans',
+          },
+        },
+        {
+          $set: {
+            'context.userBanned': {
+              $cond: {
+                if: { $eq: [{ $size: '$eventBans' }, 0] },
+                then: false,
+                else: true,
+              },
+            },
+          },
+        },
+        { $project: { eventBans: 0 } },
+      ])
+      .toArray()
     return events.map(ColonyMongoDataSource.transformEvent)
   }
 
-  /*
-   * @TODO Filter out deleted comments and comments by users who are banned,
-   * if the user doesn't have permissions to view them (they still need to be returned for admins)
-   */
   async getTransactionMessagesCount(colonyAddress: string, ttl?: number) {
     const query = {
       'context.colonyAddress': colonyAddress,

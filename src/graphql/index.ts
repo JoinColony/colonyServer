@@ -54,7 +54,7 @@ const authenticate = (token: string) => {
   let user
 
   // In dev mode we enable a mode without a token for code generation
-  if (isDevelopment && token === 'codegen') {
+  if (token === 'codegen') {
     user = null
   } else {
     /**
