@@ -9,6 +9,7 @@ import { ColonyMongoApi } from '../../db/colonyMongoApi'
 import { ColonyMongoDataSource } from '../../db/colonyMongoDataSource'
 import { ColonyAuthDataSource } from '../../network/colonyAuthDataSource'
 import Event from '../typeDefs/Event'
+import BannedUser from '../typeDefs/BannedUser'
 import Mutation from '../typeDefs/Mutation'
 import Query from '../typeDefs/Query'
 import TokenInfo from '../typeDefs/TokenInfo'
@@ -28,6 +29,7 @@ jest.mock('../resolvers/auth')
 
 const typeDefs = [
   Event,
+  BannedUser,
   Mutation,
   Query,
   TokenInfo,
@@ -97,6 +99,7 @@ describe('Apollo Server', () => {
     await db.collection(CollectionNames.Colonies).deleteMany({})
     await db.collection(CollectionNames.Domains).deleteMany({})
     await db.collection(CollectionNames.Events).deleteMany({})
+    await db.collection(CollectionNames.EventBans).deleteMany({})
     await db.collection(CollectionNames.Notifications).deleteMany({})
     await db.collection(CollectionNames.Tokens).deleteMany({})
     await db.collection(CollectionNames.Users).deleteMany({})
