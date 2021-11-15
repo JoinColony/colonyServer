@@ -55,6 +55,7 @@ export default gql`
     # Messages
     sendTransactionMessage(input: SendTransactionMessageInput!): Boolean!
     deleteTransactionMessage(input: DeleteTransactionMessageInput!): Boolean!
+    undeleteTransactionMessage(input: DeleteTransactionMessageInput!): Boolean!
     # Banning
     banUserTransactionMessages(input: BanTransactionMessagesInput!): Boolean!
     unbanUserTransactionMessages(

@@ -340,7 +340,47 @@ export class ColonyMongoApi {
       } as StrictUpdateQuery<EventDoc<TransactionMessageEvent>>
     }
 
-    this.pubsub.publish(SubscriptionLabel.TransactionMessageDeleted, {
+    this.pubsub.publish(SubscriptionLabel.TransactionMessageUpdated, {
+      transactionHash,
+      colonyAddress,
+    })
+
+    return this.events.updateOne(filter, set)
+  }
+
+  async undeleteTransactionMessage(
+    initiator: string,
+    id: string,
+    adminOverride: boolean = false,
+  ) {
+    await this.tryGetUser(initiator)
+    const {
+      initiatorAddress,
+      context: { transactionHash, colonyAddress },
+    } = await this.tryGetComment(id)
+
+    if (!adminOverride) {
+      assert.ok(
+        initiator === initiatorAddress,
+        `User '${initiator}' connot delete a comment they do not own`,
+      )
+    }
+
+    const filter: StrictRootQuerySelector<EventDoc<TransactionMessageEvent>> = {
+      _id: new ObjectID(id),
+    }
+
+    let set = {
+      $set: { 'context.deleted': false },
+    } as StrictUpdateQuery<EventDoc<TransactionMessageEvent>>
+
+    if (adminOverride) {
+      set = {
+        $set: { 'context.adminDelete': false },
+      } as StrictUpdateQuery<EventDoc<TransactionMessageEvent>>
+    }
+
+    this.pubsub.publish(SubscriptionLabel.TransactionMessageUpdated, {
       transactionHash,
       colonyAddress,
     })

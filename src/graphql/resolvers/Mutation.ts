@@ -87,6 +87,20 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     await api.deleteTransactionMessage(userAddress, id, adminOverride)
     return true
   },
+  async undeleteTransactionMessage(
+    parent,
+    { input: { id, colonyAddress } },
+    { userAddress, api, dataSources: { data, auth } },
+  ) {
+    const adminOverride = await checkAuth(
+      auth.assertCanDeleteComment({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.undeleteTransactionMessage(userAddress, id, adminOverride)
+    return true
+  },
   // Messages (Comments) User Banning
   async banUserTransactionMessages(
     parent,

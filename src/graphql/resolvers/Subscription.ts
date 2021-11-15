@@ -38,7 +38,7 @@ export const subscription = (pubsub) => ({
       return pubsub.asyncIterator([
         id,
         SubscriptionLabel.TransactionMessageAdded,
-        SubscriptionLabel.TransactionMessageDeleted,
+        SubscriptionLabel.TransactionMessageUpdated,
         SubscriptionLabel.UserWasBanned,
         SubscriptionLabel.UserWasUnBanned,
       ])
@@ -58,7 +58,7 @@ export const subscription = (pubsub) => ({
       return pubsub.asyncIterator([
         id,
         SubscriptionLabel.TransactionMessageAdded,
-        SubscriptionLabel.TransactionMessageDeleted,
+        SubscriptionLabel.TransactionMessageUpdated,
         SubscriptionLabel.UserWasBanned,
         SubscriptionLabel.UserWasUnBanned,
       ])

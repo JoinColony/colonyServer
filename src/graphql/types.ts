@@ -129,6 +129,7 @@ export type Mutation = {
    __typename?: 'Mutation';
   sendTransactionMessage: Scalars['Boolean'];
   deleteTransactionMessage: Scalars['Boolean'];
+  undeleteTransactionMessage: Scalars['Boolean'];
   banUserTransactionMessages: Scalars['Boolean'];
   unbanUserTransactionMessages: Scalars['Boolean'];
   markAllNotificationsAsRead: Scalars['Boolean'];
@@ -147,6 +148,11 @@ export type MutationSendTransactionMessageArgs = {
 
 
 export type MutationDeleteTransactionMessageArgs = {
+  input: DeleteTransactionMessageInput;
+};
+
+
+export type MutationUndeleteTransactionMessageArgs = {
   input: DeleteTransactionMessageInput;
 };
 
@@ -542,6 +548,7 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   sendTransactionMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendTransactionMessageArgs, 'input'>>,
   deleteTransactionMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteTransactionMessageArgs, 'input'>>,
+  undeleteTransactionMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUndeleteTransactionMessageArgs, 'input'>>,
   banUserTransactionMessages?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationBanUserTransactionMessagesArgs, 'input'>>,
   unbanUserTransactionMessages?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUnbanUserTransactionMessagesArgs, 'input'>>,
   markAllNotificationsAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
