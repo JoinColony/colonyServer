@@ -6,6 +6,7 @@ import { Query } from './Query'
 import { User } from './User'
 import { Mutation } from './Mutation'
 import { Resolvers } from '../types'
+import { BannedUser } from './BannedUser'
 
 export const resolvers: Resolvers<ApolloContext> = {
   Event,
@@ -15,4 +16,5 @@ export const resolvers: Resolvers<ApolloContext> = {
   User,
   Mutation,
   GraphQLDateTime,
+  BannedUser,
 }

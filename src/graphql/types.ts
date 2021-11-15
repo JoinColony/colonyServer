@@ -12,6 +12,15 @@ export type Scalars = {
   GraphQLDateTime: any;
 };
 
+export type BannedUser = {
+   __typename?: 'BannedUser';
+  id: Scalars['String'];
+  profile?: Maybe<UserProfile>;
+  eventId?: Maybe<Scalars['String']>;
+  event?: Maybe<Event>;
+  banned: Scalars['Boolean'];
+};
+
 export type ColonyEvent = {
   type: EventType;
   colonyAddress?: Maybe<Scalars['String']>;
@@ -195,6 +204,7 @@ export type Query = {
   systemInfo: SystemInfo;
   transactionMessages: TransactionMessages;
   transactionMessagesCount: TransactionMessagesCount;
+  bannedUsers: Array<Maybe<BannedUser>>;
 };
 
 
@@ -219,6 +229,11 @@ export type QueryTransactionMessagesArgs = {
 
 
 export type QueryTransactionMessagesCountArgs = {
+  colonyAddress: Scalars['String'];
+};
+
+
+export type QueryBannedUsersArgs = {
   colonyAddress: Scalars['String'];
 };
 
@@ -389,6 +404,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars['String']>,
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>,
+  BannedUser: ResolverTypeWrapper<BannedUser>,
   ColonyEvent: ResolversTypes['CreateDomainEvent'],
   CreateDomainEvent: ResolverTypeWrapper<CreateDomainEvent>,
   Int: ResolverTypeWrapper<Scalars['Int']>,
@@ -427,6 +443,7 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   String: Scalars['String'],
   Boolean: Scalars['Boolean'],
+  BannedUser: BannedUser,
   ColonyEvent: ResolversParentTypes['CreateDomainEvent'],
   CreateDomainEvent: CreateDomainEvent,
   Int: Scalars['Int'],
@@ -459,6 +476,15 @@ export type ResolversParentTypes = {
   UserProfile: UserProfile,
   GraphQLDateTime: Scalars['GraphQLDateTime'],
   EventType: EventType,
+};
+
+export type BannedUserResolvers<ContextType = any, ParentType extends ResolversParentTypes['BannedUser'] = ResolversParentTypes['BannedUser']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  profile?: Resolver<Maybe<ResolversTypes['UserProfile']>, ParentType, ContextType>,
+  eventId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType>,
+  banned?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
+  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type ColonyEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['ColonyEvent'] = ResolversParentTypes['ColonyEvent']> = {
@@ -534,6 +560,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   systemInfo?: Resolver<ResolversTypes['SystemInfo'], ParentType, ContextType>,
   transactionMessages?: Resolver<ResolversTypes['TransactionMessages'], ParentType, ContextType, RequireFields<QueryTransactionMessagesArgs, 'transactionHash'>>,
   transactionMessagesCount?: Resolver<ResolversTypes['TransactionMessagesCount'], ParentType, ContextType, RequireFields<QueryTransactionMessagesCountArgs, 'colonyAddress'>>,
+  bannedUsers?: Resolver<Array<Maybe<ResolversTypes['BannedUser']>>, ParentType, ContextType, RequireFields<QueryBannedUsersArgs, 'colonyAddress'>>,
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
@@ -601,6 +628,7 @@ export interface GraphQlDateTimeScalarConfig extends GraphQLScalarTypeConfig<Res
 }
 
 export type Resolvers<ContextType = any> = {
+  BannedUser?: BannedUserResolvers<ContextType>,
   ColonyEvent?: ColonyEventResolvers,
   CreateDomainEvent?: CreateDomainEventResolvers<ContextType>,
   NewUserEvent?: NewUserEventResolvers<ContextType>,

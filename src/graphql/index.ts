@@ -28,6 +28,7 @@ import User from './typeDefs/User'
 import Transaction from './typeDefs/Transaction'
 import scalars from './typeDefs/scalars'
 import Subscriptions from './typeDefs/Subscriptions'
+import BannedUser from './typeDefs/BannedUser'
 
 const pubSubInstance = new PubSub()
 
@@ -41,6 +42,7 @@ const typeDefs = [
   User,
   scalars,
   Transaction,
+  BannedUser,
 ]
 
 let dataSources = {}

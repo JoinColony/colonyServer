@@ -113,6 +113,20 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }))
   }
 
+  private static transformBannedUser({
+    userAddress,
+    eventId,
+  }: {
+    userAddress: string
+    eventId?: string
+  }) {
+    return {
+      id: userAddress,
+      eventId,
+      banned: true,
+    }
+  }
+
   async getUserByAddress(walletAddress: string, ttl?: number) {
     const query = { walletAddress }
     const [doc] = ttl
@@ -130,6 +144,17 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       ? await this.collections.users.findManyByQuery(query, { ttl })
       : await this.collections.users.collection.find(query).toArray()
     return docs.map(ColonyMongoDataSource.transformUser)
+  }
+
+  async getEventById(eventId: string, ttl?: number) {
+    const query = { _id: ObjectID(eventId) }
+    const [doc] = ttl
+      ? await this.collections.events.findManyByQuery(query, { ttl })
+      : [await this.collections.events.collection.findOne(query)]
+
+    if (!doc) throw new Error(`Event with id '${eventId}' not found`)
+
+    return ColonyMongoDataSource.transformEvent(doc)
   }
 
   async getColonySubscribedUsers(colonyAddress: string, ttl?: number) {
@@ -244,5 +269,17 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       ? await this.collections.events.findManyByQuery(query, { ttl })
       : await this.collections.events.collection.find(query).toArray()
     return ColonyMongoDataSource.transformTransactionMessagesCount(events)
+  }
+
+  async getBannedUsers(colonyAddress: string, ttl?: number) {
+    const query = { colonyAddress: colonyAddress }
+    const [bannedUsers] = ttl
+      ? await this.collections.eventBans.findManyByQuery(query, { ttl })
+      : await this.collections.eventBans.collection.find(query).toArray()
+    return (
+      bannedUsers?.bannedWalletAddresses.map(
+        ColonyMongoDataSource.transformBannedUser,
+      ) || []
+    )
   }
 }

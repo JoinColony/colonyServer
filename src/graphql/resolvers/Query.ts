@@ -92,4 +92,11 @@ export const Query: QueryResolvers<ApolloContext> = {
   ) {
     return await getTransactionMessagesCount(colonyAddress, data)
   },
+  async bannedUsers(
+    parent,
+    { colonyAddress }: { colonyAddress: string },
+    { dataSources: { data } },
+  ) {
+    return await data.getBannedUsers(colonyAddress)
+  },
 }
