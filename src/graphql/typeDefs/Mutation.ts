@@ -43,7 +43,7 @@ export default gql`
   input BanTransactionMessagesInput {
     colonyAddress: String!
     userAddress: String!
-    eventId: String!
+    eventId: String
   }
 
   input UnBanTransactionMessagesInput {

@@ -108,7 +108,7 @@ export type DeleteTransactionMessageInput = {
 export type BanTransactionMessagesInput = {
   colonyAddress: Scalars['String'];
   userAddress: Scalars['String'];
-  eventId: Scalars['String'];
+  eventId?: Maybe<Scalars['String']>;
 };
 
 export type UnBanTransactionMessagesInput = {

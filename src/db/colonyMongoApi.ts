@@ -70,9 +70,11 @@ export class ColonyMongoApi {
     return user
   }
 
-  private async tryGetComment(id: string) {
+  private async tryGetComment(id: string, assertive: boolean = true) {
     const eventMessage = await this.events.findOne(ObjectID(id))
-    assert.ok(!!eventMessage, `Comment "${id}" does not exist`)
+    if (assertive) {
+      assert.ok(!!eventMessage, `Comment "${id}" does not exist`)
+    }
     return eventMessage
   }
 
@@ -357,9 +359,7 @@ export class ColonyMongoApi {
     eventId: string,
   ) {
     await this.tryGetUser(initiator)
-    const {
-      context: { transactionHash },
-    } = await this.tryGetComment(eventId)
+    const transactionMessage = await this.tryGetComment(eventId, false)
     await this.tryGetBannedUser(colonyAddress, userAddress)
 
     /*
@@ -390,7 +390,7 @@ export class ColonyMongoApi {
      * Update the subscriptions
      */
     this.pubsub.publish(SubscriptionLabel.UserWasBanned, {
-      transactionHash,
+      transactionHash: transactionMessage?.context?.transactionHash,
       colonyAddress,
     })
 
@@ -408,9 +408,7 @@ export class ColonyMongoApi {
       userAddress,
       false,
     )
-    const {
-      context: { transactionHash },
-    } = await this.tryGetComment(eventId)
+    const transactionMessage = await this.tryGetComment(eventId, false)
 
     /*
      * Ensure the colony entry always exists (creates a new one if it doesn't)
@@ -433,7 +431,7 @@ export class ColonyMongoApi {
      * Update the subscriptions
      */
     this.pubsub.publish(SubscriptionLabel.UserWasUnBanned, {
-      transactionHash,
+      transactionHash: transactionMessage?.context?.transactionHash,
       colonyAddress,
     })
 
