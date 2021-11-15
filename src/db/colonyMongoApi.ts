@@ -430,7 +430,7 @@ export class ColonyMongoApi {
      * Update the subscriptions
      */
     this.pubsub.publish(SubscriptionLabel.UserWasBanned, {
-      transactionHash: transactionMessage?.context?.transactionHash,
+      transactionHash: transactionMessage?.context?.transactionHash || '',
       colonyAddress,
     })
 
@@ -471,7 +471,7 @@ export class ColonyMongoApi {
      * Update the subscriptions
      */
     this.pubsub.publish(SubscriptionLabel.UserWasUnBanned, {
-      transactionHash: transactionMessage?.context?.transactionHash,
+      transactionHash: transactionMessage?.context?.transactionHash || '',
       colonyAddress,
     })
 
