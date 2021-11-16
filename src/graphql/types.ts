@@ -120,11 +120,6 @@ export type BanTransactionMessagesInput = {
   eventId?: Maybe<Scalars['String']>;
 };
 
-export type UnBanTransactionMessagesInput = {
-  colonyAddress: Scalars['String'];
-  userAddress: Scalars['String'];
-};
-
 export type Mutation = {
    __typename?: 'Mutation';
   sendTransactionMessage: Scalars['Boolean'];
@@ -163,7 +158,7 @@ export type MutationBanUserTransactionMessagesArgs = {
 
 
 export type MutationUnbanUserTransactionMessagesArgs = {
-  input: UnBanTransactionMessagesInput;
+  input: BanTransactionMessagesInput;
 };
 
 
@@ -429,7 +424,6 @@ export type ResolversTypes = {
   SendTransactionMessageInput: SendTransactionMessageInput,
   DeleteTransactionMessageInput: DeleteTransactionMessageInput,
   BanTransactionMessagesInput: BanTransactionMessagesInput,
-  UnBanTransactionMessagesInput: UnBanTransactionMessagesInput,
   Mutation: ResolverTypeWrapper<{}>,
   ProgramStatus: ProgramStatus,
   Query: ResolverTypeWrapper<{}>,
@@ -468,7 +462,6 @@ export type ResolversParentTypes = {
   SendTransactionMessageInput: SendTransactionMessageInput,
   DeleteTransactionMessageInput: DeleteTransactionMessageInput,
   BanTransactionMessagesInput: BanTransactionMessagesInput,
-  UnBanTransactionMessagesInput: UnBanTransactionMessagesInput,
   Mutation: {},
   ProgramStatus: ProgramStatus,
   Query: {},

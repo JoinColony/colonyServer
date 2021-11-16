@@ -441,14 +441,18 @@ export class ColonyMongoApi {
     initiator: string,
     colonyAddress: string,
     userAddress: string,
+    eventId: string,
   ) {
     await this.tryGetUser(initiator)
-    const { eventId } = await this.tryGetBannedUser(
+    const { eventId: foundEventId } = await this.tryGetBannedUser(
       colonyAddress,
       userAddress,
       false,
     )
-    const transactionMessage = await this.tryGetComment(eventId, false)
+    const transactionMessage = await this.tryGetComment(
+      eventId || foundEventId,
+      false,
+    )
 
     /*
      * Ensure the colony entry always exists (creates a new one if it doesn't)

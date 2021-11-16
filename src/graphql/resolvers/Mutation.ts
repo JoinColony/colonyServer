@@ -123,7 +123,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
   },
   async unbanUserTransactionMessages(
     parent,
-    { input: { colonyAddress, userAddress } },
+    { input: { colonyAddress, userAddress, eventId } },
     { userAddress: initiatorAddress, api, dataSources: { data, auth } },
   ) {
     await tryAuth(
@@ -136,6 +136,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
       initiatorAddress,
       colonyAddress,
       userAddress,
+      eventId,
     )
     return true
   },

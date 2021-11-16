@@ -7,6 +7,16 @@ export const BannedUser: BannedUserResolvers<ApolloContext> = {
     return user.profile
   },
   async event({ eventId }, input, { dataSources: { data } }) {
-    return data.getEventById(eventId)
+    let event = null
+    /*
+     * @NOTE This needs to be wrapped inside a try/catch if the user was
+     * banned without a reason, meaning the query won't actually find the event
+     */
+    try {
+      event = await data.getEventById(eventId)
+    } catch (error) {
+      // silent error
+    }
+    return event
   },
 }

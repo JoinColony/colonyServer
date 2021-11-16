@@ -272,7 +272,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   async getBannedUsers(colonyAddress: string, ttl?: number) {
-    const query = { colonyAddress: colonyAddress }
+    const query = { colonyAddress }
     const [bannedUsers] = ttl
       ? await this.collections.eventBans.findManyByQuery(query, { ttl })
       : await this.collections.eventBans.collection.find(query).toArray()
