@@ -1,8 +1,10 @@
 import { CollectionCreateOptions, IndexOptions } from 'mongodb'
+import { AddressZero } from 'ethers/constants'
 import {
   ColonyDoc,
   DomainDoc,
   EventDoc,
+  EventBansDoc,
   LevelDoc,
   NotificationDoc,
   PersistentTaskDoc,
@@ -13,11 +15,11 @@ import {
   TokenDoc,
   UserDoc,
 } from './types'
-import { ETH_ADDRESS } from '../constants'
 
 export enum CollectionNames {
   Colonies = 'colonies',
   Domains = 'domains',
+  EventBans = 'eventBans',
   Events = 'events',
   Levels = 'levels',
   Notifications = 'notifications',
@@ -513,6 +515,47 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
     },
   ],
   [
+    CollectionNames.EventBans,
+    {
+      create: {
+        validator: {
+          $jsonSchema: {
+            additionalProperties: false,
+            bsonType: 'object',
+            required: ['colonyAddress'],
+            properties: {
+              _id: { bsonType: 'objectId' },
+              colonyAddress: {
+                bsonType: 'string',
+                description: 'must be a string and is required',
+                maxLength: 42,
+              },
+              bannedWalletAddresses: {
+                bsonType: 'array',
+                description: 'must be an array of user addresses',
+                uniqueItems: true,
+                additionalProperties: false,
+                items: {
+                  bsonType: 'object',
+                  required: ['userAddress', 'eventId'],
+                  properties: {
+                    userAddress: {
+                      bsonType: 'string',
+                    },
+                    eventId: {
+                      bsonType: 'objectId',
+                    },
+                  },
+                },
+              },
+            } as SchemaFields<EventBansDoc>,
+          },
+        },
+      },
+      indexes: [['colonyAddress', { unique: true }]],
+    },
+  ],
+  [
     CollectionNames.Suggestions,
     {
       create: {
@@ -728,7 +771,7 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
         {
           name: 'xDai Token',
           symbol: 'XDAI',
-          address: ETH_ADDRESS,
+          address: AddressZero,
           creatorAddress: '',
           decimals: 18,
         },

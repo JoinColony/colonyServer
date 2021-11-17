@@ -3,12 +3,19 @@ import { MongoDataSource } from 'apollo-datasource-mongo'
 import { CachedCollection } from 'apollo-datasource-mongo/dist/cache'
 import { DataSource, DataSourceConfig } from 'apollo-datasource'
 
-import { EventDoc, NotificationDoc, TokenDoc, UserDoc } from './types'
+import {
+  EventBansDoc,
+  EventDoc,
+  NotificationDoc,
+  TokenDoc,
+  UserDoc,
+} from './types'
 import { CollectionNames } from './collections'
 import { Event, TokenInfo, User, EventType } from '../graphql/types'
 
 interface Collections {
   events: CachedCollection<EventDoc<any>>
+  eventBans: CachedCollection<EventBansDoc>
   notifications: CachedCollection<NotificationDoc>
   tokens: CachedCollection<TokenDoc>
   users: CachedCollection<UserDoc>
@@ -21,6 +28,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   constructor(db: Db) {
     super([
       db.collection(CollectionNames.Events),
+      db.collection(CollectionNames.EventBans),
       db.collection(CollectionNames.Notifications),
       db.collection(CollectionNames.Tokens),
       db.collection(CollectionNames.Users),
@@ -105,6 +113,20 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     }))
   }
 
+  private static transformBannedUser({
+    userAddress,
+    eventId,
+  }: {
+    userAddress: string
+    eventId?: string
+  }) {
+    return {
+      id: userAddress,
+      eventId,
+      banned: true,
+    }
+  }
+
   async getUserByAddress(walletAddress: string, ttl?: number) {
     const query = { walletAddress }
     const [doc] = ttl
@@ -122,6 +144,17 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       ? await this.collections.users.findManyByQuery(query, { ttl })
       : await this.collections.users.collection.find(query).toArray()
     return docs.map(ColonyMongoDataSource.transformUser)
+  }
+
+  async getEventById(eventId: string, ttl?: number) {
+    const query = { _id: ObjectID(eventId) }
+    const [doc] = ttl
+      ? await this.collections.events.findManyByQuery(query, { ttl })
+      : [await this.collections.events.collection.findOne(query)]
+
+    if (!doc) throw new Error(`Event with id '${eventId}' not found`)
+
+    return ColonyMongoDataSource.transformEvent(doc)
   }
 
   async getColonySubscribedUsers(colonyAddress: string, ttl?: number) {
@@ -198,11 +231,32 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return ColonyMongoDataSource.transformToken(token)
   }
 
-  async getTransactionMessages(transactionHash: string, ttl?: number) {
-    const query = { 'context.transactionHash': transactionHash }
-    const events = ttl
-      ? await this.collections.events.findManyByQuery(query, { ttl })
-      : await this.collections.events.collection.find(query).toArray()
+  async getTransactionMessages(transactionHash: string) {
+    const events = await this.collections.events.collection
+      .aggregate([
+        { $match: { 'context.transactionHash': transactionHash } },
+        {
+          $lookup: {
+            from: this.collections.eventBans.collection.collectionName,
+            localField: 'initiatorAddress',
+            foreignField: 'bannedWalletAddresses.userAddress',
+            as: 'eventBans',
+          },
+        },
+        {
+          $set: {
+            'context.userBanned': {
+              $cond: {
+                if: { $eq: [{ $size: '$eventBans' }, 0] },
+                then: false,
+                else: true,
+              },
+            },
+          },
+        },
+        { $project: { eventBans: 0 } },
+      ])
+      .toArray()
     return events.map(ColonyMongoDataSource.transformEvent)
   }
 
@@ -215,5 +269,17 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       ? await this.collections.events.findManyByQuery(query, { ttl })
       : await this.collections.events.collection.find(query).toArray()
     return ColonyMongoDataSource.transformTransactionMessagesCount(events)
+  }
+
+  async getBannedUsers(colonyAddress: string, ttl?: number) {
+    const query = { colonyAddress }
+    const [bannedUsers] = ttl
+      ? await this.collections.eventBans.findManyByQuery(query, { ttl })
+      : await this.collections.eventBans.collection.find(query).toArray()
+    return (
+      bannedUsers?.bannedWalletAddresses.map(
+        ColonyMongoDataSource.transformBannedUser,
+      ) || []
+    )
   }
 }

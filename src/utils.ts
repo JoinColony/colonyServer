@@ -1,7 +1,8 @@
-import { ETH_ADDRESS, DEFAULT_TOKEN_DECIMALS } from './constants'
+import { AddressZero } from 'ethers/constants'
+import { DEFAULT_TOKEN_DECIMALS } from './constants'
 
 export const isETH = (address: string) =>
-  address === ETH_ADDRESS || address === '0x0'
+  address === AddressZero || address === '0x0'
 
 /*
  * @NOTE Don't trust the incoming decimals

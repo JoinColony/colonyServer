@@ -1,5 +1,6 @@
 import { ApolloContext } from '../apolloTypes'
 import { MutationResolvers } from '../types'
+import { checkAuth, tryAuth } from './auth'
 
 export const Mutation: MutationResolvers<ApolloContext> = {
   // Users
@@ -58,7 +59,7 @@ export const Mutation: MutationResolvers<ApolloContext> = {
     await api.markAllNotificationsAsRead(userAddress)
     return true
   },
-  // Messages
+  // Messages (Comments)
   async sendTransactionMessage(
     parent,
     { input: { transactionHash, message, colonyAddress } },
@@ -69,6 +70,73 @@ export const Mutation: MutationResolvers<ApolloContext> = {
       transactionHash,
       colonyAddress,
       message,
+    )
+    return true
+  },
+  async deleteTransactionMessage(
+    parent,
+    { input: { id, colonyAddress } },
+    { userAddress, api, dataSources: { data, auth } },
+  ) {
+    const adminOverride = await checkAuth(
+      auth.assertCanDeleteComment({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.deleteTransactionMessage(userAddress, id, adminOverride)
+    return true
+  },
+  async undeleteTransactionMessage(
+    parent,
+    { input: { id, colonyAddress } },
+    { userAddress, api, dataSources: { data, auth } },
+  ) {
+    const adminOverride = await checkAuth(
+      auth.assertCanDeleteComment({
+        colonyAddress,
+        userAddress,
+      }),
+    )
+    await api.undeleteTransactionMessage(userAddress, id, adminOverride)
+    return true
+  },
+  // Messages (Comments) User Banning
+  async banUserTransactionMessages(
+    parent,
+    { input: { colonyAddress, userAddress, eventId } },
+    { userAddress: initiatorAddress, api, dataSources: { data, auth } },
+  ) {
+    await tryAuth(
+      auth.assertCanBanUser({
+        colonyAddress,
+        userAddress: initiatorAddress,
+      }),
+    )
+    await api.banUserTransactionMessages(
+      initiatorAddress,
+      colonyAddress,
+      userAddress,
+      eventId,
+    )
+    return true
+  },
+  async unbanUserTransactionMessages(
+    parent,
+    { input: { colonyAddress, userAddress, eventId } },
+    { userAddress: initiatorAddress, api, dataSources: { data, auth } },
+  ) {
+    await tryAuth(
+      auth.assertCanBanUser({
+        colonyAddress,
+        userAddress: initiatorAddress,
+      }),
+    )
+    await api.unbanUserTransactionMessages(
+      initiatorAddress,
+      colonyAddress,
+      userAddress,
+      eventId,
     )
     return true
   },

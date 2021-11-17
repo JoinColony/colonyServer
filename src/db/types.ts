@@ -76,6 +76,14 @@ export interface EventDoc<C extends object> extends MongoDoc {
   context: C
 }
 
+export interface EventBansDoc extends MongoDoc {
+  colonyAddress: string
+  bannedWalletAddresses: Array<{
+    userAddress: string
+    eventId: string
+  }>
+}
+
 export interface ProgramDoc extends MongoDoc {
   colonyAddress: string
   creatorAddress: string

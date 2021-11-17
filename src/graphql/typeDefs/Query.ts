@@ -8,5 +8,6 @@ export default gql`
     systemInfo: SystemInfo!
     transactionMessages(transactionHash: String!): TransactionMessages!
     transactionMessagesCount(colonyAddress: String!): TransactionMessagesCount!
+    bannedUsers(colonyAddress: String!): [BannedUser]!
   }
 `

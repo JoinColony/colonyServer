@@ -12,8 +12,9 @@ import { PubSub } from 'graphql-subscriptions'
 import { isETH } from '../utils'
 import { EventContextOfType } from '../graphql/eventContext'
 import { SubscriptionLabel } from '../graphql/subscriptionTypes'
-import { EventType } from '../graphql/types'
+import { EventType, TransactionMessageEvent } from '../graphql/types'
 import {
+  EventBansDoc,
   EventDoc,
   NotificationDoc,
   StrictRootQuerySelector,
@@ -35,12 +36,14 @@ export class ColonyMongoApi {
   }
 
   private readonly events: Collection<EventDoc<any>>
+  private readonly eventBans: Collection<EventBansDoc>
   private readonly notifications: Collection<NotificationDoc>
   private readonly users: Collection<UserDoc>
   private readonly pubsub: PubSub
 
   constructor(db: Db, pubsub: PubSub) {
     this.events = db.collection<EventDoc<any>>(CollectionNames.Events)
+    this.eventBans = db.collection<EventBansDoc>(CollectionNames.EventBans)
     this.notifications = db.collection<NotificationDoc>(
       CollectionNames.Notifications,
     )
@@ -65,6 +68,47 @@ export class ColonyMongoApi {
     const user = await this.users.findOne({ walletAddress })
     assert.ok(!!user, `User with address '${walletAddress}' not found`)
     return user
+  }
+
+  private async tryGetComment(id: string, assertive: boolean = true) {
+    const eventMessage = await this.events.findOne(ObjectID(id))
+    if (assertive) {
+      assert.ok(!!eventMessage, `Comment "${id}" does not exist`)
+    }
+    return eventMessage
+  }
+
+  private async tryGetBannedUser(
+    colonyAddress: string,
+    walletAddress: string,
+    banned = true,
+  ) {
+    const bannedUser = await this.eventBans.findOne({
+      colonyAddress,
+      'bannedWalletAddresses.userAddress': walletAddress,
+    })
+
+    if (!banned) {
+      assert.ok(
+        bannedUser,
+        `User '${walletAddress}' is not currently banned from commenting`,
+      )
+    } else {
+      assert.ok(
+        !bannedUser,
+        `User '${walletAddress}' is already banned from commenting`,
+      )
+    }
+
+    const { userAddress, eventId } =
+      bannedUser?.bannedWalletAddresses.find(
+        ({ userAddress }) => userAddress === walletAddress,
+      ) || {}
+
+    return {
+      userAddress,
+      eventId,
+    }
   }
 
   private async createNotification(eventId: ObjectID, users: string[]) {
@@ -235,6 +279,10 @@ export class ColonyMongoApi {
     return this.notifications.updateMany(filter, update)
   }
 
+  /*
+   * Comments
+   */
+
   async sendTransactionMessage(
     initiator: string,
     transactionHash: string,
@@ -249,6 +297,8 @@ export class ColonyMongoApi {
         transactionHash,
         message,
         colonyAddress,
+        deleted: false,
+        adminDelete: false,
       },
     )
     this.pubsub.publish(SubscriptionLabel.TransactionMessageAdded, {
@@ -256,5 +306,179 @@ export class ColonyMongoApi {
       colonyAddress,
     })
     return newTransactionMessageId
+  }
+
+  async deleteTransactionMessage(
+    initiator: string,
+    id: string,
+    adminOverride: boolean = false,
+  ) {
+    await this.tryGetUser(initiator)
+    const {
+      initiatorAddress,
+      context: { transactionHash, colonyAddress },
+    } = await this.tryGetComment(id)
+
+    if (!adminOverride) {
+      assert.ok(
+        initiator === initiatorAddress,
+        `User '${initiator}' connot delete a comment they do not own`,
+      )
+    }
+
+    const filter: StrictRootQuerySelector<EventDoc<TransactionMessageEvent>> = {
+      _id: new ObjectID(id),
+    }
+
+    let set = {
+      $set: { 'context.deleted': true },
+    } as StrictUpdateQuery<EventDoc<TransactionMessageEvent>>
+
+    if (adminOverride) {
+      set = {
+        $set: { 'context.adminDelete': true },
+      } as StrictUpdateQuery<EventDoc<TransactionMessageEvent>>
+    }
+
+    this.pubsub.publish(SubscriptionLabel.TransactionMessageUpdated, {
+      transactionHash,
+      colonyAddress,
+    })
+
+    return this.events.updateOne(filter, set)
+  }
+
+  async undeleteTransactionMessage(
+    initiator: string,
+    id: string,
+    adminOverride: boolean = false,
+  ) {
+    await this.tryGetUser(initiator)
+    const {
+      initiatorAddress,
+      context: { transactionHash, colonyAddress },
+    } = await this.tryGetComment(id)
+
+    if (!adminOverride) {
+      assert.ok(
+        initiator === initiatorAddress,
+        `User '${initiator}' connot delete a comment they do not own`,
+      )
+    }
+
+    const filter: StrictRootQuerySelector<EventDoc<TransactionMessageEvent>> = {
+      _id: new ObjectID(id),
+    }
+
+    let set = {
+      $set: { 'context.deleted': false },
+    } as StrictUpdateQuery<EventDoc<TransactionMessageEvent>>
+
+    if (adminOverride) {
+      set = {
+        $set: { 'context.adminDelete': false },
+      } as StrictUpdateQuery<EventDoc<TransactionMessageEvent>>
+    }
+
+    this.pubsub.publish(SubscriptionLabel.TransactionMessageUpdated, {
+      transactionHash,
+      colonyAddress,
+    })
+
+    return this.events.updateOne(filter, set)
+  }
+
+  /*
+   * Ban Hammers
+   */
+
+  async banUserTransactionMessages(
+    initiator: string,
+    colonyAddress: string,
+    userAddress: string,
+    eventId: string,
+  ) {
+    await this.tryGetUser(initiator)
+    const transactionMessage = await this.tryGetComment(eventId, false)
+    await this.tryGetBannedUser(colonyAddress, userAddress)
+
+    /*
+     * Ensure the colony entry always exists (creates a new one if it doesn't)
+     */
+    await this.eventBans.updateOne(
+      { colonyAddress },
+      { $setOnInsert: { colonyAddress } },
+      { upsert: true },
+    )
+
+    /*
+     * Add the banned user, and the reason for the ban
+     */
+    const bannedUser = await this.eventBans.updateOne(
+      { $and: [{ colonyAddress }, { colonyAddress }] },
+      {
+        $addToSet: {
+          bannedWalletAddresses: {
+            userAddress,
+            eventId: ObjectID(eventId),
+          },
+        },
+      },
+    )
+
+    /*
+     * Update the subscriptions
+     */
+    this.pubsub.publish(SubscriptionLabel.UserWasBanned, {
+      transactionHash: transactionMessage?.context?.transactionHash || '',
+      colonyAddress,
+    })
+
+    return bannedUser
+  }
+
+  async unbanUserTransactionMessages(
+    initiator: string,
+    colonyAddress: string,
+    userAddress: string,
+    eventId: string,
+  ) {
+    await this.tryGetUser(initiator)
+    const { eventId: foundEventId } = await this.tryGetBannedUser(
+      colonyAddress,
+      userAddress,
+      false,
+    )
+    const transactionMessage = await this.tryGetComment(
+      eventId || foundEventId,
+      false,
+    )
+
+    /*
+     * Ensure the colony entry always exists (creates a new one if it doesn't)
+     */
+    await this.eventBans.updateOne(
+      { colonyAddress },
+      { $setOnInsert: { colonyAddress } },
+      { upsert: true },
+    )
+
+    /*
+     * Remove the previously banned user
+     */
+    const unBannedUser = await this.eventBans.updateOne(
+      { $and: [{ colonyAddress }, { colonyAddress }] },
+      { $pull: { bannedWalletAddresses: { userAddress } } },
+    )
+
+    /*
+     * Update the subscriptions
+     */
+    this.pubsub.publish(SubscriptionLabel.UserWasUnBanned, {
+      transactionHash: transactionMessage?.context?.transactionHash || '',
+      colonyAddress,
+    })
+
+    return unBannedUser
   }
 }

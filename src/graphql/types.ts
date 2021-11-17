@@ -12,6 +12,15 @@ export type Scalars = {
   GraphQLDateTime: any;
 };
 
+export type BannedUser = {
+   __typename?: 'BannedUser';
+  id: Scalars['String'];
+  profile?: Maybe<UserProfile>;
+  eventId?: Maybe<Scalars['String']>;
+  event?: Maybe<Event>;
+  banned: Scalars['Boolean'];
+};
+
 export type ColonyEvent = {
   type: EventType;
   colonyAddress?: Maybe<Scalars['String']>;
@@ -35,6 +44,9 @@ export type TransactionMessageEvent = {
   transactionHash: Scalars['String'];
   message: Scalars['String'];
   colonyAddress: Scalars['String'];
+  deleted?: Maybe<Scalars['Boolean']>;
+  adminDelete?: Maybe<Scalars['Boolean']>;
+  userBanned?: Maybe<Scalars['Boolean']>;
 };
 
 export type EventContext = CreateDomainEvent | NewUserEvent | TransactionMessageEvent;
@@ -75,25 +87,6 @@ export type EditUserInput = {
   website?: Maybe<Scalars['String']>;
 };
 
-export type CreateWorkRequestInput = {
-  id: Scalars['String'];
-};
-
-export type SendWorkInviteInput = {
-  id: Scalars['String'];
-  workerAddress: Scalars['String'];
-};
-
-export type AssignWorkerInput = {
-  id: Scalars['String'];
-  workerAddress: Scalars['String'];
-};
-
-export type UnassignWorkerInput = {
-  id: Scalars['String'];
-  workerAddress: Scalars['String'];
-};
-
 export type SubscribeToColonyInput = {
   colonyAddress: Scalars['String'];
 };
@@ -106,19 +99,8 @@ export type MarkNotificationAsReadInput = {
   id: Scalars['String'];
 };
 
-export type EditDomainNameInput = {
-  colonyAddress: Scalars['String'];
-  ethDomainId: Scalars['Int'];
-  name: Scalars['String'];
-};
-
 export type SetUserTokensInput = {
   tokenAddresses: Array<Scalars['String']>;
-};
-
-export type Payout = {
-  amount: Scalars['String'];
-  tokenAddress: Scalars['String'];
 };
 
 export type SendTransactionMessageInput = {
@@ -127,9 +109,24 @@ export type SendTransactionMessageInput = {
   colonyAddress: Scalars['String'];
 };
 
+export type DeleteTransactionMessageInput = {
+  id: Scalars['String'];
+  colonyAddress: Scalars['String'];
+};
+
+export type BanTransactionMessagesInput = {
+  colonyAddress: Scalars['String'];
+  userAddress: Scalars['String'];
+  eventId?: Maybe<Scalars['String']>;
+};
+
 export type Mutation = {
    __typename?: 'Mutation';
   sendTransactionMessage: Scalars['Boolean'];
+  deleteTransactionMessage: Scalars['Boolean'];
+  undeleteTransactionMessage: Scalars['Boolean'];
+  banUserTransactionMessages: Scalars['Boolean'];
+  unbanUserTransactionMessages: Scalars['Boolean'];
   markAllNotificationsAsRead: Scalars['Boolean'];
   markNotificationAsRead: Scalars['Boolean'];
   createUser?: Maybe<User>;
@@ -142,6 +139,26 @@ export type Mutation = {
 
 export type MutationSendTransactionMessageArgs = {
   input: SendTransactionMessageInput;
+};
+
+
+export type MutationDeleteTransactionMessageArgs = {
+  input: DeleteTransactionMessageInput;
+};
+
+
+export type MutationUndeleteTransactionMessageArgs = {
+  input: DeleteTransactionMessageInput;
+};
+
+
+export type MutationBanUserTransactionMessagesArgs = {
+  input: BanTransactionMessagesInput;
+};
+
+
+export type MutationUnbanUserTransactionMessagesArgs = {
+  input: BanTransactionMessagesInput;
 };
 
 
@@ -188,6 +205,7 @@ export type Query = {
   systemInfo: SystemInfo;
   transactionMessages: TransactionMessages;
   transactionMessagesCount: TransactionMessagesCount;
+  bannedUsers: Array<Maybe<BannedUser>>;
 };
 
 
@@ -212,6 +230,11 @@ export type QueryTransactionMessagesArgs = {
 
 
 export type QueryTransactionMessagesCountArgs = {
+  colonyAddress: Scalars['String'];
+};
+
+
+export type QueryBannedUsersArgs = {
   colonyAddress: Scalars['String'];
 };
 
@@ -382,6 +405,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars['String']>,
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>,
+  BannedUser: ResolverTypeWrapper<BannedUser>,
   ColonyEvent: ResolversTypes['CreateDomainEvent'],
   CreateDomainEvent: ResolverTypeWrapper<CreateDomainEvent>,
   Int: ResolverTypeWrapper<Scalars['Int']>,
@@ -393,17 +417,13 @@ export type ResolversTypes = {
   LevelStatus: LevelStatus,
   CreateUserInput: CreateUserInput,
   EditUserInput: EditUserInput,
-  CreateWorkRequestInput: CreateWorkRequestInput,
-  SendWorkInviteInput: SendWorkInviteInput,
-  AssignWorkerInput: AssignWorkerInput,
-  UnassignWorkerInput: UnassignWorkerInput,
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
   MarkNotificationAsReadInput: MarkNotificationAsReadInput,
-  EditDomainNameInput: EditDomainNameInput,
   SetUserTokensInput: SetUserTokensInput,
-  Payout: Payout,
   SendTransactionMessageInput: SendTransactionMessageInput,
+  DeleteTransactionMessageInput: DeleteTransactionMessageInput,
+  BanTransactionMessagesInput: BanTransactionMessagesInput,
   Mutation: ResolverTypeWrapper<{}>,
   ProgramStatus: ProgramStatus,
   Query: ResolverTypeWrapper<{}>,
@@ -423,6 +443,7 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   String: Scalars['String'],
   Boolean: Scalars['Boolean'],
+  BannedUser: BannedUser,
   ColonyEvent: ResolversParentTypes['CreateDomainEvent'],
   CreateDomainEvent: CreateDomainEvent,
   Int: Scalars['Int'],
@@ -434,17 +455,13 @@ export type ResolversParentTypes = {
   LevelStatus: LevelStatus,
   CreateUserInput: CreateUserInput,
   EditUserInput: EditUserInput,
-  CreateWorkRequestInput: CreateWorkRequestInput,
-  SendWorkInviteInput: SendWorkInviteInput,
-  AssignWorkerInput: AssignWorkerInput,
-  UnassignWorkerInput: UnassignWorkerInput,
   SubscribeToColonyInput: SubscribeToColonyInput,
   UnsubscribeFromColonyInput: UnsubscribeFromColonyInput,
   MarkNotificationAsReadInput: MarkNotificationAsReadInput,
-  EditDomainNameInput: EditDomainNameInput,
   SetUserTokensInput: SetUserTokensInput,
-  Payout: Payout,
   SendTransactionMessageInput: SendTransactionMessageInput,
+  DeleteTransactionMessageInput: DeleteTransactionMessageInput,
+  BanTransactionMessagesInput: BanTransactionMessagesInput,
   Mutation: {},
   ProgramStatus: ProgramStatus,
   Query: {},
@@ -458,6 +475,15 @@ export type ResolversParentTypes = {
   UserProfile: UserProfile,
   GraphQLDateTime: Scalars['GraphQLDateTime'],
   EventType: EventType,
+};
+
+export type BannedUserResolvers<ContextType = any, ParentType extends ResolversParentTypes['BannedUser'] = ResolversParentTypes['BannedUser']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  profile?: Resolver<Maybe<ResolversTypes['UserProfile']>, ParentType, ContextType>,
+  eventId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>,
+  event?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType>,
+  banned?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
+  __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
 export type ColonyEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['ColonyEvent'] = ResolversParentTypes['ColonyEvent']> = {
@@ -483,6 +509,9 @@ export type TransactionMessageEventResolvers<ContextType = any, ParentType exten
   transactionHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
   colonyAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>,
+  deleted?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>,
+  adminDelete?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>,
+  userBanned?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>,
   __isTypeOf?: isTypeOfResolverFn<ParentType>,
 };
 
@@ -511,6 +540,10 @@ export type NotificationResolvers<ContextType = any, ParentType extends Resolver
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   sendTransactionMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendTransactionMessageArgs, 'input'>>,
+  deleteTransactionMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteTransactionMessageArgs, 'input'>>,
+  undeleteTransactionMessage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUndeleteTransactionMessageArgs, 'input'>>,
+  banUserTransactionMessages?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationBanUserTransactionMessagesArgs, 'input'>>,
+  unbanUserTransactionMessages?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUnbanUserTransactionMessagesArgs, 'input'>>,
   markAllNotificationsAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>,
   markNotificationAsRead?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationMarkNotificationAsReadArgs, 'input'>>,
   createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>,
@@ -527,6 +560,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   systemInfo?: Resolver<ResolversTypes['SystemInfo'], ParentType, ContextType>,
   transactionMessages?: Resolver<ResolversTypes['TransactionMessages'], ParentType, ContextType, RequireFields<QueryTransactionMessagesArgs, 'transactionHash'>>,
   transactionMessagesCount?: Resolver<ResolversTypes['TransactionMessagesCount'], ParentType, ContextType, RequireFields<QueryTransactionMessagesCountArgs, 'colonyAddress'>>,
+  bannedUsers?: Resolver<Array<Maybe<ResolversTypes['BannedUser']>>, ParentType, ContextType, RequireFields<QueryBannedUsersArgs, 'colonyAddress'>>,
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
@@ -594,6 +628,7 @@ export interface GraphQlDateTimeScalarConfig extends GraphQLScalarTypeConfig<Res
 }
 
 export type Resolvers<ContextType = any> = {
+  BannedUser?: BannedUserResolvers<ContextType>,
   ColonyEvent?: ColonyEventResolvers,
   CreateDomainEvent?: CreateDomainEventResolvers<ContextType>,
   NewUserEvent?: NewUserEventResolvers<ContextType>,

@@ -1,4 +1,4 @@
-export const ETH_ADDRESS = '0x0000000000000000000000000000000000000000'
+export const ROOT_DOMAIN = 1
 
 /*
  * @NOTE Only used for dev purpouses
