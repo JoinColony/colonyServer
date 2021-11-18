@@ -238,8 +238,27 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
         {
           $lookup: {
             from: this.collections.eventBans.collection.collectionName,
-            localField: 'initiatorAddress',
-            foreignField: 'bannedWalletAddresses.userAddress',
+            let: {
+              colonyAddress: '$context.colonyAddress',
+              userAddress: '$initiatorAddress',
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ['$colonyAddress', '$$colonyAddress'] },
+                      {
+                        $in: [
+                          '$$userAddress',
+                          '$bannedWalletAddresses.userAddress',
+                        ],
+                      },
+                    ],
+                  },
+                },
+              },
+            ],
             as: 'eventBans',
           },
         },
