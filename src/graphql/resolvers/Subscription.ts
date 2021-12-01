@@ -52,22 +52,25 @@ export const subscription = (pubsub) => ({
   transactionMessagesCount: {
     resolve: async ({ colonyAddress }, args, { dataSources: { data } }) =>
       await getTransactionMessagesCount(colonyAddress, data),
-    subscribe: (args, { colonyAddress }) => {
-      /*
-       * @NOTE We need a client id to publish the subscription to, otherwise
-       * each new client subscription will reset and re-send all the subscription
-       * data out again
-       */
-      const id = uuidv4()
-      process.nextTick(() => pubsub.publish(id, { colonyAddress }))
-      return pubsub.asyncIterator([
-        id,
-        SubscriptionLabel.TransactionMessageAdded,
-        SubscriptionLabel.TransactionMessageUpdated,
-        SubscriptionLabel.UserWasBanned,
-        SubscriptionLabel.UserWasUnBanned,
-      ])
-    },
+    subscribe: withFilter(
+      (args, { colonyAddress }) => {
+        /*
+         * @NOTE We need a client id to publish the subscription to, otherwise
+         * each new client subscription will reset and re-send all the subscription
+         * data out again
+         */
+        const id = uuidv4()
+        process.nextTick(() => pubsub.publish(id, { colonyAddress }))
+        return pubsub.asyncIterator([
+          id,
+          SubscriptionLabel.TransactionMessageAdded,
+          SubscriptionLabel.TransactionMessageUpdated,
+          SubscriptionLabel.UserWasBanned,
+          SubscriptionLabel.UserWasUnBanned,
+        ])
+      },
+      (payload, variables) => payload.colonyAddress === variables.colonyAddress,
+    ),
   },
   subscribedUsers: {
     resolve: async ({ colonyAddress }, args, { dataSources: { data } }) =>
