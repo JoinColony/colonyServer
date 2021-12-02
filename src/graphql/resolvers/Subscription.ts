@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
+import { withFilter } from 'graphql-subscriptions'
 
 import {
   getTransactionMessages,
@@ -27,58 +28,68 @@ export const subscription = (pubsub) => ({
   transactionMessages: {
     resolve: async ({ transactionHash }, args, { dataSources: { data } }) =>
       await getTransactionMessages(transactionHash, data),
-    subscribe: (args, { transactionHash }) => {
-      /*
-       * @NOTE We need a client id to publish the subscription to, otherwise
-       * each new client subscription will reset and re-send all the subscription
-       * data out again
-       */
-      const id = uuidv4()
-      process.nextTick(() => pubsub.publish(id, { transactionHash }))
-      return pubsub.asyncIterator([
-        id,
-        SubscriptionLabel.TransactionMessageAdded,
-        SubscriptionLabel.TransactionMessageUpdated,
-        SubscriptionLabel.UserWasBanned,
-        SubscriptionLabel.UserWasUnBanned,
-      ])
-    },
+    subscribe: withFilter(
+      (args, { transactionHash }) => {
+        /*
+         * @NOTE We need a client id to publish the subscription to, otherwise
+         * each new client subscription will reset and re-send all the subscription
+         * data out again
+         */
+        const id = uuidv4()
+        process.nextTick(() => pubsub.publish(id, { transactionHash }))
+        return pubsub.asyncIterator([
+          id,
+          SubscriptionLabel.TransactionMessageAdded,
+          SubscriptionLabel.TransactionMessageUpdated,
+          SubscriptionLabel.UserWasBanned,
+          SubscriptionLabel.UserWasUnBanned,
+        ])
+      },
+      (payload, variables) =>
+        payload.transactionHash === variables.transactionHash,
+    ),
   },
   transactionMessagesCount: {
     resolve: async ({ colonyAddress }, args, { dataSources: { data } }) =>
       await getTransactionMessagesCount(colonyAddress, data),
-    subscribe: (args, { colonyAddress }) => {
-      /*
-       * @NOTE We need a client id to publish the subscription to, otherwise
-       * each new client subscription will reset and re-send all the subscription
-       * data out again
-       */
-      const id = uuidv4()
-      process.nextTick(() => pubsub.publish(id, { colonyAddress }))
-      return pubsub.asyncIterator([
-        id,
-        SubscriptionLabel.TransactionMessageAdded,
-        SubscriptionLabel.TransactionMessageUpdated,
-        SubscriptionLabel.UserWasBanned,
-        SubscriptionLabel.UserWasUnBanned,
-      ])
-    },
+    subscribe: withFilter(
+      (args, { colonyAddress }) => {
+        /*
+         * @NOTE We need a client id to publish the subscription to, otherwise
+         * each new client subscription will reset and re-send all the subscription
+         * data out again
+         */
+        const id = uuidv4()
+        process.nextTick(() => pubsub.publish(id, { colonyAddress }))
+        return pubsub.asyncIterator([
+          id,
+          SubscriptionLabel.TransactionMessageAdded,
+          SubscriptionLabel.TransactionMessageUpdated,
+          SubscriptionLabel.UserWasBanned,
+          SubscriptionLabel.UserWasUnBanned,
+        ])
+      },
+      (payload, variables) => payload.colonyAddress === variables.colonyAddress,
+    ),
   },
   subscribedUsers: {
     resolve: async ({ colonyAddress }, args, { dataSources: { data } }) =>
       await getSubscribedUsers(colonyAddress, data),
-    subscribe: (args, { colonyAddress }) => {
-      /*
-       * @NOTE We need a client id to publish the subscription to, otherwise
-       * each new client subscription will reset and re-send all the subscription
-       * data out again
-       */
-      const id = uuidv4()
-      process.nextTick(() => pubsub.publish(id, { colonyAddress }))
-      return pubsub.asyncIterator([
-        id,
-        SubscriptionLabel.ColonySubscriptionUpdated,
-      ])
-    },
+    subscribe: withFilter(
+      (args, { colonyAddress }) => {
+        /*
+         * @NOTE We need a client id to publish the subscription to, otherwise
+         * each new client subscription will reset and re-send all the subscription
+         * data out again
+         */
+        const id = uuidv4()
+        process.nextTick(() => pubsub.publish(id, { colonyAddress }))
+        return pubsub.asyncIterator([
+          id,
+          SubscriptionLabel.ColonySubscriptionUpdated,
+        ])
+      },
+      (payload, variables) => payload.colonyAddress === variables.colonyAddress,
+    ),
   },
 })
