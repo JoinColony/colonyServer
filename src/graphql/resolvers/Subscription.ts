@@ -26,17 +26,20 @@ import { SubscriptionLabel } from '../subscriptionTypes'
  */
 export const subscription = (pubsub) => ({
   transactionMessages: {
-    resolve: async ({ transactionHash }, args, { dataSources: { data } }) =>
-      await getTransactionMessages(transactionHash, data),
+    resolve: async (
+      { transactionHash, limit },
+      args,
+      { dataSources: { data } },
+    ) => await getTransactionMessages(transactionHash, limit, data),
     subscribe: withFilter(
-      (args, { transactionHash }) => {
+      (args, { transactionHash, limit }) => {
         /*
          * @NOTE We need a client id to publish the subscription to, otherwise
          * each new client subscription will reset and re-send all the subscription
          * data out again
          */
         const id = uuidv4()
-        process.nextTick(() => pubsub.publish(id, { transactionHash }))
+        process.nextTick(() => pubsub.publish(id, { transactionHash, limit }))
         return pubsub.asyncIterator([
           id,
           SubscriptionLabel.TransactionMessageAdded,

@@ -6,7 +6,10 @@ export default gql`
     subscribedUsers(colonyAddress: String!): [User!]!
     tokenInfo(address: String!): TokenInfo!
     systemInfo: SystemInfo!
-    transactionMessages(transactionHash: String!): TransactionMessages!
+    transactionMessages(
+      transactionHash: String!
+      limit: Int
+    ): TransactionMessages!
     transactionMessagesCount(colonyAddress: String!): TransactionMessagesCount!
     bannedUsers(colonyAddress: String!): [BannedUser]!
   }

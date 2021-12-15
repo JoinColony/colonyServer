@@ -6,8 +6,8 @@ import { NetworkTokenInfo } from '../../external/tokenInfoDataSource'
 import { SystemDataSource } from '../../external/systemDataSource'
 import { getTokenDecimalsWithFallback } from '../../utils'
 
-export const getTransactionMessages = async (transactionHash, data) => {
-  const messages = await data.getTransactionMessages(transactionHash)
+export const getTransactionMessages = async (transactionHash, limit, data) => {
+  const messages = await data.getTransactionMessages(transactionHash, limit)
   return {
     transactionHash,
     messages,
@@ -80,10 +80,13 @@ export const Query: QueryResolvers<ApolloContext> = {
   },
   async transactionMessages(
     parent,
-    { transactionHash }: { transactionHash: string },
+    {
+      transactionHash,
+      limit = 1000,
+    }: { transactionHash: string; limit?: number },
     { dataSources: { data } },
   ) {
-    return await getTransactionMessages(transactionHash, data)
+    return await getTransactionMessages(transactionHash, limit, data)
   },
   async transactionMessagesCount(
     parent,

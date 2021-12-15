@@ -226,6 +226,7 @@ export type QueryTokenInfoArgs = {
 
 export type QueryTransactionMessagesArgs = {
   transactionHash: Scalars['String'];
+  limit?: Maybe<Scalars['Int']>;
 };
 
 
@@ -248,6 +249,7 @@ export type Subscription = {
 
 export type SubscriptionTransactionMessagesArgs = {
   transactionHash: Scalars['String'];
+  limit?: Maybe<Scalars['Int']>;
 };
 
 

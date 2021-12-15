@@ -231,7 +231,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return ColonyMongoDataSource.transformToken(token)
   }
 
-  async getTransactionMessages(transactionHash: string) {
+  async getTransactionMessages(transactionHash: string, limit: number = 1000) {
     const events = await this.collections.events.collection
       .aggregate([
         { $match: { 'context.transactionHash': transactionHash } },
@@ -274,6 +274,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
           },
         },
         { $project: { eventBans: 0 } },
+        { $limit: limit },
       ])
       .toArray()
     return events.map(ColonyMongoDataSource.transformEvent)
