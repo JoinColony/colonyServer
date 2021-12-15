@@ -274,10 +274,11 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
           },
         },
         { $project: { eventBans: 0 } },
+        { $sort: { _id: -1 } },
         { $limit: limit },
       ])
       .toArray()
-    return events.map(ColonyMongoDataSource.transformEvent)
+    return events.reverse().map(ColonyMongoDataSource.transformEvent)
   }
 
   async getTransactionMessagesCount(colonyAddress: string, ttl?: number) {
