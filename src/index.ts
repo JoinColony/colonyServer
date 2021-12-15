@@ -42,6 +42,8 @@ const startServer = async () => {
     return res.json({ token, address })
   })
 
+  app.get('/liveness', (req, res) => res.sendStatus(200))
+
   apolloServer.applyMiddleware({ app })
   const websocketServer = createServer(app)
 
