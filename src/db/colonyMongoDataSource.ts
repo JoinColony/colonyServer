@@ -235,6 +235,8 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     const events = await this.collections.events.collection
       .aggregate([
         { $match: { 'context.transactionHash': transactionHash } },
+        { $sort: { _id: -1 } },
+        { $limit: limit },
         {
           $lookup: {
             from: this.collections.eventBans.collection.collectionName,
@@ -274,8 +276,6 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
           },
         },
         { $project: { eventBans: 0 } },
-        { $sort: { _id: -1 } },
-        { $limit: limit },
       ])
       .toArray()
     return events.reverse().map(ColonyMongoDataSource.transformEvent)
