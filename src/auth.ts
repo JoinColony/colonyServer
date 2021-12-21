@@ -8,7 +8,7 @@ export const getTokenForAddress = (address: string) =>
   JWT.sign({ address }, JWT_KEY, {
     algorithm: 'HS256',
     audience: 'https://api.colony.io',
-    expiresIn: '2 hours',
+    expiresIn: '2 days',
     header: {
       typ: 'JWT',
     },
