@@ -6,7 +6,7 @@ config()
 const MONGOD_VERSION = '4.2.7'
 
 const startMongod = async () => {
-  const mongod = new MongoMemoryServer({
+  const mongod = await MongoMemoryServer.create({
     instance: {
       port: 27018,
       dbName: 'colonyServer',
@@ -15,7 +15,7 @@ const startMongod = async () => {
       version: MONGOD_VERSION,
     },
   })
-  const uri = await mongod.getUri()
+  const uri = mongod.getUri()
   console.log(`MongoDB server v${MONGOD_VERSION} running on ${uri}`)
 }
 
