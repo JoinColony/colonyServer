@@ -4,6 +4,7 @@ export default gql`
   type Query {
     user(address: String!): User!
     userByName(username: String!): User!
+    topUsers(limit: Int): [User]!
     subscribedUsers(colonyAddress: String!): [User!]!
     tokenInfo(address: String!): TokenInfo!
     systemInfo: SystemInfo!

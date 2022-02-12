@@ -32,6 +32,9 @@ export const Query: QueryResolvers<ApolloContext> = {
   async userByName(parent, { username }, { dataSources: { data } }) {
     return data.getUserByName(username)
   },
+  async topUsers(parent, { limit = 10 }, { dataSources: { data } }) {
+    return await data.getTopUsers(limit)
+  },
   async subscribedUsers(
     parent,
     { colonyAddress }: { colonyAddress: string },

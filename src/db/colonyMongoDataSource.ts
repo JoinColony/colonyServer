@@ -157,6 +157,17 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
     return docs.map(ColonyMongoDataSource.transformUser)
   }
 
+  async getTopUsers(limit: number = 10, ttl?: number) {
+    const query = {}
+    const docs = ttl
+      ? await this.collections.users.findManyByQuery(query, { ttl })
+      : await this.collections.users.collection
+          .find(query)
+          .limit(limit)
+          .toArray()
+    return docs.map(ColonyMongoDataSource.transformUser)
+  }
+
   async getEventById(eventId: string, ttl?: number) {
     const query = { _id: ObjectID(eventId) }
     const [doc] = ttl
