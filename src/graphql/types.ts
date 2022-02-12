@@ -200,6 +200,7 @@ export enum ProgramStatus {
 export type Query = {
    __typename?: 'Query';
   user: User;
+  userByName: User;
   subscribedUsers: Array<User>;
   tokenInfo: TokenInfo;
   systemInfo: SystemInfo;
@@ -211,6 +212,11 @@ export type Query = {
 
 export type QueryUserArgs = {
   address: Scalars['String'];
+};
+
+
+export type QueryUserByNameArgs = {
+  username: Scalars['String'];
 };
 
 
@@ -557,6 +563,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'address'>>,
+  userByName?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserByNameArgs, 'username'>>,
   subscribedUsers?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QuerySubscribedUsersArgs, 'colonyAddress'>>,
   tokenInfo?: Resolver<ResolversTypes['TokenInfo'], ParentType, ContextType, RequireFields<QueryTokenInfoArgs, 'address'>>,
   systemInfo?: Resolver<ResolversTypes['SystemInfo'], ParentType, ContextType>,

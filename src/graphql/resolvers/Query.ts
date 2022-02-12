@@ -29,6 +29,9 @@ export const Query: QueryResolvers<ApolloContext> = {
   async user(parent, { address }, { dataSources: { data } }) {
     return data.getUserByAddress(address)
   },
+  async userByName(parent, { username }, { dataSources: { data } }) {
+    return data.getUserByName(username)
+  },
   async subscribedUsers(
     parent,
     { colonyAddress }: { colonyAddress: string },
