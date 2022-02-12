@@ -5,8 +5,11 @@ import cors from 'cors'
 import { getChallenge, verifyEthSignature } from 'etherpass'
 import { getAddress } from 'ethers/utils'
 import { createServer } from 'http'
+import createFeederService from './feeder'
+import { errors } from 'ethers'
 
 config()
+errors.setLogLevel('error')
 
 import { createApolloServer, createSubscriptionServer } from './graphql'
 import { getTokenForAddress } from './auth'
@@ -49,6 +52,7 @@ const startServer = async () => {
 
   websocketServer.listen(port, () => {
     createSubscriptionServer(websocketServer, apolloServer.graphqlPath)
+    createFeederService(provider, db)
     console.log(`Started on port ${port}`)
     if (isDevelopment) {
       console.log(

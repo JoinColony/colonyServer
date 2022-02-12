@@ -64,9 +64,11 @@ export class ColonyMongoApi {
     )
   }
 
-  private async tryGetUser(walletAddress: string) {
+  private async tryGetUser(walletAddress: string, assertive: boolean = true) {
     const user = await this.users.findOne({ walletAddress })
-    assert.ok(!!user, `User with address '${walletAddress}' not found`)
+    if (assertive) {
+      assert.ok(!!user, `User with address '${walletAddress}' not found`)
+    }
     return user
   }
 
