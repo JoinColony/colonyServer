@@ -1,11 +1,12 @@
 import { Network, getColonyNetworkClient } from '@colony/colony-js'
-// import { IColonyNetwork__factory as IColonyNetworkFactory} from '@colony/colony-js/lib/contracts/colony/9/factories/IColonyNetwork__factory';
-import { ColonyMongoApi } from '../db/colonyMongoApi'
+// import { ColonyMongoApi } from '../db/colonyMongoApi'
+import { FaunaApi } from '../fauna/faunaApi'
 
 import { userLabelFeederTask } from './tasks'
 
-const createFeederService = async (provider, db) => {
-  const api = new ColonyMongoApi(db, null)
+const createFeederService = async (provider, db, faunaClient) => {
+  // const api = new ColonyMongoApi(db, null)
+  const faunaApi = new FaunaApi(faunaClient)
 
   let interval = 10000
   if (
@@ -35,7 +36,7 @@ const createFeederService = async (provider, db) => {
     const { number: newBlock } = await provider.getBlock()
     if (newBlock > currentBlock) {
       // run feeder tasks
-      await userLabelFeederTask(networkClient, api, currentBlock, newBlock)
+      await userLabelFeederTask(networkClient, faunaApi, currentBlock, newBlock)
       // end feeder tasks
       currentBlock = newBlock
       console.log('Updated Current Block:', currentBlock)

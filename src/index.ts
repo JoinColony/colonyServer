@@ -14,11 +14,13 @@ errors.setLogLevel('error')
 import { createApolloServer, createSubscriptionServer } from './graphql'
 import { getTokenForAddress } from './auth'
 import { connect } from './db/connect'
+import faunaClientInstance from './fauna/client'
 import { provider } from './network/provider'
 import { isDevelopment } from './env'
 
 const startServer = async () => {
   const { db } = await connect()
+  const faunaClient = await faunaClientInstance
   const apolloServer = createApolloServer(db, provider)
 
   const app = express()
@@ -52,7 +54,7 @@ const startServer = async () => {
 
   websocketServer.listen(port, () => {
     createSubscriptionServer(websocketServer, apolloServer.graphqlPath)
-    createFeederService(provider, db)
+    createFeederService(provider, db, faunaClient)
     console.log(`Started on port ${port}`)
     if (isDevelopment) {
       console.log(

@@ -26,15 +26,12 @@ const userLabel = async (networkClient, api, startBlock, endBlock) => {
     const walletAddress = getAddress(event.values.user)
 
     try {
-      const user = await api.tryGetUser(walletAddress, false)
-      if (!user) {
-        await api.createUser(walletAddress, username)
-        console.log(
-          'Found Registered User Label:',
-          username,
-          `(block ${log.blockNumber})`,
-        )
-      }
+      await api.createUser(walletAddress, username)
+      console.log(
+        'Found Registered User Label:',
+        username,
+        `(block ${log.blockNumber})`,
+      )
     } catch (error) {
       console.error(
         'Could not create user:',
