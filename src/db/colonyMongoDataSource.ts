@@ -147,7 +147,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   async getEventById(eventId: string, ttl?: number) {
-    const query = { _id: ObjectID(eventId) }
+    const query = { _id: new ObjectID(eventId) }
     const [doc] = ttl
       ? await this.collections.events.findManyByQuery(query, { ttl })
       : [await this.collections.events.collection.findOne(query)]
