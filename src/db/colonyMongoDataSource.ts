@@ -135,18 +135,22 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       ? await this.collections.users.findManyByQuery(query, { ttl })
       : [await this.collections.users.collection.findOne(query)]
 
-    console.log('[DEBUG] User document', doc)
-    console.log(
-      '[DEBUG] Collection',
-      await this.collections.users.collection.countDocuments(),
-    )
-    console.log(
-      '[DEBUG] All Collections',
-      (await this.db.listCollections().toArray()).map(({ name }) => name),
-    )
-    console.log('[DEBUG] DB Stats', await this.db.stats())
-    console.log('[DEBUG] DB Slave OK', await this.db.slaveOk)
-    console.log('[DEBUG] DB Write Concern', await this.db.writeConcern)
+    try {
+      console.log('[DEBUG] User document', doc)
+      console.log(
+        '[DEBUG] Collection',
+        await this.collections.users.collection.countDocuments(),
+      )
+      console.log(
+        '[DEBUG] All Collections',
+        (await this.db.listCollections().toArray()).map(({ name }) => name),
+      )
+      console.log('[DEBUG] DB Stats', await this.db.stats())
+      console.log('[DEBUG] DB Slave OK', await this.db.slaveOk)
+      console.log('[DEBUG] DB Write Concern', await this.db.writeConcern)
+    } catch (error) {
+      console.log('[DEBUG FAIL!!!]', error)
+    }
 
     if (!doc) throw new Error(`User with address '${walletAddress}' not found`)
 
