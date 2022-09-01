@@ -136,6 +136,10 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       : [await this.collections.users.collection.findOne(query)]
 
     try {
+      console.log(
+        '[DEBUG] Query is requesting user with address',
+        walletAddress,
+      )
       console.log('[DEBUG] User document', doc)
       console.log(
         '[DEBUG] Collection',
