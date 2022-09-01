@@ -24,6 +24,7 @@ interface Collections {
 export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   implements DataSource<any> {
   public readonly collections: Collections
+  db: any
 
   constructor(db: Db) {
     super([
@@ -33,6 +34,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       db.collection(CollectionNames.Tokens),
       db.collection(CollectionNames.Users),
     ])
+    this.db = db
   }
 
   // This shouldn't be necessary, but there were problems with the GraphQL types
@@ -133,6 +135,19 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
       ? await this.collections.users.findManyByQuery(query, { ttl })
       : [await this.collections.users.collection.findOne(query)]
 
+    console.log('[DEBUG] User document', doc)
+    console.log(
+      '[DEBUG] Collection',
+      await this.collections.users.collection.countDocuments(),
+    )
+    console.log(
+      '[DEBUG] All Collections',
+      (await this.db.listCollections().toArray()).map(({ name }) => name),
+    )
+    console.log('[DEBUG] DB Stats', await this.db.stats())
+    console.log('[DEBUG] DB Slave OK', await this.db.slaveOk)
+    console.log('[DEBUG] DB Write Concern', await this.db.writeConcern)
+
     if (!doc) throw new Error(`User with address '${walletAddress}' not found`)
 
     return ColonyMongoDataSource.transformUser(doc)
@@ -147,7 +162,7 @@ export class ColonyMongoDataSource extends MongoDataSource<Collections, {}>
   }
 
   async getEventById(eventId: string, ttl?: number) {
-    const query = { _id: ObjectID(eventId) }
+    const query = { _id: new ObjectID(eventId) }
     const [doc] = ttl
       ? await this.collections.events.findManyByQuery(query, { ttl })
       : [await this.collections.events.collection.findOne(query)]

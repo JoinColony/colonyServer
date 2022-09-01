@@ -71,7 +71,7 @@ export class ColonyMongoApi {
   }
 
   private async tryGetComment(id: string, assertive: boolean = true) {
-    const eventMessage = await this.events.findOne(ObjectID(id))
+    const eventMessage = await this.events.findOne(new ObjectID(id))
     if (assertive) {
       assert.ok(!!eventMessage, `Comment "${id}" does not exist`)
     }
@@ -420,7 +420,7 @@ export class ColonyMongoApi {
         $addToSet: {
           bannedWalletAddresses: {
             userAddress,
-            eventId: ObjectID(eventId),
+            eventId: (new ObjectID(eventId) as unknown) as string,
           },
         },
       },
