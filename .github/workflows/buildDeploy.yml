@@ -4,6 +4,7 @@ on:
 
   workflow_dispatch: # Allows manual workflow trigger
   repository_dispatch: # Allows API workflow trigger
+    types: [Build backend request from Chewie]
 
   # Triggers the workflow on pull request events but only for the "main" branch
   # pull_request:
