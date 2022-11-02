@@ -1,5 +1,5 @@
 import { CollectionCreateOptions, IndexOptions } from 'mongodb'
-import { AddressZero } from 'ethers/constants'
+import { blockchainNetwork, addressZeroToken } from '../env'
 import {
   ColonyDoc,
   DomainDoc,
@@ -769,11 +769,11 @@ export const COLLECTIONS_MANIFEST: CollectionsManifest = new Map([
       indexes: [['address', {}]],
       seedDocs: [
         {
-          name: 'xDai Token',
-          symbol: 'XDAI',
-          address: AddressZero,
-          creatorAddress: '',
-          decimals: 18,
+          name: addressZeroToken[blockchainNetwork].name,
+          symbol: addressZeroToken[blockchainNetwork].symbol,
+          address: addressZeroToken[blockchainNetwork].address,
+          creatorAddress: addressZeroToken[blockchainNetwork].creatorAddress,
+          decimals: addressZeroToken[blockchainNetwork].decimals,
         },
       ] as TokenDoc[],
     },
