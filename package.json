@@ -45,7 +45,7 @@
     "graphql": "15.0.0",
     "graphql-iso-date": "3.6.1",
     "graphql-tools": "5.0.1-ffb435a.0",
-    "jose": "1.26.1",
+    "jose": "1.28.1",
     "linkify-it": "2.2.0",
     "mongodb": "3.5.7",
     "subscriptions-transport-ws": "^0.9.19",
