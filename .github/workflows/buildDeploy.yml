@@ -4,6 +4,7 @@ on:
 
   workflow_dispatch: # Allows manual workflow trigger
   repository_dispatch: # Allows API workflow trigger
+    types: [Build backend request from Chewie]
 
   # Triggers the workflow on pull request events but only for the "main" branch
   # pull_request:
@@ -15,7 +16,7 @@ env:
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
   AWS_REGION: eu-west-2
   ECR_REPOSITORY: app-backend
-  IMAGE_TAG: ${{ github.event.client_payload.COMMIT_HASH != null || github.sha }}
+  IMAGE_TAG: ${{ github.event.client_payload.COMMIT_HASH != null && github.event.client_payload.COMMIT_HASH || github.sha }}
   KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
   KUBE_NAMESPACE: default
   DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
