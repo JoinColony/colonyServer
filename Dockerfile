@@ -11,7 +11,8 @@ RUN apt-get install -y \
   build-essential \
   curl \
   file \
-  zip
+  zip \
+  multiarch-support
 
 # Reconfigure locales
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
