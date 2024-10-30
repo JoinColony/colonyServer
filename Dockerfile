@@ -1,4 +1,4 @@
-FROM node:14.18.0
+FROM node:14.18.0-bullseye
 
 # Update the apt cache
 RUN apt-get clean
