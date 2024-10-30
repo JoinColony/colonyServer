@@ -22,7 +22,7 @@ RUN npm i -g npm@8 --registry=https://registry.npmjs.org
 
 # Install version 1.0.0 of libssl
 # Required by Mongo
-RUN wget http://security.debian.org/debian-security/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u12_amd64.deb
+RUN wget http://archive.debian.org/debian-security/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u12_amd64.deb
 RUN dpkg -i libssl1.0.0_1.0.1t-1+deb8u12_amd64.deb
 
 # Install MongoDB
