@@ -29,5 +29,12 @@ export const getAddressFromToken = (token: string) => {
     throw new Error('Authentication token expired')
   }
 
+  // Verify the JWT signature
+  JWT.verify(token, JWT_KEY, {
+    algorithms: ['HS256'],
+    audience: 'https://api.colony.io',
+    issuer: 'https://colony.io',
+  })
+
   return address
 }
