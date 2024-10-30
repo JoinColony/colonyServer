@@ -20,30 +20,9 @@ RUN locale-gen
 # Install new version of NPM
 RUN npm i -g npm@8 --registry=https://registry.npmjs.org
 
-# RUN wget http://security.debian.org/debian-security/pool/updates/main/g/glibc/multiarch-support_2.28-10+deb10u4_amd64.deb
-# RUN dpkg -i multiarch-support_2.28-10+deb10u4_amd64.deb
-
-# RUN wget http://ftp.ro.debian.org/debian/pool/main/c/curl/libcurl3-gnutls_7.74.0-1.3+deb11u13_amd64.deb
-# RUN dpkg -i libcurl3-gnutls_7.74.0-1.3+deb11u13_amd64.deb
-
-# Install version 1.0.0 of libssl
-# Required by Mongo
-# RUN wget http://archive.debian.org/debian-security/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u12_amd64.deb
-# RUN dpkg -i libssl1.0.0_1.0.1t-1+deb8u12_amd64.deb
-
 # Install MongoDB
-# RUN wget https://repo.mongodb.org/apt/ubuntu/dists/xenial/mongodb-org/4.4/multiverse/binary-amd64/mongodb-org-server_4.4.29_amd64.deb
-# RUN dpkg -i mongodb-org-server_4.4.29_amd64.deb
-
-# RUN wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | apt-key add - && \
-#   echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.4 main" | tee /etc/apt/sources.list.d/mongodb-org-4.4.list && \
-
-# Add MongoDB 4.4 repository and install
-RUN wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | apt-key add - && \
-  echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.4 main" | tee /etc/apt/sources.list.d/mongodb-org-4.4.list && \
-  apt-get update && \
-  apt-get install -y mongodb-org && \
-  rm -rf /var/lib/apt/lists/*
+RUN wget https://repo.mongodb.org/apt/ubuntu/dists/bionic/mongodb-org/4.2/multiverse/binary-amd64/mongodb-org-server_4.2.2_amd64.deb
+RUN dpkg -i mongodb-org-server_4.2.2_amd64.deb
 
 # Copy colonyServer
 COPY . ./colonyServer
