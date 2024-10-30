@@ -36,7 +36,7 @@ RUN npm i --force
 RUN npm run build
 
 # Create mongo's data and logs folders
-RUN mkdir logs
+RUN mkdir mongo-data logs
 
 # Expose the Apollo Server's port
 EXPOSE 3000
