@@ -30,12 +30,11 @@ export const getAddressFromToken = (token: string) => {
   }
 
   // Verify the JWT signature
-  const res = JWT.verify(token, JWT_KEY, {
+  JWT.verify(token, JWT_KEY, {
     algorithms: ['HS256'],
     audience: 'https://api.colony.io',
     issuer: 'https://colony.io',
   })
-  console.log(res)
 
   return address
 }
